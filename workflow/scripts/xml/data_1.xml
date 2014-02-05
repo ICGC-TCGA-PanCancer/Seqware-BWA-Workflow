@@ -1,305 +1,219 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<ResultSet date="2014-01-31 10:49:43" id="764904400">
-	<Query>analysis_id:048de7d8-682f-4e72-99d9-be2d072af67b</Query>
+<ResultSet date="2014-02-04 12:27:45" id="30441232">
+	<Query>analysis_id:00763e0b-7201-401f-8f0f-afb39b6def8f</Query>
 	<Hits>1</Hits>
 	<Result id="1">
-		<analysis_id>048de7d8-682f-4e72-99d9-be2d072af67b</analysis_id>
+		<analysis_id>00763e0b-7201-401f-8f0f-afb39b6def8f</analysis_id>
 		<state>live</state>
 		<reason></reason>
-		<last_modified>2013-05-16T20:43:50Z</last_modified>
-		<upload_date>2012-08-16T05:49:07Z</upload_date>
-		<published_date>2012-08-17T08:13:16Z</published_date>
-		<center_name>UCSC</center_name>
-		<study>TCGA_MUT_BENCHMARK_4</study>
-		<aliquot_id>874f6cbb-b293-45b3-85a0-7aa1bc1b5f46</aliquot_id>
+		<last_modified>2014-02-03T07:13:01Z</last_modified>
+		<upload_date>2014-02-03T07:07:27Z</upload_date>
+		<published_date>2014-02-03T07:13:01Z</published_date>
+		<center_name>CGHUB</center_name>
+		<study>icgc_pancancer</study>
+		<aliquot_id>98a2eb02-7bcf-4134-ab7e-943391710e98</aliquot_id>
 		<files>
 			<file>
-				<filename>HCC1143.mix1.n95t5.bam</filename>
-				<filesize>135709788530</filesize>
-				<checksum type="MD5">3ab4a3d8a0e4e4e101a0f660073e3812</checksum>
-			</file>
-			<file>
-				<filename>HCC1143.mix1.n95t5.bam.bai</filename>
-				<filesize>8916320</filesize>
-				<checksum type="md5">d235a1bd856ee607518ce37c563239c9</checksum>
+				<filename>4-mb-real-testfile.bam</filename>
+				<filesize>4755231</filesize>
+				<checksum type="MD5">0e4f1bd5c5cc83b37d6c511dda98866c</checksum>
 			</file>
 		</files>
 		<sample_accession></sample_accession>
-		<legacy_sample_id></legacy_sample_id>
-		<disease_abbr></disease_abbr>
-		<tss_id></tss_id>
-		<participant_id></participant_id>
-		<sample_id></sample_id>
-		<analyte_code></analyte_code>
-		<sample_type></sample_type>
-		<library_strategy>WGS</library_strategy>
-		<platform>ILLUMINA</platform>
-		<refassem_short_name>GRCh37_BI_Variant</refassem_short_name>
+		<legacy_sample_id>TEST-DK-A1AE-01A-11D-A13U-02</legacy_sample_id>
+		<disease_abbr>TEST</disease_abbr>
+		<tss_id>DD</tss_id>
+		<participant_id>CGTest-Participant</participant_id>
+		<sample_id>CGTest-Sample</sample_id>
+		<analyte_code>D</analyte_code>
+		<sample_type>01</sample_type>
+		<library_strategy>WXS</library_strategy>
+		<platform></platform>
+		<refassem_short_name>HG19</refassem_short_name>
 		<analysis_xml>
 <ANALYSIS_SET xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.ncbi.nlm.nih.gov/viewvc/v1/trunk/sra/doc/SRA_1-5/SRA.analysis.xsd?view=co">
-	<ANALYSIS alias="HCC1143_n95t5" center_name="UCSC" broker_name="NCBI" analysis_center="UCSC" analysis_date="2011-12-07T00:00:00">
-		<TITLE>UCSC ARTIFICIAL MIXED SAMPLE: 95% HCC1143BL 5% HCC1143</TITLE>
-		<STUDY_REF accession="SRP000677" refcenter="UCSC" refname="TCGA_MUT_BENCHMARK_4"/>
-		<DESCRIPTION>UCSC Mixed sample for TCGA Benchmark 4: 95% HCC1143BL 5% HCC1143 **ONLY FOR USE IN BENCHMARK EXERCISE**</DESCRIPTION>
-		<ANALYSIS_TYPE>
-			<REFERENCE_ALIGNMENT>
-				<ASSEMBLY>
-					<STANDARD short_name="GRCh37_BI_Variant"/>
-				</ASSEMBLY>
-				<RUN_LABELS>
-					<RUN data_block_name="D0ENMACXX111207" read_group_label="D0ENM.1" refname="HCC1143mix1" refcenter="UCSC"/>
-					<RUN data_block_name="D0ENMACXX111207" read_group_label="D0ENM.2" refname="HCC1143mix1" refcenter="UCSC"/>
-					<RUN data_block_name="D0ENMACXX111207" read_group_label="D0ENM.3" refname="HCC1143mix1" refcenter="UCSC"/>
-					<RUN data_block_name="D0ENMACXX111207" read_group_label="D0ENM.5" refname="HCC1143mix1" refcenter="UCSC"/>
-					<RUN data_block_name="D0ENMACXX111207" read_group_label="D0ENM.6" refname="HCC1143mix1" refcenter="UCSC"/>
-					<RUN data_block_name="D0ENMACXX111207" read_group_label="D0ENM.7" refname="HCC1143mix1" refcenter="UCSC"/>
-					<RUN data_block_name="D0EN0ACXX111207" read_group_label="D0EN0.4" refname="HCC1143mix1" refcenter="UCSC"/>
-					<RUN data_block_name="D0EN0ACXX111207" read_group_label="D0EN0.7" refname="HCC1143mix1" refcenter="UCSC"/>
-					<RUN data_block_name="D0EN0ACXX111207" read_group_label="D0EN0.8" refname="HCC1143mix1" refcenter="UCSC"/>
-					<RUN data_block_name="C09DFACXX111207" read_group_label="C09DF.1" refname="HCC1143mix1" refcenter="UCSC"/>
-					<RUN data_block_name="C09DFACXX111207" read_group_label="C09DF.2" refname="HCC1143mix1" refcenter="UCSC"/>
-				</RUN_LABELS>
-				<SEQ_LABELS>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="1" seq_label="1"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="2" seq_label="2"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="3" seq_label="3"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="4" seq_label="4"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="5" seq_label="5"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="6" seq_label="6"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="7" seq_label="7"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="8" seq_label="8"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="9" seq_label="9"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="10" seq_label="10"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="11" seq_label="11"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="12" seq_label="12"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="13" seq_label="13"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="14" seq_label="14"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="15" seq_label="15"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="16" seq_label="16"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="17" seq_label="17"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="18" seq_label="18"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="19" seq_label="19"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="20" seq_label="20"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="21" seq_label="21"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="22" seq_label="22"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="X" seq_label="X"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="Y" seq_label="Y"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="MT" seq_label="MT"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="GL000207.1" seq_label="GL000207.1"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="GL000226.1" seq_label="GL000226.1"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="GL000229.1" seq_label="GL000229.1"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="GL000231.1" seq_label="GL000231.1"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="GL000210.1" seq_label="GL000210.1"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="GL000239.1" seq_label="GL000239.1"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="GL000235.1" seq_label="GL000235.1"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="GL000201.1" seq_label="GL000201.1"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="GL000247.1" seq_label="GL000247.1"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="GL000245.1" seq_label="GL000245.1"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="GL000197.1" seq_label="GL000197.1"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="GL000203.1" seq_label="GL000203.1"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="GL000246.1" seq_label="GL000246.1"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="GL000249.1" seq_label="GL000249.1"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="GL000196.1" seq_label="GL000196.1"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="GL000248.1" seq_label="GL000248.1"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="GL000244.1" seq_label="GL000244.1"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="GL000238.1" seq_label="GL000238.1"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="GL000202.1" seq_label="GL000202.1"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="GL000234.1" seq_label="GL000234.1"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="GL000232.1" seq_label="GL000232.1"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="GL000206.1" seq_label="GL000206.1"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="GL000240.1" seq_label="GL000240.1"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="GL000236.1" seq_label="GL000236.1"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="GL000241.1" seq_label="GL000241.1"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="GL000243.1" seq_label="GL000243.1"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="GL000242.1" seq_label="GL000242.1"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="GL000230.1" seq_label="GL000230.1"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="GL000237.1" seq_label="GL000237.1"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="GL000233.1" seq_label="GL000233.1"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="GL000204.1" seq_label="GL000204.1"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="GL000198.1" seq_label="GL000198.1"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="GL000208.1" seq_label="GL000208.1"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="GL000191.1" seq_label="GL000191.1"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="GL000227.1" seq_label="GL000227.1"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="GL000228.1" seq_label="GL000228.1"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="GL000214.1" seq_label="GL000214.1"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="GL000221.1" seq_label="GL000221.1"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="GL000209.1" seq_label="GL000209.1"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="GL000218.1" seq_label="GL000218.1"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="GL000220.1" seq_label="GL000220.1"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="GL000213.1" seq_label="GL000213.1"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="GL000211.1" seq_label="GL000211.1"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="GL000199.1" seq_label="GL000199.1"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="GL000217.1" seq_label="GL000217.1"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="GL000216.1" seq_label="GL000216.1"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="GL000215.1" seq_label="GL000215.1"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="GL000205.1" seq_label="GL000205.1"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="GL000219.1" seq_label="GL000219.1"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="GL000224.1" seq_label="GL000224.1"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="GL000223.1" seq_label="GL000223.1"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="GL000195.1" seq_label="GL000195.1"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="GL000212.1" seq_label="GL000212.1"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="GL000222.1" seq_label="GL000222.1"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="GL000200.1" seq_label="GL000200.1"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="GL000193.1" seq_label="GL000193.1"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="GL000194.1" seq_label="GL000194.1"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="GL000225.1" seq_label="GL000225.1"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="GL000192.1" seq_label="GL000192.1"/>
-					<SEQUENCE data_block_name="HCC1143_2011_12_07" accession="NC_007605" seq_label="NC_007605"/>
-				</SEQ_LABELS>
-				<PROCESSING>
-					<PIPELINE>
-						<PIPE_SECTION section_name="Mapping">
-							<STEP_INDEX>1</STEP_INDEX>
-							<PREV_STEP_INDEX>NIL</PREV_STEP_INDEX>
-							<PROGRAM>bwa</PROGRAM>
-							<VERSION>0.5.9-r16</VERSION>
-							<NOTES>bwa aln reference.fasta -q 5 -l 32 -k 2 -t 4 -o 1 -f fastq.sai input.fastq.gz</NOTES>
-						</PIPE_SECTION>
-						<PIPE_SECTION section_name="Mapping">
-							<STEP_INDEX>2</STEP_INDEX>
-							<PREV_STEP_INDEX>1</PREV_STEP_INDEX>
-							<PROGRAM>bwa</PROGRAM>
-							<VERSION>0.5.9-r16</VERSION>
-							<NOTES>bwa sampe -P -f output.sam fastq1.sai fastq2.sai input1.fastq.gz input2.fastq.gz</NOTES>
-						</PIPE_SECTION>
-						<PIPE_SECTION section_name="Quality Score Recalibration">
-							<STEP_INDEX>3</STEP_INDEX>
-							<PREV_STEP_INDEX>2</PREV_STEP_INDEX>
-							<PROGRAM>GATK TableRecalibration</PROGRAM>
-							<VERSION>1.3-14-g59da26a</VERSION>
-							<NOTES>default_read_group=null default_platform=null force_read_group=null force_platform=null window_size_nqs=5 homopolymer_nback=7 exception_if_no_tile=false solid_recal_mode=SET_Q_ZERO solid_nocall_strategy=THROW_EXCEPTION recal_file=/seq/picard/D0ENMACXX/C1-210_2011-12-07_2011-12-18/2/Sage-75643/D0ENMACXX.2.recal_data.csv preserve_qscores_less_than=5 smoothing=1 max_quality_score=50 doNotWriteOriginalQuals=false no_pg_tag=false fail_with_no_eof_marker=false skipUQUpdate=false Covariates=[ReadGroupCovariate, QualityScoreCovariate, CycleCovariate, DinucCovariate]</NOTES>
-						</PIPE_SECTION>
-						<PIPE_SECTION section_name="Indel Realignment">
-							<STEP_INDEX>4</STEP_INDEX>
-							<PREV_STEP_INDEX>3</PREV_STEP_INDEX>
-							<PROGRAM>GATK IndelRealigner</PROGRAM>
-							<VERSION>1.3-14-g59da26a</VERSION>
-							<NOTES>knownAlleles=[(RodBinding name=knownAlleles source=/seq/references/Homo_sapiens_assembly19/v1/Homo_sapiens_assembly19.dbsnp.vcf), (RodBinding name=knownAlleles2 source=/seq/references/Homo_sapiens_assembly19/v1/Homo_sapiens_assembly19.1kg_pilot_indels.vcf)] LODThresholdForCleaning=5.0 out=null bam_compression=null disable_bam_indexing=null generate_md5=null simplifyBAM=null consensusDeterminationModel=USE_SW entropyThreshold=0.15 maxReadsInMemory=1000000 maxIsizeForMovement=3000 maxPositionalMoveAllowed=200 maxConsensuses=30 maxReadsForConsensuses=120 maxReadsForRealignment=20000 noOriginalAlignmentTags=false nWayOut=/seq/picard_aggregation/G15511/HCC1143/v1/final_bams.map generate_nWayOut_md5s=true check_early=false noPGTag=false keepPGTags=false indelsFileForDebugging=null statisticsFileForDebugging=/seq/picard_aggregation/G15511/HCC1143/v1/HCC1143.indel.stats SNPsFileForDebugging=null</NOTES>
-						</PIPE_SECTION>
-					</PIPELINE>
-					<DIRECTIVES>
-						<alignment_includes_unaligned_reads>true</alignment_includes_unaligned_reads>
-						<alignment_marks_duplicate_reads>true</alignment_marks_duplicate_reads>
-						<alignment_includes_failed_reads>false</alignment_includes_failed_reads>
-					</DIRECTIVES>
-				</PROCESSING>
-			</REFERENCE_ALIGNMENT>
-		</ANALYSIS_TYPE>
-		<TARGETS>
-			<TARGET sra_object_type="SAMPLE" refcenter="TCGA" refname="874f6cbb-b293-45b3-85a0-7aa1bc1b5f46"/>
-		</TARGETS>
-		<DATA_BLOCK name="HCC1143_2011_12_07">
-			<FILES>
-				<FILE filename="HCC1143.mix1.n95t5.bam" filetype="bam" checksum_method="MD5" checksum="3ab4a3d8a0e4e4e101a0f660073e3812"/>
-			</FILES>
-		</DATA_BLOCK>
-	</ANALYSIS>
+  <ANALYSIS alias="TCGA-A6-2671-01A-01D-1408-10_2011-09-05" center_name="CGHUB" broker_name="NCBI" analysis_center="CGHUB" analysis_date="2011-09-05T00:00:00">
+    <TITLE>Christy Test:  Derived from Baylors first upload</TITLE>
+    <STUDY_REF accession="SRP000677" refcenter="NHGRI" refname="icgc_pancancer" />
+    <DESCRIPTION>High Throughput Directed Sequencing Sequence Alignment/Map of TCGA Colon SAMPLE:TCGA-A6-2671-01A-01D-1408-10</DESCRIPTION>
+    <ANALYSIS_TYPE>
+      <REFERENCE_ALIGNMENT>
+        <ASSEMBLY>
+          <STANDARD short_name="HG19" />
+        </ASSEMBLY>
+        <RUN_LABELS>
+          <RUN data_block_name="110823_SN881_0126_AD08JDACXX_6_ID01" read_group_label="0" refname="110823_SN881_0126_AD08JDACXX_6_ID01" refcenter="CGHUB" />
+        </RUN_LABELS>
+        <SEQ_LABELS>
+          <SEQUENCE data_block_name="TCGA-A6-2671-01A-01D-1408-10_2011-09-05" accession="NC_000001.9" seq_label="chr1" />
+          <SEQUENCE data_block_name="TCGA-A6-2671-01A-01D-1408-10_2011-09-05" accession="NC_000002.10" seq_label="chr2" />
+          <SEQUENCE data_block_name="TCGA-A6-2671-01A-01D-1408-10_2011-09-05" accession="GPC_000000393.1" seq_label="chr3" />
+          <SEQUENCE data_block_name="TCGA-A6-2671-01A-01D-1408-10_2011-09-05" accession="NC_000004.10" seq_label="chr4" />
+          <SEQUENCE data_block_name="TCGA-A6-2671-01A-01D-1408-10_2011-09-05" accession="NC_000005.8" seq_label="chr5" />
+          <SEQUENCE data_block_name="TCGA-A6-2671-01A-01D-1408-10_2011-09-05" accession="NC_000006.10" seq_label="chr6" />
+          <SEQUENCE data_block_name="TCGA-A6-2671-01A-01D-1408-10_2011-09-05" accession="NC_000007.12" seq_label="chr7" />
+          <SEQUENCE data_block_name="TCGA-A6-2671-01A-01D-1408-10_2011-09-05" accession="NC_000008.9" seq_label="chr8" />
+          <SEQUENCE data_block_name="TCGA-A6-2671-01A-01D-1408-10_2011-09-05" accession="NC_000009.10" seq_label="chr9" />
+          <SEQUENCE data_block_name="TCGA-A6-2671-01A-01D-1408-10_2011-09-05" accession="NC_000010.9" seq_label="chr10" />
+          <SEQUENCE data_block_name="TCGA-A6-2671-01A-01D-1408-10_2011-09-05" accession="NC_000011.8" seq_label="chr11" />
+          <SEQUENCE data_block_name="TCGA-A6-2671-01A-01D-1408-10_2011-09-05" accession="NC_000012.10" seq_label="chr12" />
+          <SEQUENCE data_block_name="TCGA-A6-2671-01A-01D-1408-10_2011-09-05" accession="NC_000013.9" seq_label="chr13" />
+          <SEQUENCE data_block_name="TCGA-A6-2671-01A-01D-1408-10_2011-09-05" accession="NC_000014.7" seq_label="chr14" />
+          <SEQUENCE data_block_name="TCGA-A6-2671-01A-01D-1408-10_2011-09-05" accession="NC_000015.8" seq_label="chr15" />
+          <SEQUENCE data_block_name="TCGA-A6-2671-01A-01D-1408-10_2011-09-05" accession="NC_000016.8" seq_label="chr16" />
+          <SEQUENCE data_block_name="TCGA-A6-2671-01A-01D-1408-10_2011-09-05" accession="NC_000017.9" seq_label="chr17" />
+          <SEQUENCE data_block_name="TCGA-A6-2671-01A-01D-1408-10_2011-09-05" accession="NC_000018.8" seq_label="chr18" />
+          <SEQUENCE data_block_name="TCGA-A6-2671-01A-01D-1408-10_2011-09-05" accession="NC_000019.8" seq_label="chr19" />
+          <SEQUENCE data_block_name="TCGA-A6-2671-01A-01D-1408-10_2011-09-05" accession="NC_000020.9" seq_label="chr20" />
+          <SEQUENCE data_block_name="TCGA-A6-2671-01A-01D-1408-10_2011-09-05" accession="NC_000021.7" seq_label="chr21" />
+          <SEQUENCE data_block_name="TCGA-A6-2671-01A-01D-1408-10_2011-09-05" accession="NC_000022.9" seq_label="chr22" />
+          <SEQUENCE data_block_name="TCGA-A6-2671-01A-01D-1408-10_2011-09-05" accession="NC_000023.9" seq_label="chrX" />
+          <SEQUENCE data_block_name="TCGA-A6-2671-01A-01D-1408-10_2011-09-05" accession="NC_000024.8" seq_label="chrY" />
+          <SEQUENCE data_block_name="TCGA-A6-2671-01A-01D-1408-10_2011-09-05" accession="NC_001807.4" seq_label="chrM" />
+        </SEQ_LABELS>
+        <PROCESSING>
+          <PIPELINE>
+            <PIPE_SECTION section_name="Mapping">
+              <STEP_INDEX>1</STEP_INDEX>
+              <PREV_STEP_INDEX>NIL</PREV_STEP_INDEX>
+              <PROGRAM>bwa</PROGRAM>
+              <VERSION>0.5.9</VERSION>
+              <NOTES>bwa aln reference.fasta fast1file > fastq.sai</NOTES>
+            </PIPE_SECTION>
+            <PIPE_SECTION section_name="Mapping">
+              <STEP_INDEX>2</STEP_INDEX>
+              <PREV_STEP_INDEX>1</PREV_STEP_INDEX>
+              <PROGRAM>bwa</PROGRAM>
+              <VERSION>0.5.8</VERSION>
+              <NOTES>bwa sampe reference.fasta fastq1.sai fastq2.sai > output.sam</NOTES>
+            </PIPE_SECTION>
+            <PIPE_SECTION section_name="Sort, MarkDups, fixMateInfo">
+              <STEP_INDEX>3</STEP_INDEX>
+              <PREV_STEP_INDEX>2</PREV_STEP_INDEX>
+              <PROGRAM>picard tools</PROGRAM>
+              <VERSION>1.41</VERSION>
+              <NOTES></NOTES>
+            </PIPE_SECTION>
+            <PIPE_SECTION section_name="fixCIGAR">
+              <STEP_INDEX>4</STEP_INDEX>
+              <PREV_STEP_INDEX>3</PREV_STEP_INDEX>
+              <PROGRAM>fixCIGAR.jar</PROGRAM>
+              <VERSION>1.0</VERSION>
+              <NOTES>java âjar fixCIGAR.jar I=input.bam</NOTES>
+            </PIPE_SECTION>
+            <PIPE_SECTION section_name="alignment stats">
+              <STEP_INDEX>5</STEP_INDEX>
+              <PREV_STEP_INDEX>4</PREV_STEP_INDEX>
+              <PROGRAM>BAMAnalyzer.jar</PROGRAM>
+              <VERSION>1.0</VERSION>
+              <NOTES>java -jar BAMAnalyzer.jar bamFile</NOTES>
+            </PIPE_SECTION>
+            <PIPE_SECTION section_name="Replace/update header">
+              <STEP_INDEX>6</STEP_INDEX>
+              <PREV_STEP_INDEX>5</PREV_STEP_INDEX>
+              <PROGRAM>ReplaceSamHeaderPlus</PROGRAM>
+              <VERSION>1.0</VERSION>
+              <NOTES>java -jar ReplaceSamHeaderPlus.jar I=bamFile O=bamFile HEADER=newHeader</NOTES>
+            </PIPE_SECTION>
+          </PIPELINE>
+          <DIRECTIVES>
+            <alignment_includes_unaligned_reads>true</alignment_includes_unaligned_reads>
+            <alignment_marks_duplicate_reads>true</alignment_marks_duplicate_reads>
+            <alignment_includes_failed_reads>false</alignment_includes_failed_reads>
+          </DIRECTIVES>
+        </PROCESSING>
+      </REFERENCE_ALIGNMENT>
+    </ANALYSIS_TYPE>
+    <TARGETS>
+      <TARGET sra_object_type="SAMPLE" accession="SRS156722" refcenter="TCGA" refname="98a2eb02-7bcf-4134-ab7e-943391710e98" />
+    </TARGETS>
+    <DATA_BLOCK name="TCGA-A6-2671-01A-01D-1408-10_2011-09-05">
+      <FILES>
+        <FILE filename="4-mb-real-testfile.bam" filetype="bam" checksum_method="MD5" checksum="0e4f1bd5c5cc83b37d6c511dda98866c" />
+      </FILES>
+    </DATA_BLOCK>
+  </ANALYSIS>
 </ANALYSIS_SET>
 </analysis_xml>
 		<experiment_xml>
 <EXPERIMENT_SET xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.ncbi.nlm.nih.gov/viewvc/v1/trunk/sra/doc/SRA_1-5/SRA.experiment.xsd?view=co">
-	<EXPERIMENT alias="HCC1143.mix1.n95t5" center_name="UCSC">
-		<TITLE>UCSC ARTIFICIAL MIXED SAMPLE: 95% HCC1143BL 5% HCC1143</TITLE>
-		<STUDY_REF refcenter="UCSC" refname="TCGA_MUT_BENCHMARK_4"/>
-		<DESIGN>
-			<DESIGN_DESCRIPTION>Mixed sample for TCGA Benchmark 4: 95% HCC1143BL 5% HCC1143 **ONLY FOR USE IN BENCHMARK EXERCISE**</DESIGN_DESCRIPTION>
-			<SAMPLE_DESCRIPTOR refcenter="TCGA" refname="874f6cbb-b293-45b3-85a0-7aa1bc1b5f46"/>
-			<LIBRARY_DESCRIPTOR>
-				<LIBRARY_NAME>Sage-75643</LIBRARY_NAME>
-				<LIBRARY_STRATEGY>WGS</LIBRARY_STRATEGY>
-				<LIBRARY_SOURCE>GENOMIC</LIBRARY_SOURCE>
-				<LIBRARY_SELECTION>RANDOM</LIBRARY_SELECTION>
-				<LIBRARY_LAYOUT>
-					<PAIRED NOMINAL_LENGTH="200" NOMINAL_SDEV="20.0"/>
-				</LIBRARY_LAYOUT>
-			</LIBRARY_DESCRIPTOR>
-			<SPOT_DESCRIPTOR>
-				<SPOT_DECODE_SPEC>
-					<SPOT_LENGTH>200</SPOT_LENGTH>
-					<READ_SPEC>
-						<READ_INDEX>0</READ_INDEX>
-						<READ_CLASS>Application Read</READ_CLASS>
-						<READ_TYPE>Forward</READ_TYPE>
-						<BASE_COORD>1</BASE_COORD>
-					</READ_SPEC>
-					<READ_SPEC>
-						<READ_INDEX>1</READ_INDEX>
-						<READ_CLASS>Application Read</READ_CLASS>
-						<READ_TYPE>Reverse</READ_TYPE>
-						<BASE_COORD>101</BASE_COORD>
-					</READ_SPEC>
-				</SPOT_DECODE_SPEC>
-			</SPOT_DESCRIPTOR>
-		</DESIGN>
-		<PLATFORM>
-			<ILLUMINA>
-				<INSTRUMENT_MODEL>Illumina HiSeq 2000</INSTRUMENT_MODEL>
-			</ILLUMINA>
-		</PLATFORM>
-		<PROCESSING>
-			<PIPELINE>
-				<PIPE_SECTION section_name="Base Caller">
-					<STEP_INDEX>1</STEP_INDEX>
-					<PREV_STEP_INDEX>NIL</PREV_STEP_INDEX>
-					<PROGRAM>Casava</PROGRAM>
-					<VERSION>V1.7</VERSION>
-					<NOTES/>
-				</PIPE_SECTION>
-				<PIPE_SECTION section_name="Quality Scores">
-					<STEP_INDEX>2</STEP_INDEX>
-					<PREV_STEP_INDEX>1</PREV_STEP_INDEX>
-					<PROGRAM>Casava</PROGRAM>
-					<VERSION>V1.7</VERSION>
-					<NOTES/>
-				</PIPE_SECTION>
-			</PIPELINE>
-		</PROCESSING>
-	</EXPERIMENT>
+  <EXPERIMENT alias="IWX_TCOL.A6-2671-01A-T_2pA_1" center_name="CGHUB">
+    <TITLE>Christy Test:  Derived from Baylors first upload</TITLE>
+    <STUDY_REF accession="SRP000677" refcenter="NHGRI" refname="CGTEST" />
+    <DESIGN>
+      <DESIGN_DESCRIPTION>Whole Exome Sequencing of TCGA Colon sample TCGA-A6-2671-01A-01D-1408-10 by Hybrid Selection</DESIGN_DESCRIPTION>
+      <SAMPLE_DESCRIPTOR accession="SRS156722" refcenter="TCGA" refname="98a2eb02-7bcf-4134-ab7e-943391710e98" />
+      <LIBRARY_DESCRIPTOR>
+        <LIBRARY_NAME>IWX_TCOL.A6-2671-01A-T_2pA</LIBRARY_NAME>
+        <LIBRARY_STRATEGY>WXS</LIBRARY_STRATEGY>
+        <LIBRARY_SOURCE>GENOMIC</LIBRARY_SOURCE>
+        <LIBRARY_SELECTION>Hybrid Selection</LIBRARY_SELECTION>
+        <LIBRARY_LAYOUT>
+          <PAIRED NOMINAL_LENGTH="200" NOMINAL_SDEV="20.0" />
+        </LIBRARY_LAYOUT>
+      </LIBRARY_DESCRIPTOR>
+      <SPOT_DESCRIPTOR>
+        <SPOT_DECODE_SPEC>
+          <READ_SPEC>
+            <READ_INDEX>0</READ_INDEX>
+            <READ_CLASS>Application Read</READ_CLASS>
+            <READ_TYPE>Forward</READ_TYPE>
+            <BASE_COORD>1</BASE_COORD>
+          </READ_SPEC>
+          <READ_SPEC>
+            <READ_INDEX>1</READ_INDEX>
+            <READ_CLASS>Application Read</READ_CLASS>
+            <READ_TYPE>Reverse</READ_TYPE>
+            <BASE_COORD>101</BASE_COORD>
+          </READ_SPEC>
+        </SPOT_DECODE_SPEC>
+      </SPOT_DESCRIPTOR>
+    </DESIGN>
+    <PLATFORM>
+      <ILLUMINA>
+        <INSTRUMENT_MODEL>Illumina HiSeq 2000</INSTRUMENT_MODEL>
+      </ILLUMINA>
+    </PLATFORM>
+    <PROCESSING>
+      <PIPELINE>
+        <PIPE_SECTION section_name="Base Caller">
+          <STEP_INDEX>1</STEP_INDEX>
+          <PREV_STEP_INDEX>NIL</PREV_STEP_INDEX>
+          <PROGRAM>Casava</PROGRAM>
+          <VERSION>V1.7</VERSION>
+          <NOTES />
+        </PIPE_SECTION>
+        <PIPE_SECTION section_name="Quality Scores">
+          <STEP_INDEX>2</STEP_INDEX>
+          <PREV_STEP_INDEX>1</PREV_STEP_INDEX>
+          <PROGRAM>Casava</PROGRAM>
+          <VERSION>V1.7</VERSION>
+          <NOTES />
+        </PIPE_SECTION>
+      </PIPELINE>
+    </PROCESSING>
+  </EXPERIMENT>
 </EXPERIMENT_SET>
 </experiment_xml>
 		<run_xml>
 <RUN_SET xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.ncbi.nlm.nih.gov/viewvc/v1/trunk/sra/doc/SRA_1-5/SRA.run.xsd?view=co">
-	<RUN alias="HCC1143mix1" center_name="UCSC">
-		<EXPERIMENT_REF refname="HCC1143.mix1.n95t5" refcenter="UCSC"/>
-		<DATA_BLOCK>
-			<FILES>
-				<FILE filename="HCC1143.mix1.n95t5.bam" filetype="bam" checksum_method="MD5" checksum="3ab4a3d8a0e4e4e101a0f660073e3812"/>
-			</FILES>
-		</DATA_BLOCK>
-		<DATA_BLOCK>
-			<FILES>
-				<FILE filename="HCC1143.mix1.n95t5.bam" filetype="bam" checksum_method="MD5" checksum="3ab4a3d8a0e4e4e101a0f660073e3812"/>
-			</FILES>
-		</DATA_BLOCK>
-		<DATA_BLOCK>
-			<FILES>
-				<FILE filename="HCC1143.mix1.n95t5.bam" filetype="bam" checksum_method="MD5" checksum="3ab4a3d8a0e4e4e101a0f660073e3812"/>
-			</FILES>
-		</DATA_BLOCK>
-		<RUN_ATTRIBUTES>
-			<RUN_ATTRIBUTE>
-				<TAG>/DATA_BLOCK[1]/@name</TAG>
-				<VALUE>D0ENMACXX111207</VALUE>
-			</RUN_ATTRIBUTE>
-			<RUN_ATTRIBUTE>
-				<TAG>/DATA_BLOCK[2]/@name</TAG>
-				<VALUE>C09DFACXX111207</VALUE>
-			</RUN_ATTRIBUTE>
-			<RUN_ATTRIBUTE>
-				<TAG>/DATA_BLOCK[3]/@name</TAG>
-				<VALUE>D0EN0ACXX111207</VALUE>
-			</RUN_ATTRIBUTE>
-		</RUN_ATTRIBUTES>
-	</RUN>
+  <RUN alias="110823_SN881_0126_AD08JDACXX_6_ID01" center_name="CGHUB">
+    <EXPERIMENT_REF refname="IWX_TCOL.A6-2671-01A-T_2pA_1" refcenter="CGHUB" />
+    <DATA_BLOCK>
+      <FILES>
+        <FILE filename="4-mb-real-testfile.bam" filetype="bam" checksum_method="MD5" checksum="0e4f1bd5c5cc83b37d6c511dda98866c" />
+      </FILES>
+    </DATA_BLOCK>
+  </RUN>
 </RUN_SET>
 </run_xml>
-		<analysis_detail_uri>https://cghub.ucsc.edu/cghub/metadata/analysisDetail/048de7d8-682f-4e72-99d9-be2d072af67b</analysis_detail_uri>
-		<analysis_submission_uri>https://cghub.ucsc.edu/cghub/metadata/analysisSubmission/048de7d8-682f-4e72-99d9-be2d072af67b</analysis_submission_uri>
-		<analysis_data_uri>https://cghub.ucsc.edu/cghub/data/analysis/download/048de7d8-682f-4e72-99d9-be2d072af67b</analysis_data_uri>
+		<analysis_detail_uri>https://gtrepo-ebi.annailabs.com/cghub/metadata/analysisDetail/00763e0b-7201-401f-8f0f-afb39b6def8f</analysis_detail_uri>
+		<analysis_submission_uri>https://gtrepo-ebi.annailabs.com/cghub/metadata/analysisSubmission/00763e0b-7201-401f-8f0f-afb39b6def8f</analysis_submission_uri>
+		<analysis_data_uri>https://gtrepo-ebi.annailabs.com/cghub/data/analysis/download/00763e0b-7201-401f-8f0f-afb39b6def8f</analysis_data_uri>
 	</Result>
 	<ResultSummary>
-		<downloadable_file_count>2</downloadable_file_count>
-		<downloadable_file_size units="GB">126.4</downloadable_file_size>
+		<downloadable_file_count>1</downloadable_file_count>
+		<downloadable_file_size units="MB">4.53</downloadable_file_size>
 		<state_count>
 			<live>1</live>
 		</state_count>
