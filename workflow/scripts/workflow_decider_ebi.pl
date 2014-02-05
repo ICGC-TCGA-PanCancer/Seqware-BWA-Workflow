@@ -3,6 +3,10 @@ use XML::DOM;
 use Data::Dumper;
 use JSON;
 
+# TODO:
+# * need to use perl package for downloads, not calls out to system
+# * need to define cluster json so this script knows how to launch a workflow
+
  my $down = 1;
 
  my $parser = new XML::DOM::Parser;
