@@ -19,9 +19,11 @@ It needs the following Perl modules, install them via CPAN if you don't already 
 * Data::Dumper;
 * JSON;
 
-### 
+### TODO:
 
-TODO:
-
+* integrate with https://github.com/ICGC-TCGA-PanCancer/PCAP-core
+    * need to calculate md5sum for BAMs
 * need to bundle gtdownload 
+* need to install https://github.com/ICGC-TCGA-PanCancer/PCAP-core which has dependencies... need to see if theyse can all be taken care of via apt-get
+    * apt-get install libbio-samtools-perl
 
