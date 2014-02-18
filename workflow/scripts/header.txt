@@ -1,0 +1,14 @@
+@HD	VN:1.4	SO:queryname
+@RG	ID:OICR:963b780d-09dd-494b-bd54-36d7316643c9	CN:OICR	DT:2013-09-04T00:00:00.000+00:00	LB:WGS:OICR:3a690774-f056-470b-b0b9-01ee2222c87d	PI:405	PL:ILLUMINA	PM:Illumina Genome Analyzer II	PU:OICR:182919_2#2	SM:6895c0b9-de4c-4a80-8fba-6ade7ce1e1dc
+@CO	participant_id:40df3135381b41bdae5e4650c6b28fc3
+@CO	sample_id:6895c0b9-de4c-4a80-8fba-6ade7ce1e1dc
+@CO	disease_abbr:BRCA
+@CO	tss_id:GM
+@CO	analyte_code:D
+@CO	sample_type:01
+@CO	submitter_participant_id:OICR_test_participant_40df3135381b41bdae5e4650c6b28fc3
+@CO	submitter_sample_id:OICR_test_sample_6895c0b9-de4c-4a80-8fba-6ade7ce1e1dc
+@CO	submitter_aliquot_id:OICR_test_aliquot_f7ada105-3771-45ad-a5bb-b00664d6c8e8
+@CO	dcc_project_code:BRCA-UK
+@CO	use_cntl:e00d7cfd-b1d2-4bf4-8b7b-74128f906149
+@PG	ID:173c24cf4bca4a0d99099bd385894dc6	PN:dwgsim

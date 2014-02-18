@@ -1,6 +1,27 @@
 use strict;
+use Data::Dumper;
 
-print "TODO!\n";
+my ($header) = @ARGV;
+
+print "GENERATING SUBMISSION\n";
+
+my $hd = {};
+open HEADER, "<$header" or die "Can't open header file $header\n";
+while(<HEADER>) {
+  chomp;
+  my @a = split /\t+/;
+  my $type = $a[0];
+  if ($type =~ /^@/) { 
+    $type =~ s/@//;
+    for(my $i=1; $i<scalar(@a); $i++) {
+      $a[$i] =~ /^([^:]+):(.+)$/;
+      $hd->{$type}{$1} = $2;
+    }
+  }
+}
+close HEADER;
+
+print Dumper $hd;
 
 my $analysis_xml = <<END;
 <ANALYSIS_SET xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.ncbi.nlm.nih.gov/viewvc/v1/trunk/sra/doc/SRA_1-5/SRA.analysis.xsd?view=co">
