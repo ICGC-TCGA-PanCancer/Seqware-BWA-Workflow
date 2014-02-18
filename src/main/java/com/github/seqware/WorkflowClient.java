@@ -28,6 +28,7 @@ public class WorkflowClient extends OicrWorkflow {
     //BWA
     String bwaAlignMemG = "8";
     String bwaSampeMemG = "8";
+    String bwaSampeSortSamMemG = "8";
     String RGID;
     String RGLB;
     String RGPL;
@@ -71,6 +72,7 @@ public class WorkflowClient extends OicrWorkflow {
             RGSM = getProperty("RGSM");
             bwaAlignMemG = getProperty("bwaAlignMemG") == null ? "8" : getProperty("bwaAlignMemG");
             bwaSampeMemG = getProperty("bwaSampeMemG") == null ? "8" : getProperty("bwaSampeMemG");
+            bwaSampeSortSamMemG = getProperty("bwaSampeSortSamMemG") == null ? "8" : getProperty("bwaSampeSortSamMemG");
             picardReadGrpMem = getProperty("picardReadGrpMem") == null ? "8" : getProperty("picardReadGrpMem");
             additionalPicardParams = getProperty("additionalPicardParams");
 
@@ -139,7 +141,7 @@ public class WorkflowClient extends OicrWorkflow {
             .addArgument("aligned_"+i+"_2.sai")
             .addArgument(file)
             .addArgument(file)
-            .addArgument(" | java -Xmx"+bwaSampeMemG+"g -jar ")
+            .addArgument(" | java -Xmx"+bwaSampeSortSamMemG+"g -jar ")
             .addArgument(this.getWorkflowBaseDir() + "/bin/picard-tools-1.89/SortSam.jar")
             .addArgument("I=/dev/stdin TMP_DIR=./ VALIDATION_STRINGENCY=SILENT")
             .addArgument("SORT_ORDER=coordinate CREATE_INDEX=true")
