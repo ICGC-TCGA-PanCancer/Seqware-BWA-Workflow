@@ -60,7 +60,7 @@ my $analysis_xml = <<END;
 aliquot ID is never used and linked to the RG either.  -->
 <ANALYSIS_SET xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.ncbi.nlm.nih.gov/viewvc/v1/trunk/sra/doc/SRA_1-5/SRA.analysis.xsd?view=co">
   <ANALYSIS center_name="$analysis_center" analysis_date="$datetime">
-    <TITLE></TITLE>
+    <TITLE>PanCancer Sample Level Alignment for sample_id:$sample_id</TITLE>
     <STUDY_REF refcenter="$refcenter" refname="icgc_pancancer" />
     <DESCRIPTION>Sample-level BAM from the alignment of $sample_id from participant $participant_id. This uses the SeqWare workflow version $workflow_version available at $workflow_url</DESCRIPTION>
     <ANALYSIS_TYPE>
@@ -72,39 +72,38 @@ aliquot ID is never used and linked to the RG either.  -->
           <!-- TODO: I think this needs to be in a for loop for each of the lane-level BAMs -->
           <!-- foreach bam : input_bams -->
             <!-- TODO: what is a data_block? If I use library and read_group_id here then how do I know what aliquot this is? -->
-            <RUN data_block_name="$aliquot_id" read_group_label="$read_group_id" refname="$platform_unit" refcenter="$refcenter" />
-            <RUN data_block_name="$aliquot_id" read_group_label="$read_group_id" refname="$platform_unit" refcenter="$refcenter" />
+            <RUN data_block_name="$library" read_group_label="$read_group_id" refname="$platform_unit" refcenter="$refcenter" />
           <!-- end -->
         </RUN_LABELS>
         <SEQ_LABELS>
           <!-- TODO: looks like it's needs to be repeated for each data block! -->
           <!-- TODO: should the data_block_name be the library or the aliquot ID?  Keiran uses library and TCGA example uses aliquot_id+timestamp -->
           <!-- TODO: fill these in for the hs37d.fa values -->
-          <SEQUENCE data_block_name="$aliquot_id" accession="NC_000001.9" seq_label="chr1" />
-          <SEQUENCE data_block_name="$aliquot_id" accession="NC_000002.10" seq_label="chr2" />
-          <SEQUENCE data_block_name="$aliquot_id" accession="GPC_000000393.1" seq_label="chr3" />
-          <SEQUENCE data_block_name="$aliquot_id" accession="NC_000004.10" seq_label="chr4" />
-          <SEQUENCE data_block_name="$aliquot_id" accession="NC_000005.8" seq_label="chr5" />
-          <SEQUENCE data_block_name="$aliquot_id" accession="NC_000006.10" seq_label="chr6" />
-          <SEQUENCE data_block_name="$aliquot_id" accession="NC_000007.12" seq_label="chr7" />
-          <SEQUENCE data_block_name="$aliquot_id" accession="NC_000008.9" seq_label="chr8" />
-          <SEQUENCE data_block_name="$aliquot_id" accession="NC_000009.10" seq_label="chr9" />
-          <SEQUENCE data_block_name="$aliquot_id" accession="NC_000010.9" seq_label="chr10" />
-          <SEQUENCE data_block_name="$aliquot_id" accession="NC_000011.8" seq_label="chr11" />
-          <SEQUENCE data_block_name="$aliquot_id" accession="NC_000012.10" seq_label="chr12" />
-          <SEQUENCE data_block_name="$aliquot_id" accession="NC_000013.9" seq_label="chr13" />
-          <SEQUENCE data_block_name="$aliquot_id" accession="NC_000014.7" seq_label="chr14" />
-          <SEQUENCE data_block_name="$aliquot_id" accession="NC_000015.8" seq_label="chr15" />
-          <SEQUENCE data_block_name="$aliquot_id" accession="NC_000016.8" seq_label="chr16" />
-          <SEQUENCE data_block_name="$aliquot_id" accession="NC_000017.9" seq_label="chr17" />
-          <SEQUENCE data_block_name="$aliquot_id" accession="NC_000018.8" seq_label="chr18" />
-          <SEQUENCE data_block_name="$aliquot_id" accession="NC_000019.8" seq_label="chr19" />
-          <SEQUENCE data_block_name="$aliquot_id" accession="NC_000020.9" seq_label="chr20" />
-          <SEQUENCE data_block_name="$aliquot_id" accession="NC_000021.7" seq_label="chr21" />
-          <SEQUENCE data_block_name="$aliquot_id" accession="NC_000022.9" seq_label="chr22" />
-          <SEQUENCE data_block_name="$aliquot_id" accession="NC_000023.9" seq_label="chrX" />
-          <SEQUENCE data_block_name="$aliquot_id" accession="NC_000024.8" seq_label="chrY" />
-          <SEQUENCE data_block_name="$aliquot_id" accession="NC_001807.4" seq_label="chrM" />
+          <SEQUENCE accession="NC_000001.9" seq_label="chr1" />
+          <SEQUENCE accession="NC_000002.10" seq_label="chr2" />
+          <SEQUENCE accession="GPC_000000393.1" seq_label="chr3" />
+          <SEQUENCE accession="NC_000004.10" seq_label="chr4" />
+          <SEQUENCE accession="NC_000005.8" seq_label="chr5" />
+          <SEQUENCE accession="NC_000006.10" seq_label="chr6" />
+          <SEQUENCE accession="NC_000007.12" seq_label="chr7" />
+          <SEQUENCE accession="NC_000008.9" seq_label="chr8" />
+          <SEQUENCE accession="NC_000009.10" seq_label="chr9" />
+          <SEQUENCE accession="NC_000010.9" seq_label="chr10" />
+          <SEQUENCE accession="NC_000011.8" seq_label="chr11" />
+          <SEQUENCE accession="NC_000012.10" seq_label="chr12" />
+          <SEQUENCE accession="NC_000013.9" seq_label="chr13" />
+          <SEQUENCE accession="NC_000014.7" seq_label="chr14" />
+          <SEQUENCE accession="NC_000015.8" seq_label="chr15" />
+          <SEQUENCE accession="NC_000016.8" seq_label="chr16" />
+          <SEQUENCE accession="NC_000017.9" seq_label="chr17" />
+          <SEQUENCE accession="NC_000018.8" seq_label="chr18" />
+          <SEQUENCE accession="NC_000019.8" seq_label="chr19" />
+          <SEQUENCE accession="NC_000020.9" seq_label="chr20" />
+          <SEQUENCE accession="NC_000021.7" seq_label="chr21" />
+          <SEQUENCE accession="NC_000022.9" seq_label="chr22" />
+          <SEQUENCE accession="NC_000023.9" seq_label="chrX" />
+          <SEQUENCE accession="NC_000024.8" seq_label="chrY" />
+          <SEQUENCE accession="NC_001807.4" seq_label="chrM" />
           <!-- for -->
         </SEQ_LABELS>
         <PROCESSING>
@@ -128,13 +127,15 @@ aliquot ID is never used and linked to the RG either.  -->
       </REFERENCE_ALIGNMENT>
     </ANALYSIS_TYPE>
     <TARGETS>
-      <TARGET sra_object_type="SAMPLE" refcenter="$refcenter" refname="$sample_id" />
+      <TARGET sra_object_type="SAMPLE" refcenter="$refcenter" refname="$aliquot_id" />
     </TARGETS>
-    <DATA_BLOCK name="$sample_id">
+    <!-- for bam : input_bams -->
+    <DATA_BLOCK>
       <FILES>
         <FILE filename="$bam_file" filetype="bam" checksum_method="MD5" checksum="$bam_file_checksum" />
       </FILES>
     </DATA_BLOCK>
+    <!-- for -->
     <ANALYSIS_ATTRIBUTES>
       <!-- TODO: these will be the union (with key repeats) of all the individual lane-level attributes -->
       <ANALYSIS_ATTRIBUTE>
