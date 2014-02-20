@@ -1,6 +1,9 @@
 use strict;
 use Data::Dumper;
 
+# DESCRIPTION
+# this tool downloads a sample worth of data/metadata, parses it, generates headers, the submission files
+
 my ($header) = @ARGV;
 
 print "GENERATING SUBMISSION\n";
