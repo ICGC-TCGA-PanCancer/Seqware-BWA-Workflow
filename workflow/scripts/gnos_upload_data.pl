@@ -1,33 +1,35 @@
 use strict;
 use Data::Dumper;
+use Getopt::Long;
+use XML::DOM;
+use JSON;
 
 # DESCRIPTION
-# this tool downloads a sample worth of data/metadata, parses it, generates headers, the submission files
+# This tool takes metadata URLs and BAM path. It then downloads a sample worth of metadata,
+# parses it, generates headers, the submission files and then performs the uploads. 
 
-my ($header) = @ARGV;
+my $metadata_urls;
+my $bam;
+my $parser = new XML::DOM::Parser;
+
+if (scalar(@ARGV) != 4) { die "USAGE: 'perl gnos_upload_data.pl --metadata-urls <URLs_comma_separated> --bam <sample-level_bam_file_path>\n"; }
+
+GetOptions("metadata-urls=s" => \$metadata_urls, "bam=s" => \$bam);
+
+print "DOWNLOADING METADATA FILES\n";
+
+my $metad = download_metadata($metadata_urls);
+
+print "CREATE HEADER";
+
+#my $header = create_header($metad);
 
 print "GENERATING SUBMISSION\n";
 
-my $hd = {};
-open HEADER, "<$header" or die "Can't open header file $header\n";
-while(<HEADER>) {
-  chomp;
-  my @a = split /\t+/;
-  my $type = $a[0];
-  if ($type =~ /^@/) { 
-    $type =~ s/@//;
-    for(my $i=1; $i<scalar(@a); $i++) {
-      $a[$i] =~ /^([^:]+):(.+)$/;
-      $hd->{$type}{$1} = $2;
-    }
-  }
-}
-close HEADER;
-
-print Dumper $hd;
+#my $sub_path = generate_submission($metad);
 
 # constants
-
+if (0) {
 # TODO: generate this 
 my $datetime = "2011-09-05T00:00:00";
 # TODO: all of these need to be parameterized/read from header/read from XML
@@ -224,5 +226,103 @@ my $run_xml = <<END;
   </RUN>
 </RUN_SET>
 END
+}
 
+sub read_header {
+  my ($header) = @_;
+  my $hd = {};
+  open HEADER, "<$header" or die "Can't open header file $header\n";
+  while(<HEADER>) {
+    chomp;
+    my @a = split /\t+/;
+    my $type = $a[0];
+    if ($type =~ /^@/) { 
+      $type =~ s/@//;
+      for(my $i=1; $i<scalar(@a); $i++) {
+        $a[$i] =~ /^([^:]+):(.+)$/;
+        $hd->{$type}{$1} = $2;
+      }
+    }
+  }
+  close HEADER;
+  return($hd);
+}
+
+sub download_metadata {
+  my ($urls_str) = @_;
+  my $metad = {};
+  system("mkdir -p xml2");
+  my @urls = split /,/, $urls_str;
+  my $i = 0;
+  foreach my $url (@urls) {
+    $i++;
+    my $xml_path = download_url($url, "xml2/data_$i.xml");
+    $metad->{$url} = parse_metadata($xml_path);
+  }
+  return($metad);
+}
+
+sub parse_metadata {
+  my ($xml_path) = @_;
+  my $doc = $parser->parsefile($xml_path);  
+  my $analysis_id = getVal($doc, 'analysis_id');  
+  print "ANALYSIS_ID = $analysis_id\n";
+  my @runs = getVals($doc, 'RUN', "data_block_name");
+  print Dumper (\@runs);
+}
+
+sub download_url {
+  my ($url, $path) = @_;
+  my $r = system("wget -q -O $path $url");
+  if ($r) {
+          $ENV{PERL_LWP_SSL_VERIFY_HOSTNAME}=0;
+    $r = system("lwp-download $url $path");
+    if ($r) {
+            print "ERROR DOWNLOADING: $url\n";
+            exit(1);
+    }
+  }
+  return($path);
+}
+
+sub getVal {
+  my ($node, $key) = @_;
+  #print "NODE: $node KEY: $key\n";
+  if ($node != undef) {
+    if (defined($node->getElementsByTagName($key))) {
+      if (defined($node->getElementsByTagName($key)->item(0))) {
+        if (defined($node->getElementsByTagName($key)->item(0)->getFirstChild)) {
+          if (defined($node->getElementsByTagName($key)->item(0)->getFirstChild->getNodeValue)) {
+           return($node->getElementsByTagName($key)->item(0)->getFirstChild->getNodeValue);
+          }
+        }
+      }
+    }
+  }
+  return(undef);
+}
+
+sub getVals {
+  my ($node, $key, $tag) = @_;
+  #print "NODE: $node KEY: $key\n";
+  my @r;
+  if ($node != undef) {
+    if (defined($node->getElementsByTagName($key))) {
+      if (defined($node->getElementsByTagName($key)->item(0))) {
+        if (defined($node->getElementsByTagName($key)->item(0)->getFirstChild)) {
+          if (defined($node->getElementsByTagName($key)->item(0)->getFirstChild->getNodeValue)) {
+            #return($node->getElementsByTagName($key)->item(0)->getFirstChild->getNodeValue);
+            foreach my $aNode ($node->getElementsByTagName($key)) {
+              # left off here
+              if (defined($tag)) {   } else { push @r, $aNode->getFirstChild->getNodeValue; }
+            }
+          }
+        }
+      }
+    }
+  }
+  return(@r);
+}
+
+0;
 
