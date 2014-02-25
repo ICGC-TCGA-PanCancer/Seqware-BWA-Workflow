@@ -19,17 +19,22 @@ GetOptions("metadata-urls=s" => \$metadata_urls, "bam=s" => \$bam);
 print "DOWNLOADING METADATA FILES\n";
 
 my $metad = download_metadata($metadata_urls);
+print Dumper($metad);
 
-print "CREATE HEADER";
+print "CREATE HEADER\n";
 
 #my $header = create_header($metad);
 
 print "GENERATING SUBMISSION\n";
 
-#my $sub_path = generate_submission($metad);
+my $sub_path = generate_submission($metad);
 
-# constants
-if (0) {
+
+sub generate_submission {
+
+my ($m) = @_;
+
+# const
 # TODO: generate this 
 my $datetime = "2011-09-05T00:00:00";
 # TODO: all of these need to be parameterized/read from header/read from XML
@@ -59,6 +64,70 @@ my $participant_id = "40df3135381b41bdae5e4650c6b28fc3";
 my $bam_file = "foo.bam";
 # hardcoded
 my $bam_file_checksum = "0e4f1bd5c5cc83b37d6c511dda98866c";
+
+# these data are collected from all files
+# aliquot_id|library_id|platform_unit|read_group_id|input_url
+my $read_group_info = {};
+my $global_attr = {};
+
+# this isn't going to work if there are multiple files/readgroups!
+foreach my $file (keys %{$m}) {
+  # TODO: generate this 
+  $datetime = "2011-09-05T00:00:00";
+  # TODO: all of these need to be parameterized/read from header/read from XML
+  # populate refcenter from original BAM submission 
+  # @RG CN:(.*)
+  $refcenter = $m->{$file}{'target'}[0]{'refcenter'};
+  # @CO sample_id 
+  my @sample_ids = keys %{$m->{$file}{'analysis_attr'}{'submitter_sample_id'}};
+  $sample_id = $sample_ids[0];
+  # @RG SM or @CO aliquoit_id
+  my @aliquot_ids = keys %{$m->{$file}{'analysis_attr'}{'submitter_aliquot_id'}};
+  $aliquot_id = $aliquot_ids[0];
+  # hardcoded
+  $workflow_version = "1.0";
+  # hardcoded
+  $workflow_url = "http://oicr.on.ca/fillmein"; 
+  # @RG LB:(.*)
+  $library = $m->{$file}{'run'}[0]{'data_block_name'};
+  # @RG ID:(.*)
+  $read_group_id = $m->{$file}{'run'}[0]{'read_group_label'};
+  # @RG PU:(.*)
+  $platform_unit = $m->{$file}{'run'}[0]{'refname'};
+  # TODO: I think the data_block_name should be the aliquot_id, at least that's what I saw in the example for TCGA
+  # hardcoded
+  $analysis_center = $refcenter;
+  # @CO participant_id
+  my @participant_ids = keys %{$m->{$file}{'analysis_attr'}{'participant_id'}};
+  $participant_id = $participant_ids[0];
+  # hardcoded
+  #$bam_file = "foo.bam";
+  # hardcoded
+  #$bam_file_checksum = "0e4f1bd5c5cc83b37d6c511dda98866c";
+  my $index = 0;
+  foreach my $bam_info (@{$m->{$file}{'run'}}) {
+    if ($bam_info->{data_block_name} ne '') {
+      #print Dumper($bam_info);
+      #print Dumper($m->{$file}{'file'}[$index]);
+      my $str = "$aliquot_id|$library|$platform_unit|$read_group_id|".$m->{$file}{'file'}[$index]{filename};
+      print "STR: $str\n";
+      $read_group_info->{$str} = 1;
+    }
+    $index++;
+  }
+
+  # now combine the analysis attr
+  foreach my $attName (keys %{$m->{$file}{analysis_attr}}) {
+    foreach my $attVal (keys %{$m->{$file}{analysis_attr}{$attName}}) {
+      $global_attr->{$attName}{$attVal} = 1;
+    }
+  }
+}
+
+print Dumper($read_group_info);
+print Dumper($global_attr);
+
+# LEFT OFF WITH: I've collected most info I need, now I need to fill in the templates below and test with multiple files in
 
 my $analysis_xml = <<END;
 <!-- TODO: ultimately everything comes back to \@RG. SampleID is correctly linked in here but I'm worried that  
@@ -226,6 +295,7 @@ my $run_xml = <<END;
   </RUN>
 </RUN_SET>
 END
+
 }
 
 sub read_header {
@@ -265,10 +335,15 @@ sub download_metadata {
 sub parse_metadata {
   my ($xml_path) = @_;
   my $doc = $parser->parsefile($xml_path);  
-  my $analysis_id = getVal($doc, 'analysis_id');  
-  print "ANALYSIS_ID = $analysis_id\n";
-  my @runs = getVals($doc, 'RUN', "data_block_name");
-  print Dumper (\@runs);
+  my $m = {};
+  $m->{'analysis_id'} = getVal($doc, 'analysis_id');  
+  $m->{'center_name'} = getVal($doc, 'center_name');  
+  push @{$m->{'study_ref'}}, getValsMulti($doc, 'STUDY_REF', "refcenter,refname");  
+  push @{$m->{'run'}}, getValsMulti($doc, 'RUN', "data_block_name,read_group_label,refname");  
+  push @{$m->{'target'}}, getValsMulti($doc, 'TARGET', "refcenter,refname");  
+  push @{$m->{'file'}}, getValsMulti($doc, 'FILE', "checksum,filename,filetype");  
+  $m->{'analysis_attr'} = getAttrs($doc);  
+  return($m);
 }
 
 sub download_url {
@@ -302,6 +377,50 @@ sub getVal {
   return(undef);
 }
 
+
+sub getAttrs {
+  my ($node) = @_;
+  my $r = {};
+  my $nodes = $node->getElementsByTagName('ANALYSIS_ATTRIBUTE');
+  for(my $i=0; $i<$nodes->getLength; $i++) {
+	  my $anode = $nodes->item($i);
+	  my $tag = getVal($anode, 'TAG');
+	  my $val = getVal($anode, 'VALUE');
+	  $r->{$tag}{$val}=1;
+  }
+  return($r);
+}
+
+sub getValsWorking {
+  my ($node, $key, $tag) = @_;
+  my @result;
+  my $nodes = $node->getElementsByTagName($key);
+  for(my $i=0; $i<$nodes->getLength; $i++) {
+	  my $anode = $nodes->item($i);
+	  my $tag = $anode->getAttribute($tag);
+          push @result, $tag;
+  }
+  return(@result);
+}
+
+sub getValsMulti {
+  my ($node, $key, $tags_str) = @_;
+  my @result;
+  my @tags = split /,/, $tags_str;
+  my $nodes = $node->getElementsByTagName($key);
+  for(my $i=0; $i<$nodes->getLength; $i++) {
+       my $data = {};
+       foreach my $tag (@tags) {
+         	  my $anode = $nodes->item($i);
+	          my $value = $anode->getAttribute($tag);
+		  if (defined($value) && $value ne '') { $data->{$tag} = $value; }
+       }
+       push @result, $data;
+  }
+  return(@result);
+}
+
+# doesn't work
 sub getVals {
   my ($node, $key, $tag) = @_;
   #print "NODE: $node KEY: $key\n";
