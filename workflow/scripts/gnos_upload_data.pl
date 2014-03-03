@@ -16,6 +16,9 @@ if (scalar(@ARGV) != 4) { die "USAGE: 'perl gnos_upload_data.pl --metadata-urls 
 
 GetOptions("metadata-urls=s" => \$metadata_urls, "bam=s" => \$bam);
 
+# TODO
+my $bam_check = "3a50bf0901c9f56df2a1ff0778003511";
+
 print "DOWNLOADING METADATA FILES\n";
 
 my $metad = download_metadata($metadata_urls);
@@ -225,6 +228,9 @@ $analysis_xml .= <<END;
       <FILES>
 END
 
+     $analysis_xml .= "<FILE filename=\"$bam\" filetype=\"bam\" checksum_method=\"MD5\" checksum=\"$bam_check\" />\n";
+
+     # incorrect, there's only one bam!
      my $i=0;
      foreach my $url (keys %{$m}) {
      foreach my $run (@{$m->{$url}{'run'}}) {   
@@ -232,7 +238,7 @@ END
         my $fname = $m->{$url}{'file'}[$i]{'filename'};
         my $ftype= $m->{$url}{'file'}[$i]{'filetype'};
         my $check = $m->{$url}{'file'}[$i]{'checksum'};
-        $analysis_xml .= "<FILE filename=\"$fname\" filetype=\"$ftype\" checksum_method=\"MD5\" checksum=\"$check\" />\n";
+        #$analysis_xml .= "<FILE filename=\"$fname\" filetype=\"$ftype\" checksum_method=\"MD5\" checksum=\"$check\" />\n";
      }
      $i++;
      }
@@ -263,81 +269,38 @@ $analysis_xml .= <<END;
 END
 
 print $analysis_xml;
-die;
 
 my $exp_xml = <<END;
 <EXPERIMENT_SET xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.ncbi.nlm.nih.gov/viewvc/v1/trunk/sra/doc/SRA_1-5/SRA.experiment.xsd?view=co">
-  <EXPERIMENT alias="IWX_TCOL.A6-2671-01A-T_2pA_1" center_name="CGHUB">
-    <TITLE>Christy Test:  Derived from Baylors first upload</TITLE>
-    <STUDY_REF accession="SRP000677" refcenter="NHGRI" refname="CGTEST" />
-    <DESIGN>
-      <DESIGN_DESCRIPTION>Whole Exome Sequencing of TCGA Colon sample TCGA-A6-2671-01A-01D-1408-10 by Hybrid Selection</DESIGN_DESCRIPTION>
-      <SAMPLE_DESCRIPTOR accession="SRS156722" refcenter="TCGA" refname="98a2eb02-7bcf-4134-ab7e-943391710e98" />
-      <LIBRARY_DESCRIPTOR>
-        <LIBRARY_NAME>IWX_TCOL.A6-2671-01A-T_2pA</LIBRARY_NAME>
-        <LIBRARY_STRATEGY>WXS</LIBRARY_STRATEGY>
-        <LIBRARY_SOURCE>GENOMIC</LIBRARY_SOURCE>
-        <LIBRARY_SELECTION>Hybrid Selection</LIBRARY_SELECTION>
-        <LIBRARY_LAYOUT>
-          <PAIRED NOMINAL_LENGTH="200" NOMINAL_SDEV="20.0" />
-        </LIBRARY_LAYOUT>
-      </LIBRARY_DESCRIPTOR>
-      <SPOT_DESCRIPTOR>
-        <SPOT_DECODE_SPEC>
-          <READ_SPEC>
-            <READ_INDEX>0</READ_INDEX>
-            <READ_CLASS>Application Read</READ_CLASS>
-            <READ_TYPE>Forward</READ_TYPE>
-            <BASE_COORD>1</BASE_COORD>
-          </READ_SPEC>
-          <READ_SPEC>
-            <READ_INDEX>1</READ_INDEX>
-            <READ_CLASS>Application Read</READ_CLASS>
-            <READ_TYPE>Reverse</READ_TYPE>
-            <BASE_COORD>101</BASE_COORD>
-          </READ_SPEC>
-        </SPOT_DECODE_SPEC>
-      </SPOT_DESCRIPTOR>
-    </DESIGN>
-    <PLATFORM>
-      <ILLUMINA>
-        <INSTRUMENT_MODEL>Illumina HiSeq 2000</INSTRUMENT_MODEL>
-      </ILLUMINA>
-    </PLATFORM>
-    <PROCESSING>
-      <PIPELINE>
-        <PIPE_SECTION section_name="Base Caller">
-          <STEP_INDEX>1</STEP_INDEX>
-          <PREV_STEP_INDEX>NIL</PREV_STEP_INDEX>
-          <PROGRAM>Casava</PROGRAM>
-          <VERSION>V1.7</VERSION>
-          <NOTES />
-        </PIPE_SECTION>
-        <PIPE_SECTION section_name="Quality Scores">
-          <STEP_INDEX>2</STEP_INDEX>
-          <PREV_STEP_INDEX>1</PREV_STEP_INDEX>
-          <PROGRAM>Casava</PROGRAM>
-          <VERSION>V1.7</VERSION>
-          <NOTES />
-        </PIPE_SECTION>
-      </PIPELINE>
-    </PROCESSING>
-  </EXPERIMENT>
+END
+
+foreach my $url (keys %{$m}) {
+  $exp_xml .= $m->{$url}{'experiment'};
+}
+
+$exp_xml .= <<END;
 </EXPERIMENT_SET>
 END
 
+print "$exp_xml\n";
+
 my $run_xml = <<END;
 <RUN_SET xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.ncbi.nlm.nih.gov/viewvc/v1/trunk/sra/doc/SRA_1-5/SRA.run.xsd?view=co">
-  <RUN alias="110823_SN881_0126_AD08JDACXX_6_ID01" center_name="CGHUB">
-    <EXPERIMENT_REF refname="IWX_TCOL.A6-2671-01A-T_2pA_1" refcenter="CGHUB" />
-    <DATA_BLOCK>
-      <FILES>
-        <FILE filename="4-mb-real-testfile.bam" filetype="bam" checksum_method="MD5" checksum="0e4f1bd5c5cc83b37d6c511dda98866c" />
-      </FILES>
-    </DATA_BLOCK>
-  </RUN>
+END
+
+foreach my $url (keys %{$m}) {
+  my $run_block = $m->{$url}{'run_block'};
+  # replace the file 
+  $run_block =~ s/filename="\S+"/filename="$bam"/g;
+  $run_block =~ s/checksum="\S+"/checksum="$bam_check"/g;
+  $run_xml .= $run_block;
+}
+
+$run_xml .= <<END;
 </RUN_SET>
 END
+
+print $run_xml;
 
 }
 
@@ -386,7 +349,26 @@ sub parse_metadata {
   push @{$m->{'target'}}, getValsMulti($doc, 'TARGET', "refcenter,refname");  
   push @{$m->{'file'}}, getValsMulti($doc, 'FILE', "checksum,filename,filetype");  
   $m->{'analysis_attr'} = getAttrs($doc);  
+  $m->{'experiment'} = getBlock($xml_path, "EXPERIMENT ", "EXPERIMENT");
+  $m->{'run_block'} = getBlock($xml_path, "RUN center_name", "RUN");
   return($m);
+}
+
+sub getBlock {
+  my ($xml_file, $key, $end) = @_;
+  my $block = "";
+  open IN, "<$xml_file" or die "Can't open file $xml_file\n";
+  my $reading = 0;
+  while (<IN>) {
+    chomp;
+    if (/<$key/) { $reading = 1; }
+    if ($reading) {
+      $block .= "$_\n";
+    }
+    if (/<\/$end>/) { $reading = 0; }
+  }
+  close IN;
+  return $block;
 }
 
 sub download_url {
