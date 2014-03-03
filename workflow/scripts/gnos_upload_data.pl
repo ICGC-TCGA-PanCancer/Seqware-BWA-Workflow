@@ -11,10 +11,13 @@ use JSON;
 my $metadata_urls;
 my $bam;
 my $parser = new XML::DOM::Parser;
+my $output_dir = "test_output_dir";
 
-if (scalar(@ARGV) != 4) { die "USAGE: 'perl gnos_upload_data.pl --metadata-urls <URLs_comma_separated> --bam <sample-level_bam_file_path>\n"; }
+if (scalar(@ARGV) != 6) { die "USAGE: 'perl gnos_upload_data.pl --metadata-urls <URLs_comma_separated> --bam <sample-level_bam_file_path> --outdir <output_dir>\n"; }
 
-GetOptions("metadata-urls=s" => \$metadata_urls, "bam=s" => \$bam);
+GetOptions("metadata-urls=s" => \$metadata_urls, "bam=s" => \$bam, "outdir=s" => \$output_dir);
+
+system("mkdir -p $output_dir");
 
 # TODO
 my $bam_check = "3a50bf0901c9f56df2a1ff0778003511";
@@ -22,7 +25,7 @@ my $bam_check = "3a50bf0901c9f56df2a1ff0778003511";
 print "DOWNLOADING METADATA FILES\n";
 
 my $metad = download_metadata($metadata_urls);
-print Dumper($metad);
+#print Dumper($metad);
 
 print "CREATE HEADER\n";
 
@@ -127,8 +130,8 @@ foreach my $file (keys %{$m}) {
   }
 }
 
-print Dumper($read_group_info);
-print Dumper($global_attr);
+#print Dumper($read_group_info);
+#print Dumper($global_attr);
 
 # LEFT OFF WITH: I've collected most info I need, now I need to fill in the templates below and test with multiple files in
 
@@ -148,13 +151,11 @@ aliquot ID is never used and linked to the RG either.  -->
         <RUN_LABELS>
 END
 
-  print "HERE!";
           foreach my $url (keys %{$m}) {
-print "KEY: $url\n";
             foreach my $run (@{$m->{$url}{'run'}}) {
-            print Dumper($run);
+            #print Dumper($run);
             if (defined($run->{'read_group_label'})) {
-               print "READ GROUP LABREL: ".$run->{'read_group_label'}."\n";
+               #print "READ GROUP LABREL: ".$run->{'read_group_label'}."\n";
                my $dbn = $run->{'data_block_name'};
                my $rgl = $run->{'read_group_label'};
                my $rn = $run->{'refname'};
@@ -268,7 +269,9 @@ $analysis_xml .= <<END;
 </ANALYSIS_SET>
 END
 
-print $analysis_xml;
+open OUT, ">$output_dir/analysis.xml" or die;
+print OUT $analysis_xml;
+close OUT;
 
 my $exp_xml = <<END;
 <EXPERIMENT_SET xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.ncbi.nlm.nih.gov/viewvc/v1/trunk/sra/doc/SRA_1-5/SRA.experiment.xsd?view=co">
@@ -282,7 +285,9 @@ $exp_xml .= <<END;
 </EXPERIMENT_SET>
 END
 
-print "$exp_xml\n";
+open OUT, ">$output_dir/experiment.xml" or die;
+print OUT "$exp_xml\n";
+close OUT;
 
 my $run_xml = <<END;
 <RUN_SET xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.ncbi.nlm.nih.gov/viewvc/v1/trunk/sra/doc/SRA_1-5/SRA.run.xsd?view=co">
@@ -300,7 +305,9 @@ $run_xml .= <<END;
 </RUN_SET>
 END
 
-print $run_xml;
+open OUT, ">$output_dir/run.xml" or die;
+print OUT $run_xml;
+close OUT;
 
 }
 
