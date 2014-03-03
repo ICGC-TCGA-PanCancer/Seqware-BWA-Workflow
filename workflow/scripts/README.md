@@ -6,6 +6,7 @@
 
 * cpan install XML::DOM
 * cpan install LWP::Protocol::https
+* make sure you have curl and wget or lwp-download installed
 
 ### Example
 

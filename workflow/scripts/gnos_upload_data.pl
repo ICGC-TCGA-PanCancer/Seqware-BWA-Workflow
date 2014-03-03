@@ -143,11 +143,28 @@ aliquot ID is never used and linked to the RG either.  -->
           <CUSTOM DESCRIPTION="hs37d5" REFERENCE_SOURCE="ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/phase2_reference_assembly_sequence/README_human_reference_20110707"/>
         </ASSEMBLY>
         <RUN_LABELS>
-          <!-- TODO: I think this needs to be in a for loop for each of the lane-level BAMs -->
-          <!-- foreach bam : input_bams -->
+END
+
+  print "HERE!";
+          foreach my $url (keys %{$m}) {
+print "KEY: $url\n";
+            foreach my $run (@{$m->{$url}{'run'}}) {
+            print Dumper($run);
+            if (defined($run->{'read_group_label'})) {
+               print "READ GROUP LABREL: ".$run->{'read_group_label'}."\n";
+               my $dbn = $run->{'data_block_name'};
+               my $rgl = $run->{'read_group_label'};
+               my $rn = $run->{'refname'};
+             $analysis_xml .= " 
             <!-- TODO: what is a data_block? If I use library and read_group_id here then how do I know what aliquot this is? -->
-            <RUN data_block_name="$library" read_group_label="$read_group_id" refname="$platform_unit" refcenter="$refcenter" />
-          <!-- end -->
+            <RUN data_block_name=\"$dbn\" read_group_label=\"$rgl\" refname=\"$rn\" refcenter=\"$refcenter\" />
+            ";
+            }              
+            }
+
+	  }
+
+$analysis_xml .= <<END;
         </RUN_LABELS>
         <SEQ_LABELS>
           <!-- TODO: looks like it's needs to be repeated for each data block! -->
@@ -201,26 +218,52 @@ aliquot ID is never used and linked to the RG either.  -->
       </REFERENCE_ALIGNMENT>
     </ANALYSIS_TYPE>
     <TARGETS>
-      <TARGET sra_object_type="SAMPLE" refcenter="$refcenter" refname="$aliquot_id" />
+      <!-- I'm assuming this points to the sample and not multiple aliquots -->
+      <TARGET sra_object_type="SAMPLE" refcenter="$refcenter" refname="$sample_id" />
     </TARGETS>
-    <!-- for bam : input_bams -->
     <DATA_BLOCK>
       <FILES>
-        <FILE filename="$bam_file" filetype="bam" checksum_method="MD5" checksum="$bam_file_checksum" />
+END
+
+     my $i=0;
+     foreach my $url (keys %{$m}) {
+     foreach my $run (@{$m->{$url}{'run'}}) {   
+     if (defined($run->{'read_group_label'})) {
+        my $fname = $m->{$url}{'file'}[$i]{'filename'};
+        my $ftype= $m->{$url}{'file'}[$i]{'filetype'};
+        my $check = $m->{$url}{'file'}[$i]{'checksum'};
+        $analysis_xml .= "<FILE filename=\"$fname\" filetype=\"$ftype\" checksum_method=\"MD5\" checksum=\"$check\" />\n";
+     }
+     $i++;
+     }
+     }
+
+$analysis_xml .= <<END;
       </FILES>
     </DATA_BLOCK>
-    <!-- for -->
     <ANALYSIS_ATTRIBUTES>
       <!-- TODO: these will be the union (with key repeats) of all the individual lane-level attributes -->
+END
+
+  foreach my $key (keys %{$global_attr}) {
+    foreach my $val (keys %{$global_attr->{$key}}) {
+      $analysis_xml .= "
       <ANALYSIS_ATTRIBUTE>
-        <TAG>analyte_code</TAG>
-        <VALUE>D</VALUE>
-  <!-- TODO: fill in with collapsed hashmap -->
+        <TAG>$key</TAG>
+        <VALUE>$val</VALUE>
       </ANALYSIS_ATTRIBUTE>
+      ";
+    }
+  }
+
+$analysis_xml .= <<END;
     </ANALYSIS_ATTRIBUTES>
   </ANALYSIS>
 </ANALYSIS_SET>
 END
+
+print $analysis_xml;
+die;
 
 my $exp_xml = <<END;
 <EXPERIMENT_SET xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.ncbi.nlm.nih.gov/viewvc/v1/trunk/sra/doc/SRA_1-5/SRA.experiment.xsd?view=co">
