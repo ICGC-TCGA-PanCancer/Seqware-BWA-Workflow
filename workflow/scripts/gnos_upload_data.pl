@@ -115,8 +115,8 @@ foreach my $file (keys %{$m}) {
     if ($bam_info->{data_block_name} ne '') {
       #print Dumper($bam_info);
       #print Dumper($m->{$file}{'file'}[$index]);
-      my $str = "$aliquot_id|$library|$platform_unit|$read_group_id|".$m->{$file}{'file'}[$index]{filename};
-      print "STR: $str\n";
+      my $str = "$aliquot_id|$sample_id|$library|$platform_unit|$read_group_id|".$m->{$file}{'file'}[$index]{filename};
+      $global_attr->{"aliquot_id|sample_id|library|platform_unit|read_group_id|bam_file"}{$str} = 1;
       $read_group_info->{$str} = 1;
     }
     $index++;
@@ -146,7 +146,7 @@ aliquot ID is never used and linked to the RG either.  -->
     <ANALYSIS_TYPE>
       <REFERENCE_ALIGNMENT>
         <ASSEMBLY>
-          <CUSTOM DESCRIPTION="hs37d5" REFERENCE_SOURCE="ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/phase2_reference_assembly_sequence/README_human_reference_20110707"/>
+          <CUSTOM DESCRIPTION="hs37d" REFERENCE_SOURCE="ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/phase2_reference_assembly_sequence/README_human_reference_20110707"/>
         </ASSEMBLY>
         <RUN_LABELS>
 END
