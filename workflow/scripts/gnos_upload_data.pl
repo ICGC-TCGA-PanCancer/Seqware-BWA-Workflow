@@ -76,6 +76,8 @@ my $bam_file_checksum = "0e4f1bd5c5cc83b37d6c511dda98866c";
 my $read_group_info = {};
 my $global_attr = {};
 
+print Dumper($m);
+
 # this isn't going to work if there are multiple files/readgroups!
 foreach my $file (keys %{$m}) {
   # TODO: generate this 
@@ -83,12 +85,12 @@ foreach my $file (keys %{$m}) {
   # TODO: all of these need to be parameterized/read from header/read from XML
   # populate refcenter from original BAM submission 
   # @RG CN:(.*)
-  $refcenter = $m->{$file}{'target'}[0]{'refcenter'};
+  ####################$refcenter = $m->{$file}{'target'}[0]{'refcenter'};
   # @CO sample_id 
-  my @sample_ids = keys %{$m->{$file}{'analysis_attr'}{'submitter_sample_id'}};
+  my @sample_ids = keys %{$m->{$file}{'analysis_attr'}{'sample_id'}};
   $sample_id = $sample_ids[0];
   # @RG SM or @CO aliquoit_id
-  my @aliquot_ids = keys %{$m->{$file}{'analysis_attr'}{'submitter_aliquot_id'}};
+  my @aliquot_ids = keys %{$m->{$file}{'analysis_attr'}{'aliquot_id'}};
   $aliquot_id = $aliquot_ids[0];
   # hardcoded
   $workflow_version = "1.0";
@@ -102,7 +104,7 @@ foreach my $file (keys %{$m}) {
   $platform_unit = $m->{$file}{'run'}[0]{'refname'};
   # TODO: I think the data_block_name should be the aliquot_id, at least that's what I saw in the example for TCGA
   # hardcoded
-  $analysis_center = $refcenter;
+  ########$analysis_center = $refcenter;
   # @CO participant_id
   my @participant_ids = keys %{$m->{$file}{'analysis_attr'}{'participant_id'}};
   $participant_id = $participant_ids[0];
@@ -146,7 +148,9 @@ aliquot ID is never used and linked to the RG either.  -->
     <ANALYSIS_TYPE>
       <REFERENCE_ALIGNMENT>
         <ASSEMBLY>
-          <CUSTOM DESCRIPTION="hs37d" REFERENCE_SOURCE="ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/phase2_reference_assembly_sequence/README_human_reference_20110707"/>
+	  <STANDARD short_name="GRCh37"/>
+          <!-- CUSTOM doesn't work -->
+          <!--CUSTOM DESCRIPTION="hs37d" REFERENCE_SOURCE="ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/phase2_reference_assembly_sequence/README_human_reference_20110707"/-->
         </ASSEMBLY>
         <RUN_LABELS>
 END
@@ -174,32 +178,48 @@ $analysis_xml .= <<END;
           <!-- TODO: looks like it's needs to be repeated for each data block! -->
           <!-- TODO: should the data_block_name be the library or the aliquot ID?  Keiran uses library and TCGA example uses aliquot_id+timestamp -->
           <!-- TODO: fill these in for the hs37d.fa values -->
-          <SEQUENCE accession="NC_000001.9" seq_label="chr1" />
-          <SEQUENCE accession="NC_000002.10" seq_label="chr2" />
-          <SEQUENCE accession="GPC_000000393.1" seq_label="chr3" />
-          <SEQUENCE accession="NC_000004.10" seq_label="chr4" />
-          <SEQUENCE accession="NC_000005.8" seq_label="chr5" />
-          <SEQUENCE accession="NC_000006.10" seq_label="chr6" />
-          <SEQUENCE accession="NC_000007.12" seq_label="chr7" />
-          <SEQUENCE accession="NC_000008.9" seq_label="chr8" />
-          <SEQUENCE accession="NC_000009.10" seq_label="chr9" />
-          <SEQUENCE accession="NC_000010.9" seq_label="chr10" />
-          <SEQUENCE accession="NC_000011.8" seq_label="chr11" />
-          <SEQUENCE accession="NC_000012.10" seq_label="chr12" />
-          <SEQUENCE accession="NC_000013.9" seq_label="chr13" />
-          <SEQUENCE accession="NC_000014.7" seq_label="chr14" />
-          <SEQUENCE accession="NC_000015.8" seq_label="chr15" />
-          <SEQUENCE accession="NC_000016.8" seq_label="chr16" />
-          <SEQUENCE accession="NC_000017.9" seq_label="chr17" />
-          <SEQUENCE accession="NC_000018.8" seq_label="chr18" />
-          <SEQUENCE accession="NC_000019.8" seq_label="chr19" />
-          <SEQUENCE accession="NC_000020.9" seq_label="chr20" />
-          <SEQUENCE accession="NC_000021.7" seq_label="chr21" />
-          <SEQUENCE accession="NC_000022.9" seq_label="chr22" />
-          <SEQUENCE accession="NC_000023.9" seq_label="chrX" />
-          <SEQUENCE accession="NC_000024.8" seq_label="chrY" />
-          <SEQUENCE accession="NC_001807.4" seq_label="chrM" />
-          <!-- for -->
+END
+
+          foreach my $url (keys %{$m}) {
+            foreach my $run (@{$m->{$url}{'run'}}) {
+            #print Dumper($run);
+            if (defined($run->{'read_group_label'})) {
+               #print "READ GROUP LABREL: ".$run->{'read_group_label'}."\n";
+               my $dbn = $run->{'data_block_name'};
+               my $rgl = $run->{'read_group_label'};
+               my $rn = $run->{'refname'};
+$analysis_xml .= <<END;
+          <SEQUENCE data_block_name="$dbn" accession="NC_000001.9" seq_label="chr1" />
+          <SEQUENCE data_block_name="$dbn" accession="NC_000002.10" seq_label="chr2" />
+          <SEQUENCE data_block_name="$dbn" accession="GPC_000000393.1" seq_label="chr3" />
+          <SEQUENCE data_block_name="$dbn" accession="NC_000004.10" seq_label="chr4" />
+          <SEQUENCE data_block_name="$dbn" accession="NC_000005.8" seq_label="chr5" />
+          <SEQUENCE data_block_name="$dbn" accession="NC_000006.10" seq_label="chr6" />
+          <SEQUENCE data_block_name="$dbn" accession="NC_000007.12" seq_label="chr7" />
+          <SEQUENCE data_block_name="$dbn" accession="NC_000008.9" seq_label="chr8" />
+          <SEQUENCE data_block_name="$dbn" accession="NC_000009.10" seq_label="chr9" />
+          <SEQUENCE data_block_name="$dbn" accession="NC_000010.9" seq_label="chr10" />
+          <SEQUENCE data_block_name="$dbn" accession="NC_000011.8" seq_label="chr11" />
+          <SEQUENCE data_block_name="$dbn" accession="NC_000012.10" seq_label="chr12" />
+          <SEQUENCE data_block_name="$dbn" accession="NC_000013.9" seq_label="chr13" />
+          <SEQUENCE data_block_name="$dbn" accession="NC_000014.7" seq_label="chr14" />
+          <SEQUENCE data_block_name="$dbn" accession="NC_000015.8" seq_label="chr15" />
+          <SEQUENCE data_block_name="$dbn" accession="NC_000016.8" seq_label="chr16" />
+          <SEQUENCE data_block_name="$dbn" accession="NC_000017.9" seq_label="chr17" />
+          <SEQUENCE data_block_name="$dbn" accession="NC_000018.8" seq_label="chr18" />
+          <SEQUENCE data_block_name="$dbn" accession="NC_000019.8" seq_label="chr19" />
+          <SEQUENCE data_block_name="$dbn" accession="NC_000020.9" seq_label="chr20" />
+          <SEQUENCE data_block_name="$dbn" accession="NC_000021.7" seq_label="chr21" />
+          <SEQUENCE data_block_name="$dbn" accession="NC_000022.9" seq_label="chr22" />
+          <SEQUENCE data_block_name="$dbn" accession="NC_000023.9" seq_label="chrX" />
+          <SEQUENCE data_block_name="$dbn" accession="NC_000024.8" seq_label="chrY" />
+          <SEQUENCE data_block_name="$dbn" accession="NC_001807.4" seq_label="chrM" />
+END
+            }
+            }
+          }
+
+$analysis_xml .= <<END;
         </SEQ_LABELS>
         <PROCESSING>
           <PIPELINE>
@@ -380,15 +400,16 @@ sub getBlock {
 
 sub download_url {
   my ($url, $path) = @_;
-  my $r = system("wget -q -O $path $url");
-  if ($r) {
-          $ENV{PERL_LWP_SSL_VERIFY_HOSTNAME}=0;
-    $r = system("lwp-download $url $path");
-    if ($r) {
-            print "ERROR DOWNLOADING: $url\n";
-            exit(1);
-    }
-  }
+# FIXME
+#  my $r = system("wget -q -O $path $url");
+#  if ($r) {
+#          $ENV{PERL_LWP_SSL_VERIFY_HOSTNAME}=0;
+#    $r = system("lwp-download $url $path");
+#    if ($r) {
+#            print "ERROR DOWNLOADING: $url\n";
+#            exit(1);
+#    }
+#  }
   return($path);
 }
 
