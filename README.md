@@ -21,7 +21,9 @@ It needs the following Perl modules, install them via CPAN if you don't already 
 
 ### TODO:
 
+* the current ini file includes both tumor and normal, will just want one for a single 'sample'
 * need to be updated to BWA-mem and handle the @RG properly
+    * https://wiki.oicr.on.ca/display/PANCANCER/BWA+mem+implementation
 * update the reference genome to be the correct one
 * integrate with https://github.com/ICGC-TCGA-PanCancer/PCAP-core
     * need to calculate md5sum for BAMs
