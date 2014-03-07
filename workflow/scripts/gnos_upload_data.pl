@@ -23,9 +23,10 @@ my $output_dir = "test_output_dir";
 my $key = "gnostest.pem";
 my $md5_file = "";
 my $upload_url = "";
+my $test = 0;
 
-if (scalar(@ARGV) != 12) { die "USAGE: 'perl gnos_upload_data.pl --metadata-urls <URLs_comma_separated> --bam <sample-level_bam_file_path> --bam-md5sum-file <file_with_bam_md5sum> --outdir <output_dir> --key <gnos.pem> --upload-url <gnos_server_url>\n"; }
-GetOptions("metadata-urls=s" => \$metadata_urls, "bam=s" => \$bam, "outdir=s" => \$output_dir, "key=s" => \$key, "bam-md5sum-file=s" => \$md5_file, "upload-url=s" => \$upload_url);
+if (scalar(@ARGV) != 12 || scalar(@ARGV) != 13) { die "USAGE: 'perl gnos_upload_data.pl --metadata-urls <URLs_comma_separated> --bam <sample-level_bam_file_path> --bam-md5sum-file <file_with_bam_md5sum> --outdir <output_dir> --key <gnos.pem> --upload-url <gnos_server_url> [--test]\n"; }
+GetOptions("metadata-urls=s" => \$metadata_urls, "bam=s" => \$bam, "outdir=s" => \$output_dir, "key=s" => \$key, "bam-md5sum-file=s" => \$md5_file, "upload-url=s" => \$upload_url, "test" => \$test);
 
 system("mkdir -p $output_dir");
 
@@ -57,15 +58,22 @@ if (upload_submission($sub_path)) { die "The upload of files did not work!  File
 sub validate_submission {
   my ($sub_path) = @_;
   my $cmd = "cgsubmit --validate-only -s $upload_url -o validation.log -u $sub_path -vv";
-  print "$cmd\n";
+  print "VALIDATING: $cmd\n";
   return(system($cmd));
 }
 
 sub upload_submission {
   my ($sub_path) = @_;
-  my $cmd = "cgsubmit --validate-only -s $upload_url -o validation.log -u $sub_path -vv";
-  print "$cmd\n";
+  my $cmd = "cgsubmit -s $upload_url -o metadata_upload.log -u $sub_path -vv -c $key";
+  if ($test) { $cmd = "echo ".$cmd; }
+  print "UPLOADING METADATA: $cmd\n";
+  if (system($cmd)) { return(1); }
+
+  $cmd = "gtupload -c $key -s $upload_url -u $sub_path/manifest.xml";
+  if ($test) { $cmd = "echo ".$cmd; }
+  print "UPLOADING DATA: $cmd\n";
   return(system($cmd));
+
 }
 
 sub generate_submission {

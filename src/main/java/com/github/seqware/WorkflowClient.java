@@ -177,6 +177,7 @@ public class WorkflowClient extends OicrWorkflow {
                 .addArgument("--metadata-urls "+gnosInputMetadataURLs)
                 .addArgument("--upload-url "+gnosUploadFileURL)
                 .addArgument("--bam-md5sum-file "+this.dataDir + outputFileName + ".md5");
+        if () { job05.getCommand().addArgument("--test"); }
         job05.addParent(job04);
 
     }
