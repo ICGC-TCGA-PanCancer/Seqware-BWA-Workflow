@@ -33,7 +33,7 @@ public class WorkflowClient extends OicrWorkflow {
     String bwaSampeMemG = "8";
     String bwaSampeSortSamMemG = "8";
     String additionalPicardParams;
-    String picardReadGrpMem = "8";
+    String picardSortMem = "8";
     int numOfThreads; //aln 
     int maxInsertSize; //sampe
     String readGroup;//sampe
@@ -71,7 +71,7 @@ public class WorkflowClient extends OicrWorkflow {
             bwaAlignMemG = getProperty("bwaAlignMemG") == null ? "8" : getProperty("bwaAlignMemG");
             bwaSampeMemG = getProperty("bwaSampeMemG") == null ? "8" : getProperty("bwaSampeMemG");
             bwaSampeSortSamMemG = getProperty("bwaSampeSortSamMemG") == null ? "8" : getProperty("bwaSampeSortSamMemG");
-            picardReadGrpMem = getProperty("picardReadGrpMem") == null ? "8" : getProperty("picardReadGrpMem");
+            picardSortMem = getProperty("picardSortMem") == null ? "8" : getProperty("picardSortMem");
             additionalPicardParams = getProperty("additionalPicardParams");
 
 
@@ -159,19 +159,16 @@ public class WorkflowClient extends OicrWorkflow {
         // MERGE AND READGROUPS
         // add read groups and merge, will probably want to do this per bam above and just merge here with read groups to track... not sure if this will work properly
 	// TODO: this needs to be rethought since each alignment needs its own readgroup
-        Job job04 = this.getWorkflow().createBashJob("addReadGroups");
-	job04.getCommand().addArgument("java -Xmx"+picardReadGrpMem+"g -jar "
-                + this.getWorkflowBaseDir() + "/bin/picard-tools-1.89/AddOrReplaceReadGroups.jar "
-                + " RGID=temp"
-                + " RGLB=library"
-                + " RGPL=Illumina"
-                + " RGPU=platformunit"
-                + " RGSM=RGSM"
+        Job job04 = this.getWorkflow().createBashJob("mergeBAM");
+	job04.getCommand().addArgument("java -Xmx"+picardSortMem+"g -jar "
+                + this.getWorkflowBaseDir() + "/bin/picard-tools-1.89/MergeSamFiles.jar "
                 + " " + (additionalPicardParams.isEmpty() ? "" : additionalPicardParams));
         for (int i=0; i<numBamFiles; i++) { job04.getCommand().addArgument(" I=out_"+i+".bam" ); }
-        job04.getCommand().addArgument(" O=" + this.dataDir + outputFileName + " >> "+this.dataDir+outputFileName + ".out 2>> "+this.dataDir+outputFileName +".err");
-	for (Job pJob : bamJobs) { job04.addParent(pJob); }
-	job04.setMaxMemory(picardReadGrpMem+"000");
+        job04.getCommand().addArgument(" O=" + this.dataDir + outputFileName)
+                .addArgument("SORT_ORDER=coordinate VALIDATION_STRINGENCY=SILENT CREATE_INDEX=true CREATE_MD5_FILE=true");
+        //" >> "+this.dataDir+outputFileName + ".out 2>> "+this.dataDir+outputFileName +".err");
+	      for (Job pJob : bamJobs) { job04.addParent(pJob); }
+	job04.setMaxMemory(picardSortMem+"900");
         
         // PREPARE METADATA & UPLOAD
         Job job05 = this.getWorkflow().createBashJob("upload");
