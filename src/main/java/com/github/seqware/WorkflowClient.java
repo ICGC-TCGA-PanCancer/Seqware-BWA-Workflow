@@ -39,6 +39,7 @@ public class WorkflowClient extends OicrWorkflow {
     String readGroup;//sampe
     String bwa_aln_params;
     String bwa_sampe_params;
+    String skipUpload = null;
     
     @Override
     public Map<String, SqwFile> setupFiles() {
@@ -73,6 +74,7 @@ public class WorkflowClient extends OicrWorkflow {
             bwaSampeSortSamMemG = getProperty("bwaSampeSortSamMemG") == null ? "8" : getProperty("bwaSampeSortSamMemG");
             picardSortMem = getProperty("picardSortMem") == null ? "8" : getProperty("picardSortMem");
             additionalPicardParams = getProperty("additionalPicardParams");
+            skipUpload = getProperty("skip_upload") == null ? "true" : getProperty("skip_upload");
 
 
         } catch (Exception e) {
@@ -177,7 +179,7 @@ public class WorkflowClient extends OicrWorkflow {
                 .addArgument("--metadata-urls "+gnosInputMetadataURLs)
                 .addArgument("--upload-url "+gnosUploadFileURL)
                 .addArgument("--bam-md5sum-file "+this.dataDir + outputFileName + ".md5");
-        if () { job05.getCommand().addArgument("--test"); }
+        if ("true".equals(skipUpload)) { job05.getCommand().addArgument("--test"); }
         job05.addParent(job04);
 
     }
