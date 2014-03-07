@@ -4,38 +4,62 @@ use Getopt::Long;
 use XML::DOM;
 use JSON;
 
-# DESCRIPTION
-# This tool takes metadata URLs and BAM path. It then downloads a sample worth of metadata,
-# parses it, generates headers, the submission files and then performs the uploads. 
+#############################################################################################
+# DESCRIPTION                                                                               #
+#############################################################################################
+# This tool takes metadata URLs and BAM path. It then downloads a sample worth of metadata, #
+# parses it, generates headers, the submission files and then performs the uploads.         #
+#############################################################################################
+
+
+#############
+# VARIABLES #
+#############
 
 my $metadata_urls;
 my $bam;
 my $parser = new XML::DOM::Parser;
 my $output_dir = "test_output_dir";
 my $key = "gnostest.pem";
+my $md5_file = "";
+my $upload_url = "";
 
-if (scalar(@ARGV) != 8) { die "USAGE: 'perl gnos_upload_data.pl --metadata-urls <URLs_comma_separated> --bam <sample-level_bam_file_path> --outdir <output_dir> --key <gnos.pem>\n"; }
-
-GetOptions("metadata-urls=s" => \$metadata_urls, "bam=s" => \$bam, "outdir=s" => \$output_dir, "key=s" => \$key);
+if (scalar(@ARGV) != 12) { die "USAGE: 'perl gnos_upload_data.pl --metadata-urls <URLs_comma_separated> --bam <sample-level_bam_file_path> --bam-md5sum-file <file_with_bam_md5sum> --outdir <output_dir> --key <gnos.pem> --upload-url <gnos_server_url>\n"; }
+GetOptions("metadata-urls=s" => \$metadata_urls, "bam=s" => \$bam, "outdir=s" => \$output_dir, "key=s" => \$key, "bam-md5sum-file=s" => \$md5_file, "upload-url=s" => \$upload_url);
 
 system("mkdir -p $output_dir");
 
-# TODO
-my $bam_check = "3a50bf0901c9f56df2a1ff0778003511";
+# md5sum
+my $bam_check = `cat $md5_file`;
+chomp $bam_check;
+
+##############
+# MAIN STEPS #
+##############
 
 print "DOWNLOADING METADATA FILES\n";
-
 my $metad = download_metadata($metadata_urls);
-#print Dumper($metad);
-
-print "CREATE HEADER\n";
-
-#my $header = create_header($metad);
 
 print "GENERATING SUBMISSION\n";
-
 my $sub_path = generate_submission($metad);
 
+print "VALIDATING SUBMISSION\n";
+if (validate_submission($sub_path)) { die "The submission did not pass validation! Files are located at: $sub_path\n"; }
+
+print "UPLOADING SUBMISSION\n";
+if (upload_submission($sub_path)) { die "The upload of files did not work!  Files are located at: $sub_path\n"; }
+
+
+###############
+# SUBROUTINES #
+###############
+
+sub validate_submission {
+  my ($sub_path) = @_;
+  my $cmd = "cgsubmit --validate-only -s $upload_url -o validation.log -u $sub_path -vv";
+  pritn "$cmd\n";
+  return(system($cmd));
+}
 
 sub generate_submission {
 

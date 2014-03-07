@@ -156,11 +156,9 @@ public class WorkflowClient extends OicrWorkflow {
 
         }
        
-        // MERGE AND READGROUPS
-        // add read groups and merge, will probably want to do this per bam above and just merge here with read groups to track... not sure if this will work properly
-	// TODO: this needs to be rethought since each alignment needs its own readgroup
+        // MERGE 
         Job job04 = this.getWorkflow().createBashJob("mergeBAM");
-	job04.getCommand().addArgument("java -Xmx"+picardSortMem+"g -jar "
+	      job04.getCommand().addArgument("java -Xmx"+picardSortMem+"g -jar "
                 + this.getWorkflowBaseDir() + "/bin/picard-tools-1.89/MergeSamFiles.jar "
                 + " " + (additionalPicardParams.isEmpty() ? "" : additionalPicardParams));
         for (int i=0; i<numBamFiles; i++) { job04.getCommand().addArgument(" I=out_"+i+".bam" ); }
@@ -168,7 +166,7 @@ public class WorkflowClient extends OicrWorkflow {
                 .addArgument("SORT_ORDER=coordinate VALIDATION_STRINGENCY=SILENT CREATE_INDEX=true CREATE_MD5_FILE=true");
         //" >> "+this.dataDir+outputFileName + ".out 2>> "+this.dataDir+outputFileName +".err");
 	      for (Job pJob : bamJobs) { job04.addParent(pJob); }
-	job04.setMaxMemory(picardSortMem+"900");
+	      job04.setMaxMemory(picardSortMem+"900");
         
         // PREPARE METADATA & UPLOAD
         Job job05 = this.getWorkflow().createBashJob("upload");
@@ -176,7 +174,9 @@ public class WorkflowClient extends OicrWorkflow {
                 .addArgument("--bam "+this.dataDir + outputFileName)
                 .addArgument("--key "+gnosKey)
                 .addArgument("--outdir "+this.dataDir)
-                .addArgument("--metadata-urls "+gnosUploadFileURL);
+                .addArgument("--metadata-urls "+gnosInputMetadataURLs)
+                .addArgument("--upload-url "+gnosUploadFileURL)
+                .addArgument("--bam-md5sum-file "+this.dataDir + outputFileName + ".md5");
         job05.addParent(job04);
 
     }
