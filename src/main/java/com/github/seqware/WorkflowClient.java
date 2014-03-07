@@ -14,8 +14,11 @@ public class WorkflowClient extends OicrWorkflow {
     // comma-seperated for multiple bam inputs
     String inputBamPaths = null;
     ArrayList<String> bamPaths = new ArrayList<String>();
+    ArrayList<String> inputURLs = new ArrayList<String>();
+    ArrayList<String> inputMetadataURLs = new ArrayList<String>();
     // used to download with gtdownload
-    String gnosInputFileURL = null;
+    String gnosInputFileURLs = null;
+    String gnosInputMetadataURLs = null;
     String gnosUploadFileURL = null;
     String gnosKey = null;
     // number of splits for bam files, default 1=no split
@@ -29,16 +32,9 @@ public class WorkflowClient extends OicrWorkflow {
     String bwaAlignMemG = "8";
     String bwaSampeMemG = "8";
     String bwaSampeSortSamMemG = "8";
-    String RGID;
-    String RGLB;
-    String RGPL;
-    String RGPU;
-    String RGSM;
     String additionalPicardParams;
     String picardReadGrpMem = "8";
-    int readTrimming; //aln
     int numOfThreads; //aln 
-    int pairingAccuracy; //aln
     int maxInsertSize; //sampe
     String readGroup;//sampe
     String bwa_aln_params;
@@ -59,17 +55,19 @@ public class WorkflowClient extends OicrWorkflow {
             for(String path : inputBamPaths.split(",")) {
                 bamPaths.add(path);
             }
-            gnosInputFileURL = getProperty("gnos_input_file_url");
+            gnosInputFileURLs = getProperty("gnos_input_file_urls");
+            for(String url : gnosInputFileURLs.split(",")) {
+                inputURLs.add(url);
+            }
+            gnosInputMetadataURLs = getProperty("gnos_input_metadata_urls");
+            for(String url : gnosInputMetadataURLs.split(",")) {
+                inputMetadataURLs.add(url);
+            }
             gnosUploadFileURL = getProperty("gnos_output_file_url");
             gnosKey = getProperty("gnos_key");
             reference_path = getProperty("input_reference");
             outputDir = this.getMetadata_output_dir();
             outputPrefix = this.getMetadata_output_file_prefix();
-            RGID = getProperty("RGID");
-            RGLB = getProperty("RGLB");
-            RGPL = getProperty("RGPL");
-            RGPU = getProperty("RGPU");
-            RGSM = getProperty("RGSM");
             bwaAlignMemG = getProperty("bwaAlignMemG") == null ? "8" : getProperty("bwaAlignMemG");
             bwaSampeMemG = getProperty("bwaSampeMemG") == null ? "8" : getProperty("bwaSampeMemG");
             bwaSampeSortSamMemG = getProperty("bwaSampeSortSamMemG") == null ? "8" : getProperty("bwaSampeSortSamMemG");
@@ -94,15 +92,20 @@ public class WorkflowClient extends OicrWorkflow {
     @Override
     public void buildWorkflow() {
         
+        ArrayList<Job> downloadJobs = new ArrayList<Job>();
         ArrayList<Job> bamJobs = new ArrayList<Job>();
         
         // DOWNLOAD DATA
         // let's start by downloading the input BAMs
-        Job gtDownloadJob = this.getWorkflow().createBashJob("gtdownload");
-        gtDownloadJob.getCommand().addArgument("gtdownload")
+        int numInputURLs = this.inputURLs.size();
+        for(int i=0; i<numInputURLs; i++) {
+          Job gtDownloadJob = this.getWorkflow().createBashJob("gtdownload");
+          gtDownloadJob.getCommand().addArgument("gtdownload")
                 .addArgument("-c "+gnosKey)
                 .addArgument("-v -d")
-                .addArgument(gnosInputFileURL);
+                .addArgument(this.inputURLs.get(i));
+          downloadJobs.add(gtDownloadJob);
+        }
         
         // TODO for loop here
         int numBamFiles = bamPaths.size();
@@ -114,7 +117,7 @@ public class WorkflowClient extends OicrWorkflow {
             //bwa aln   -t 8 -b1 ./reference/genome.fa.gz ./HG00096.chrom20.ILLUMINA.bwa.GBR.low_coverage.20120522.bam_000000.bam > aligned_1.sai 2> aligned_1.err
             //bwa aln   -t 8 -b2 ./reference/genome.fa.gz ./HG00096.chrom20.ILLUMINA.bwa.GBR.low_coverage.20120522.bam_000000.bam > aligned_2.sai 2> aligned_2.err
             Job job01 = this.getWorkflow().createBashJob("bwa_align1_"+i);
-            job01.addParent(gtDownloadJob);
+            for(Job gtDownloadJob : downloadJobs) { job01.addParent(gtDownloadJob); }
             job01.getCommand().addArgument(this.getWorkflowBaseDir() + "/bin/bwa-0.6.2/bwa aln ")
                     .addArgument(this.parameters("aln") == null ? " " : this.parameters("aln"))
                     .addArgument(reference_path+" -b1 ")
@@ -123,7 +126,7 @@ public class WorkflowClient extends OicrWorkflow {
             job01.setMaxMemory(bwaAlignMemG+"000");
    
             Job job02 = this.getWorkflow().createBashJob("bwa_align2_"+i);
-            job02.addParent(gtDownloadJob);
+            for(Job gtDownloadJob : downloadJobs) { job02.addParent(gtDownloadJob); }
             job02.getCommand().addArgument(this.getWorkflowBaseDir() + "/bin/bwa-0.6.2/bwa aln ")
                     .addArgument(this.parameters("aln") == null ? " " : this.parameters("aln"))
                     .addArgument(reference_path+" -b1 ")
@@ -155,29 +158,28 @@ public class WorkflowClient extends OicrWorkflow {
        
         // MERGE AND READGROUPS
         // add read groups and merge, will probably want to do this per bam above and just merge here with read groups to track... not sure if this will work properly
-	Job job04 = this.getWorkflow().createBashJob("addReadGroups");
+	// TODO: this needs to be rethought since each alignment needs its own readgroup
+        Job job04 = this.getWorkflow().createBashJob("addReadGroups");
 	job04.getCommand().addArgument("java -Xmx"+picardReadGrpMem+"g -jar "
                 + this.getWorkflowBaseDir() + "/bin/picard-tools-1.89/AddOrReplaceReadGroups.jar "
-                + " RGID=" + RGID
-                + " RGLB=" + RGLB
-                + " RGPL=" + RGPL
-                + " RGPU=" + RGPU
-                + " RGSM=" + RGSM
+                + " RGID=temp"
+                + " RGLB=library"
+                + " RGPL=Illumina"
+                + " RGPU=platformunit"
+                + " RGSM=RGSM"
                 + " " + (additionalPicardParams.isEmpty() ? "" : additionalPicardParams));
         for (int i=0; i<numBamFiles; i++) { job04.getCommand().addArgument(" I=out_"+i+".bam" ); }
         job04.getCommand().addArgument(" O=" + this.dataDir + outputFileName + " >> "+this.dataDir+outputFileName + ".out 2>> "+this.dataDir+outputFileName +".err");
-	for (Job pJob : bamJobs) { 
-            System.err.println("DEBUG: "+pJob);
-            job04.addParent(pJob); 
-        }
+	for (Job pJob : bamJobs) { job04.addParent(pJob); }
 	job04.setMaxMemory(picardReadGrpMem+"000");
         
         // PREPARE METADATA & UPLOAD
         Job job05 = this.getWorkflow().createBashJob("upload");
-        job05.getCommand().addArgument("perl " + this.getWorkflowBaseDir() + "/scripts/upload_data.pl")
+        job05.getCommand().addArgument("perl " + this.getWorkflowBaseDir() + "/scripts/gnos_upload_data.pl")
                 .addArgument("--bam "+this.dataDir + outputFileName)
                 .addArgument("--key "+gnosKey)
-                .addArgument("--url "+gnosUploadFileURL);
+                .addArgument("--outdir "+this.dataDir)
+                .addArgument("--metadata-urls "+gnosUploadFileURL);
         job05.addParent(job04);
 
     }

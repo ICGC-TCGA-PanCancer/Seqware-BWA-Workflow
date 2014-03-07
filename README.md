@@ -21,6 +21,8 @@ It needs the following Perl modules, install them via CPAN if you don't already 
 
 ### TODO:
 
+* need to be updated to BWA-mem and handle the @RG properly
+* update the reference genome to be the correct one
 * integrate with https://github.com/ICGC-TCGA-PanCancer/PCAP-core
     * need to calculate md5sum for BAMs
 * need to bundle gtdownload 

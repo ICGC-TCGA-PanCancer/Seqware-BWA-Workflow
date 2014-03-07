@@ -12,10 +12,11 @@ my $metadata_urls;
 my $bam;
 my $parser = new XML::DOM::Parser;
 my $output_dir = "test_output_dir";
+my $key = "gnostest.pem";
 
-if (scalar(@ARGV) != 6) { die "USAGE: 'perl gnos_upload_data.pl --metadata-urls <URLs_comma_separated> --bam <sample-level_bam_file_path> --outdir <output_dir>\n"; }
+if (scalar(@ARGV) != 8) { die "USAGE: 'perl gnos_upload_data.pl --metadata-urls <URLs_comma_separated> --bam <sample-level_bam_file_path> --outdir <output_dir> --key <gnos.pem>\n"; }
 
-GetOptions("metadata-urls=s" => \$metadata_urls, "bam=s" => \$bam, "outdir=s" => \$output_dir);
+GetOptions("metadata-urls=s" => \$metadata_urls, "bam=s" => \$bam, "outdir=s" => \$output_dir, "key=s" => \$key);
 
 system("mkdir -p $output_dir");
 
