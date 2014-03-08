@@ -3,6 +3,7 @@ use Data::Dumper;
 use Getopt::Long;
 use XML::DOM;
 use JSON;
+use Data::UUID;
 
 #############################################################################################
 # DESCRIPTION                                                                               #
@@ -28,7 +29,12 @@ my $test = 0;
 if (scalar(@ARGV) != 12 && scalar(@ARGV) != 13) { die "USAGE: 'perl gnos_upload_data.pl --metadata-urls <URLs_comma_separated> --bam <sample-level_bam_file_path> --bam-md5sum-file <file_with_bam_md5sum> --outdir <output_dir> --key <gnos.pem> --upload-url <gnos_server_url> [--test]\n"; }
 GetOptions("metadata-urls=s" => \$metadata_urls, "bam=s" => \$bam, "outdir=s" => \$output_dir, "key=s" => \$key, "bam-md5sum-file=s" => \$md5_file, "upload-url=s" => \$upload_url, "test" => \$test);
 
-system("mkdir -p $output_dir");
+# setup output dir
+my $ug = Data::UUID->new;
+my $uuid = lc($ug->create_str());
+system("mkdir -p $output_dir/$uuid");
+$output_dir = $output_dir."/$uuid/";
+system("ln -s $bam $output_dir/$uuid/");
 
 # md5sum
 my $bam_check = `cat $md5_file`;
@@ -116,7 +122,7 @@ my $bam_file_checksum = "0e4f1bd5c5cc83b37d6c511dda98866c";
 my $read_group_info = {};
 my $global_attr = {};
 
-print Dumper($m);
+#print Dumper($m);
 
 # this isn't going to work if there are multiple files/readgroups!
 foreach my $file (keys %{$m}) {
@@ -368,6 +374,8 @@ END
 open OUT, ">$output_dir/run.xml" or die;
 print OUT $run_xml;
 close OUT;
+
+return($output_dir);
 
 }
 
