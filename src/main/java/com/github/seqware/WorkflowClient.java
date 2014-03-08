@@ -130,6 +130,9 @@ public class WorkflowClient extends OicrWorkflow {
                     .addArgument(file)
                     .addArgument(" > aligned_"+i+"_1.sai");
             job01.setMaxMemory(bwaAlignMemG+"900");
+            if (!getProperty("numOfThreads").isEmpty()) {
+              job01.setThreads(Integer.parseInt(getProperty("numOfThreads")));
+            }
    
             Job job02 = this.getWorkflow().createBashJob("bwa_align2_"+i);
             for(Job gtDownloadJob : downloadJobs) { job02.addParent(gtDownloadJob); }
@@ -139,6 +142,9 @@ public class WorkflowClient extends OicrWorkflow {
                     .addArgument(file)
                     .addArgument(" > aligned_"+i+"_2.sai");
             job02.setMaxMemory(bwaAlignMemG+"900");
+            if (!getProperty("numOfThreads").isEmpty()) {
+              job02.setThreads(Integer.parseInt(getProperty("numOfThreads")));
+            }
             
             // BWA SAMPE + CONVERT TO BAM
             //bwa sampe reference/genome.fa.gz aligned_1.sai aligned_2.sai HG00096.chrom20.ILLUMINA.bwa.GBR.low_coverage.20120522.bam_000000.bam HG00096.chrom20.ILLUMINA.bwa.GBR.low_coverage.20120522.bam_000000.bam > aligned.sam
