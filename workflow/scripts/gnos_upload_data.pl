@@ -34,7 +34,7 @@ my $ug = Data::UUID->new;
 my $uuid = lc($ug->create_str());
 system("mkdir -p $output_dir/$uuid");
 $output_dir = $output_dir."/$uuid/";
-system("ln -s $bam $output_dir/$uuid/");
+system("ln -s $bam $output_dir/");
 
 # md5sum
 my $bam_check = `cat $md5_file`;
