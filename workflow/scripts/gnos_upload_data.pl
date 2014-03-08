@@ -25,7 +25,7 @@ my $md5_file = "";
 my $upload_url = "";
 my $test = 0;
 
-if (scalar(@ARGV) != 12 || scalar(@ARGV) != 13) { die "USAGE: 'perl gnos_upload_data.pl --metadata-urls <URLs_comma_separated> --bam <sample-level_bam_file_path> --bam-md5sum-file <file_with_bam_md5sum> --outdir <output_dir> --key <gnos.pem> --upload-url <gnos_server_url> [--test]\n"; }
+if (scalar(@ARGV) != 12 && scalar(@ARGV) != 13) { die "USAGE: 'perl gnos_upload_data.pl --metadata-urls <URLs_comma_separated> --bam <sample-level_bam_file_path> --bam-md5sum-file <file_with_bam_md5sum> --outdir <output_dir> --key <gnos.pem> --upload-url <gnos_server_url> [--test]\n"; }
 GetOptions("metadata-urls=s" => \$metadata_urls, "bam=s" => \$bam, "outdir=s" => \$output_dir, "key=s" => \$key, "bam-md5sum-file=s" => \$md5_file, "upload-url=s" => \$upload_url, "test" => \$test);
 
 system("mkdir -p $output_dir");
@@ -440,16 +440,15 @@ sub getBlock {
 
 sub download_url {
   my ($url, $path) = @_;
-# FIXME
-#  my $r = system("wget -q -O $path $url");
-#  if ($r) {
-#          $ENV{PERL_LWP_SSL_VERIFY_HOSTNAME}=0;
-#    $r = system("lwp-download $url $path");
-#    if ($r) {
-#            print "ERROR DOWNLOADING: $url\n";
-#            exit(1);
-#    }
-#  }
+  my $r = system("wget -q -O $path $url");
+  if ($r) {
+          $ENV{PERL_LWP_SSL_VERIFY_HOSTNAME}=0;
+    $r = system("lwp-download $url $path");
+    if ($r) {
+            print "ERROR DOWNLOADING: $url\n";
+            exit(1);
+    }
+  }
   return($path);
 }
 

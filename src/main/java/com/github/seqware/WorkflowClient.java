@@ -33,7 +33,9 @@ public class WorkflowClient extends OicrWorkflow {
     String bwaSampeMemG = "8";
     String bwaSampeSortSamMemG = "8";
     String additionalPicardParams;
-    String picardSortMem = "8";
+    String picardSortMem = "6";
+    String picardSortJobMem = "8";
+    String uploadScriptJobMem = "2";
     int numOfThreads; //aln 
     int maxInsertSize; //sampe
     String readGroup;//sampe
@@ -72,7 +74,9 @@ public class WorkflowClient extends OicrWorkflow {
             bwaAlignMemG = getProperty("bwaAlignMemG") == null ? "8" : getProperty("bwaAlignMemG");
             bwaSampeMemG = getProperty("bwaSampeMemG") == null ? "8" : getProperty("bwaSampeMemG");
             bwaSampeSortSamMemG = getProperty("bwaSampeSortSamMemG") == null ? "4" : getProperty("bwaSampeSortSamMemG");
-            picardSortMem = getProperty("picardSortMem") == null ? "8" : getProperty("picardSortMem");
+            picardSortMem = getProperty("picardSortMem") == null ? "6" : getProperty("picardSortMem");
+            picardSortJobMem = getProperty("picardSortJobMem") == null ? "8" : getProperty("picardSortJobMem");
+            uploadScriptJobMem = getProperty("uploadScriptJobMem") == null ? "2" : getProperty("uploadScriptJobMem");
             additionalPicardParams = getProperty("additionalPicardParams");
             skipUpload = getProperty("skip_upload") == null ? "true" : getProperty("skip_upload");
 
@@ -125,7 +129,7 @@ public class WorkflowClient extends OicrWorkflow {
                     .addArgument(reference_path+" -b1 ")
                     .addArgument(file)
                     .addArgument(" > aligned_"+i+"_1.sai");
-            job01.setMaxMemory(bwaAlignMemG+"000");
+            job01.setMaxMemory(bwaAlignMemG+"900");
    
             Job job02 = this.getWorkflow().createBashJob("bwa_align2_"+i);
             for(Job gtDownloadJob : downloadJobs) { job02.addParent(gtDownloadJob); }
@@ -134,7 +138,7 @@ public class WorkflowClient extends OicrWorkflow {
                     .addArgument(reference_path+" -b1 ")
                     .addArgument(file)
                     .addArgument(" > aligned_"+i+"_2.sai");
-            job02.setMaxMemory(bwaAlignMemG+"000");
+            job02.setMaxMemory(bwaAlignMemG+"900");
             
             // BWA SAMPE + CONVERT TO BAM
             //bwa sampe reference/genome.fa.gz aligned_1.sai aligned_2.sai HG00096.chrom20.ILLUMINA.bwa.GBR.low_coverage.20120522.bam_000000.bam HG00096.chrom20.ILLUMINA.bwa.GBR.low_coverage.20120522.bam_000000.bam > aligned.sam
@@ -168,7 +172,7 @@ public class WorkflowClient extends OicrWorkflow {
                 .addArgument("SORT_ORDER=coordinate VALIDATION_STRINGENCY=SILENT CREATE_INDEX=true CREATE_MD5_FILE=true");
         //" >> "+this.dataDir+outputFileName + ".out 2>> "+this.dataDir+outputFileName +".err");
 	      for (Job pJob : bamJobs) { job04.addParent(pJob); }
-	      job04.setMaxMemory(picardSortMem+"900");
+	      job04.setMaxMemory(picardSortJobMem+"900");
         
         // PREPARE METADATA & UPLOAD
         Job job05 = this.getWorkflow().createBashJob("upload");
@@ -180,6 +184,7 @@ public class WorkflowClient extends OicrWorkflow {
                 .addArgument("--upload-url "+gnosUploadFileURL)
                 .addArgument("--bam-md5sum-file "+this.dataDir + outputFileName + ".md5");
         if ("true".equals(skipUpload)) { job05.getCommand().addArgument("--test"); }
+        job05.setMaxMemory(uploadScriptJobMem+"900");
         job05.addParent(job04);
 
     }
