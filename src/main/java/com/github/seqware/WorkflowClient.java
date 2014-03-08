@@ -71,7 +71,7 @@ public class WorkflowClient extends OicrWorkflow {
             outputPrefix = this.getMetadata_output_file_prefix();
             bwaAlignMemG = getProperty("bwaAlignMemG") == null ? "8" : getProperty("bwaAlignMemG");
             bwaSampeMemG = getProperty("bwaSampeMemG") == null ? "8" : getProperty("bwaSampeMemG");
-            bwaSampeSortSamMemG = getProperty("bwaSampeSortSamMemG") == null ? "8" : getProperty("bwaSampeSortSamMemG");
+            bwaSampeSortSamMemG = getProperty("bwaSampeSortSamMemG") == null ? "4" : getProperty("bwaSampeSortSamMemG");
             picardSortMem = getProperty("picardSortMem") == null ? "8" : getProperty("picardSortMem");
             additionalPicardParams = getProperty("additionalPicardParams");
             skipUpload = getProperty("skip_upload") == null ? "true" : getProperty("skip_upload");
@@ -153,7 +153,7 @@ public class WorkflowClient extends OicrWorkflow {
             .addArgument("O=out_"+i+".bam");
             job03.addParent(job01);
             job03.addParent(job02);
-            job03.setMaxMemory(bwaSampeMemG+"000");
+            job03.setMaxMemory(bwaSampeMemG+"900");
             bamJobs.add(job03);        
 
         }
