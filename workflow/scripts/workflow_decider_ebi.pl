@@ -3,79 +3,101 @@ use XML::DOM;
 use Data::Dumper;
 use JSON;
 
+# DESCRIPTION
+# A tool for identifying samples ready for alignment, scheduling on clusters,
+# and monitoring for completion.
 # TODO:
 # * need to use perl package for downloads, not calls out to system
 # * need to define cluster json so this script knows how to launch a workflow
 
- my $down = 1;
+#############
+# VARIABLES #
+#############
 
- my $parser = new XML::DOM::Parser;
- #my $doc = $parser->parsefile ("https://cghub.ucsc.edu/cghub/metadata/analysisDetail?participant_id=3f70c3e3-0131-466f-92aa-0a63ab3d4258");
- #system("lwp-download 'https://cghub.ucsc.edu/cghub/metadata/analysisDetail?study=TCGA_MUT_BENCHMARK_4&state=live' data.xml");
- #my $doc = $parser->parsefile ('https://cghub.ucsc.edu/cghub/metadata/analysisDetail?study=TCGA_MUT_BENCHMARK_4&state=live');
- if ($down) { my $cmd = "mkdir -p xml; cgquery -s https://gtrepo-ebi.annailabs.com -o xml/data.xml 'study=*&state=live'"; print "$cmd\n"; system($cmd); }
- my $doc = $parser->parsefile("xml/data.xml");
+my $down = 1;
+if (scalar(@ARGV) != 12 && scalar(@ARGV) != 13) { die "USAGE: 'perl gnos_upload_data.pl --metadata-urls <URLs_comma_separated> --bam <sample-level_bam_file_path> --bam-md5sum-file <file_with_bam_md5sum> --outdir <output_dir> --key <gnos.pem> --upload-url <gnos_server_url> [--test]\n"; }
+GetOptions("metadata-urls=s" => \$metadata_urls, "bam=s" => \$bam, "outdir=s" => \$output_dir, "key=s" => \$key, "bam-md5sum-file=s" => \$md5_file, "upload-url=s" => \$upload_url, "test" => \$test);
 
- # print all HREF attributes of all CODEBASE elements
- my $nodes = $doc->getElementsByTagName ("Result");
- my $n = $nodes->getLength;
 
- print "\n";
+##############
+# MAIN STEPS #
+##############
 
- for (my $i = 0; $i < $n; $i++)
- {
-     my $node = $nodes->item ($i);
-     #$node->getElementsByTagName('analysis_full_uri')->item(0)->getAttributeNode('errors')->getFirstChild->getNodeValue;
-     #print $node->getElementsByTagName('analysis_full_uri')->item(0)->getFirstChild->getNodeValue;
-     my $aurl = getVal($node, "analysis_full_uri"); # ->getElementsByTagName('analysis_full_uri')->item(0)->getFirstChild->getNodeValue;
-     # have to ensure the UUID is lower case, known GNOS issue
-     #print "Analysis Full URL: $aurl\n";
-     if($aurl =~ /^(.*)\/([^\/]+)$/) {
-     $aurl = $1."/".lc($2);
-     } else { 
-       print "SKIPPING!\n";
-       next;
-     }
-     print "ANALYSIS FULL URL: $aurl\n";
-     #if ($down) { system("wget -q -O xml/data_$i.xml $aurl"); }
-     if ($down) { download($aurl, "xml/data_$i.xml"); }
-     my $adoc = $parser->parsefile ("xml/data_$i.xml");
-     my $analysisId = getVal($adoc, 'analysis_id'); #->getElementsByTagName('analysis_id')->item(0)->getFirstChild->getNodeValue;
-     my $analysisDataURI = getVal($adoc, 'analysis_data_uri'); #->getElementsByTagName('analysis_data_uri')->item(0)->getFirstChild->getNodeValue;
-     my $aliquotId = getVal($adoc, 'aliquot_id');
-     print "ANALYSIS:  $analysisDataURI \n";
-     print "ANALYSISID: $analysisId\n";
-     print "ALIQUOTID: $aliquotId\n";
-     my $libName = getVal($adoc, 'LIBRARY_NAME'); #->getElementsByTagName('LIBRARY_NAME')->item(0)->getFirstChild->getNodeValue;
-     my $libStrategy = getVal($adoc, 'LIBRARY_STRATEGY'); #->getElementsByTagName('LIBRARY_STRATEGY')->item(0)->getFirstChild->getNodeValue;
-     my $libSource = getVal($adoc, 'LIBRARY_SOURCE'); #->getElementsByTagName('LIBRARY_SOURCE')->item(0)->getFirstChild->getNodeValue;
-     print "LibName: $libName LibStrategy: $libStrategy LibSource: $libSource\n";
-     # get files
-     my $files = readFiles($adoc);
-     print "FILE:\n";
-     foreach my $file(keys %{$files}) {
-       print "  FILE: $file SIZE: ".$files->{$file}{size}." CHECKSUM: ".$files->{$file}{checksum}."\n";
-       print "  LOCAL FILE PATH: $analysisId/$file\n";
-     }
-     # now if these are defined then move onto the next step
-     if (defined($libName) && defined($libStrategy) && defined($libSource) && defined($analysisId) && defined($analysisDataURI)) { 
-       print "  gtdownload -c gnostest.pem -v -d $analysisDataURI\n";
-       #system "gtdownload -c gnostest.pem -vv -d $analysisId\n";
-       print "\n";
-     } else {
-       print "ERROR: one or more critical fields not defined, will skip $analysisId\n\n";
-       next;
-     }
- }
+# READ CLUSTER INFO
+my $cluster_info = read_cluster_info(
 
- # Print doc file
- #$doc->printToFile ("out.xml");
+# PARSE XML
+my $parser = new XML::DOM::Parser;
+#my $doc = $parser->parsefile ("https://cghub.ucsc.edu/cghub/metadata/analysisDetail?participant_id=3f70c3e3-0131-466f-92aa-0a63ab3d4258");
+#system("lwp-download 'https://cghub.ucsc.edu/cghub/metadata/analysisDetail?study=TCGA_MUT_BENCHMARK_4&state=live' data.xml");
+#my $doc = $parser->parsefile ('https://cghub.ucsc.edu/cghub/metadata/analysisDetail?study=TCGA_MUT_BENCHMARK_4&state=live');
+if ($down) { my $cmd = "mkdir -p xml; cgquery -s https://gtrepo-ebi.annailabs.com -o xml/data.xml 'study=*&state=live'"; print "$cmd\n"; system($cmd); }
+my $doc = $parser->parsefile("xml/data.xml");
 
- # Print to string
- #print $doc->toString;
+# print all HREF attributes of all CODEBASE elements
+my $nodes = $doc->getElementsByTagName ("Result");
+my $n = $nodes->getLength;
 
- # Avoid memory leaks - cleanup circular references for garbage collection
- $doc->dispose;
+print "\n";
+
+for (my $i = 0; $i < $n; $i++)
+{
+    my $node = $nodes->item ($i);
+    #$node->getElementsByTagName('analysis_full_uri')->item(0)->getAttributeNode('errors')->getFirstChild->getNodeValue;
+    #print $node->getElementsByTagName('analysis_full_uri')->item(0)->getFirstChild->getNodeValue;
+    my $aurl = getVal($node, "analysis_full_uri"); # ->getElementsByTagName('analysis_full_uri')->item(0)->getFirstChild->getNodeValue;
+    # have to ensure the UUID is lower case, known GNOS issue
+    #print "Analysis Full URL: $aurl\n";
+    if($aurl =~ /^(.*)\/([^\/]+)$/) {
+    $aurl = $1."/".lc($2);
+    } else { 
+      print "SKIPPING!\n";
+      next;
+    }
+    print "ANALYSIS FULL URL: $aurl\n";
+    #if ($down) { system("wget -q -O xml/data_$i.xml $aurl"); }
+    if ($down) { download($aurl, "xml/data_$i.xml"); }
+    my $adoc = $parser->parsefile ("xml/data_$i.xml");
+    my $analysisId = getVal($adoc, 'analysis_id'); #->getElementsByTagName('analysis_id')->item(0)->getFirstChild->getNodeValue;
+    my $analysisDataURI = getVal($adoc, 'analysis_data_uri'); #->getElementsByTagName('analysis_data_uri')->item(0)->getFirstChild->getNodeValue;
+    my $aliquotId = getVal($adoc, 'aliquot_id');
+    print "ANALYSIS:  $analysisDataURI \n";
+    print "ANALYSISID: $analysisId\n";
+    print "ALIQUOTID: $aliquotId\n";
+    my $libName = getVal($adoc, 'LIBRARY_NAME'); #->getElementsByTagName('LIBRARY_NAME')->item(0)->getFirstChild->getNodeValue;
+    my $libStrategy = getVal($adoc, 'LIBRARY_STRATEGY'); #->getElementsByTagName('LIBRARY_STRATEGY')->item(0)->getFirstChild->getNodeValue;
+    my $libSource = getVal($adoc, 'LIBRARY_SOURCE'); #->getElementsByTagName('LIBRARY_SOURCE')->item(0)->getFirstChild->getNodeValue;
+    print "LibName: $libName LibStrategy: $libStrategy LibSource: $libSource\n";
+    # get files
+    my $files = readFiles($adoc);
+    print "FILE:\n";
+    foreach my $file(keys %{$files}) {
+      print "  FILE: $file SIZE: ".$files->{$file}{size}." CHECKSUM: ".$files->{$file}{checksum}."\n";
+      print "  LOCAL FILE PATH: $analysisId/$file\n";
+    }
+    # now if these are defined then move onto the next step
+    if (defined($libName) && defined($libStrategy) && defined($libSource) && defined($analysisId) && defined($analysisDataURI)) { 
+      print "  gtdownload -c gnostest.pem -v -d $analysisDataURI\n";
+      #system "gtdownload -c gnostest.pem -vv -d $analysisId\n";
+      print "\n";
+    } else {
+      print "ERROR: one or more critical fields not defined, will skip $analysisId\n\n";
+      next;
+    }
+}
+
+# Print doc file
+#$doc->printToFile ("out.xml");
+
+# Print to string
+#print $doc->toString;
+
+# Avoid memory leaks - cleanup circular references for garbage collection
+$doc->dispose;
+
+###############
+# SUBROUTINES #
+###############
 
 sub readFiles {
   my ($d) = @_;
