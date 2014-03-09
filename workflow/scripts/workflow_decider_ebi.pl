@@ -2,6 +2,7 @@ use strict;
 use XML::DOM;
 use Data::Dumper;
 use JSON;
+use Getopt::Long;
 
 # DESCRIPTION
 # A tool for identifying samples ready for alignment, scheduling on clusters,
@@ -15,8 +16,17 @@ use JSON;
 #############
 
 my $down = 1;
-if (scalar(@ARGV) != 12 && scalar(@ARGV) != 13) { die "USAGE: 'perl gnos_upload_data.pl --metadata-urls <URLs_comma_separated> --bam <sample-level_bam_file_path> --bam-md5sum-file <file_with_bam_md5sum> --outdir <output_dir> --key <gnos.pem> --upload-url <gnos_server_url> [--test]\n"; }
-GetOptions("metadata-urls=s" => \$metadata_urls, "bam=s" => \$bam, "outdir=s" => \$output_dir, "key=s" => \$key, "bam-md5sum-file=s" => \$md5_file, "upload-url=s" => \$upload_url, "test" => \$test);
+my $gnos_url = "https://gtrepo-ebi.annailabs.com";
+my $cluster_json = "cluster.json";
+my $working_dir = "decider_tmp";
+my $sample;
+my $test = 0;
+my $ignore_lane_cnt = 0;
+my $force_run = 0;
+
+if (scalar(@ARGV) < 6 || scalar(@ARGV) > 11) { die "USAGE: 'perl workflow_decider_ebi.pl --gnos-url <URL> --cluster-json <cluster_json> --working-dir <working_dir> [--sample <sample_id>] [--test] [--ignore-lane-count] [--force-run]\n"; }
+
+GetOptions("gnos-url=s" => \$gnos_url, "cluster-json=s" => \$cluster_json, "working-dir=s" => \$working_dir, "sample=s" => \$sample, "test" => \$test, "ignore-lane-count" => \$ignore_lane_cnt, "force-run" => \$force_run);
 
 
 ##############
@@ -24,7 +34,9 @@ GetOptions("metadata-urls=s" => \$metadata_urls, "bam=s" => \$bam, "outdir=s" =>
 ##############
 
 # READ CLUSTER INFO
-my $cluster_info = read_cluster_info(
+my $cluster_info = read_cluster_info($cluster_json);
+
+die Dumper($cluster_info);
 
 # PARSE XML
 my $parser = new XML::DOM::Parser;
@@ -98,6 +110,31 @@ $doc->dispose;
 ###############
 # SUBROUTINES #
 ###############
+
+sub read_cluster_info {
+  my ($cluster_info) = @_;
+  my $json_txt = "";
+  open IN, "<$cluster_info" or die "Can't open $cluster_info";
+  while(<IN>) {
+    $json_txt .= $_;
+  }
+  close IN; 
+  my $json = decode_json($json_txt);
+
+  foreach my $c (keys %{$json}) {
+    my $user = $json->{$c}{username};
+    my $pass = $json->{$c}{password};
+    my $web = $json->{$c}{webservice};
+    my $acc = $json->{$c}{workflow_accession};
+    print "wget -O - --http-user=$user --http-password=$pass -q $web\n"; 
+    my $info = `wget -O - --http-user='$user' --http-password=$pass -q $web/workflows/$acc`; 
+    print "INFO: $info\n";
+    # TODO: check the XML returned above
+    if (1) {
+      
+    }
+  }
+}
 
 sub readFiles {
   my ($d) = @_;
