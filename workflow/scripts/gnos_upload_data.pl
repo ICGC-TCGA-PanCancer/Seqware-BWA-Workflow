@@ -4,6 +4,7 @@ use Getopt::Long;
 use XML::DOM;
 use JSON;
 use Data::UUID;
+use XML::LibXML;
 
 #############################################################################################
 # DESCRIPTION                                                                               #
