@@ -20,14 +20,14 @@ my $down = 0;
 my $gnos_url = "https://gtrepo-ebi.annailabs.com";
 my $cluster_json = "cluster.json";
 my $working_dir = "decider_tmp";
-my $sample;
+my $specific_sample;
 my $test = 0;
 my $ignore_lane_cnt = 0;
 my $force_run = 0;
 
 if (scalar(@ARGV) < 6 || scalar(@ARGV) > 11) { die "USAGE: 'perl workflow_decider_ebi.pl --gnos-url <URL> --cluster-json <cluster_json> --working-dir <working_dir> [--sample <sample_id>] [--test] [--ignore-lane-count] [--force-run]\n"; }
 
-GetOptions("gnos-url=s" => \$gnos_url, "cluster-json=s" => \$cluster_json, "working-dir=s" => \$working_dir, "sample=s" => \$sample, "test" => \$test, "ignore-lane-count" => \$ignore_lane_cnt, "force-run" => \$force_run);
+GetOptions("gnos-url=s" => \$gnos_url, "cluster-json=s" => \$cluster_json, "working-dir=s" => \$working_dir, "sample=s" => \$specific_sample, "test" => \$test, "ignore-lane-count" => \$ignore_lane_cnt, "force-run" => \$force_run);
 
 
 ##############
@@ -49,6 +49,7 @@ print "SAMPLE SCHEDULING INFORMATION\n\n";
 foreach my $participant (keys %{$sample_info}) {
   print "PARTICIPANT: $participant\n\n";
   foreach my $sample (keys %{$sample_info->{$participant}}) {
+    if (defined($specific_sample) && $specific_sample ne '' && $specific_sample ne $sample) { next; }
     # storing some info
     my $d = {};
     my $aligns = {};
@@ -88,20 +89,20 @@ foreach my $participant (keys %{$sample_info}) {
     #print Dumper($d->{bams});
     my $veto = 0;
     # so, do I run this?
-    if (scalar(keys %{$aligns}) == 1 && defined($aligns->{unaligned})) { print "\t\tONLY UNALIGNED!\n"; }
+    if ((scalar(keys %{$aligns}) == 1 && defined($aligns->{unaligned})) || $force_run) { print "\t\tONLY UNALIGNED OR RUN FORCED!\n"; }
     else { print "\t\tCONTAINS ALIGNMENT!\n"; $veto = 1; }
     # now check if this is alreay scheduled
     my $analysis_url_str = join(",", sort(keys(%{$d->{analysisURL}})));
     #print "ANALYSISURL $analysis_url_str\n";
-    if (!defined($running_samples->{$analysis_url_str})) {
-      print "\t\tNOT PREVIOUSLY SCHEDULED!\n";
+    if (!defined($running_samples->{$analysis_url_str}) || $force_run) {
+      print "\t\tNOT PREVIOUSLY SCHEDULED OR RUN FORCED!\n";
     } else {
       print "\t\tIS PREVIOUSLY SCHEDULED, RUNNING, OR FAILED!\n";
       $veto = 1; 
     }
     # now check the number of bams == lane count (or this check is suppressed) 
-    if ($d->{total_lanes} == $d->{bams_count} || $ignore_lane_cnt) {
-      print "\t\tLANE COUNT MATCHES OR IGNORED: $ignore_lane_cnt $d->{total_lanes} $d->{bams_count}\n";
+    if ($d->{total_lanes} == $d->{bams_count} || $ignore_lane_cnt || $force_run) {
+      print "\t\tLANE COUNT MATCHES OR IGNORED OR RUN FORCED: $ignore_lane_cnt $d->{total_lanes} $d->{bams_count}\n";
     } else {
       print "\t\tLANE COUNT MISMATCH!\n";
       $veto=1;
