@@ -41,7 +41,7 @@ print Dumper($running_samples);
 
 # READ INFO FROM GNOS
 my $sample_info = read_sample_info();
-
+print Dumper($sample_info);
 
 ###############
 # SUBROUTINES #
@@ -86,6 +86,8 @@ sub read_sample_info {
       my $analysisId = getVal($adoc, 'analysis_id'); #->getElementsByTagName('analysis_id')->item(0)->getFirstChild->getNodeValue;
       my $analysisDataURI = getVal($adoc, 'analysis_data_uri'); #->getElementsByTagName('analysis_data_uri')->item(0)->getFirstChild->getNodeValue;
       my $aliquotId = getVal($adoc, 'aliquot_id');
+      my $participantId = getVal($adoc, 'participant_id');
+      my $sampleId = getVal($adoc, 'sample_id');
       print "ANALYSIS:  $analysisDataURI \n";
       print "ANALYSISID: $analysisId\n";
       print "ALIQUOTID: $aliquotId\n";
@@ -94,22 +96,30 @@ sub read_sample_info {
       my $libSource = getVal($adoc, 'LIBRARY_SOURCE'); #->getElementsByTagName('LIBRARY_SOURCE')->item(0)->getFirstChild->getNodeValue;
       print "LibName: $libName LibStrategy: $libStrategy LibSource: $libSource\n";
       # get files
+      # now if these are defined then move onto the next step
+      if (defined($libName) && defined($libStrategy) && defined($libSource) && defined($analysisId) && defined($analysisDataURI)) { 
+        print "  gtdownload -c gnostest.pem -v -d $analysisDataURI\n";
+        #system "gtdownload -c gnostest.pem -vv -d $analysisId\n";
+        print "\n";
+        $d->{$participantId}{$sampleId}{$aliquotId}{analysis_id}{$analysisId} = 1; 
+        $d->{$participantId}{$sampleId}{$aliquotId}{analysis_url}{$analysisDataURI} = 1; 
+        $d->{$participantId}{$sampleId}{$aliquotId}{library_name}{$libName} = 1; 
+        $d->{$participantId}{$sampleId}{$aliquotId}{library_strategy}{$libStrategy} = 1; 
+        $d->{$participantId}{$sampleId}{$aliquotId}{library_source}{$libSource} = 1; 
+      } else {
+        print "ERROR: one or more critical fields not defined, will skip $analysisId\n\n";
+        next;
+      }
       my $files = readFiles($adoc);
       print "FILE:\n";
       foreach my $file(keys %{$files}) {
         print "  FILE: $file SIZE: ".$files->{$file}{size}." CHECKSUM: ".$files->{$file}{checksum}."\n";
         print "  LOCAL FILE PATH: $analysisId/$file\n";
+        $d->{$participantId}{$sampleId}{$aliquotId}{files}{$file}{size} = $files->{$file}{size}; 
+        $d->{$participantId}{$sampleId}{$aliquotId}{files}{$file}{checksum} = $files->{$file}{checksum}; 
+        # URLs?
       }
-      # now if these are defined then move onto the next step
-      if (defined($libName) && defined($libStrategy) && defined($libSource) && defined($analysisId) && defined($analysisDataURI)) { 
-        print "  gtdownload -c gnostest.pem -v -d $analysisDataURI\n";
-        #system "gtdownload -c gnostest.pem -vv -d $analysisId\n";
- # LEFT OFF HERE
-        print "\n";
-      } else {
-        print "ERROR: one or more critical fields not defined, will skip $analysisId\n\n";
-        next;
-      }
+
   }
   
   # Print doc file
