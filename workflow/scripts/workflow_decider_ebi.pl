@@ -43,6 +43,10 @@ print Dumper($running_samples);
 my $sample_info = read_sample_info();
 print Dumper($sample_info);
 
+# FIND SAMPLES
+# now look at each sample, see if it's already schedule, launch if not and a cluster is available, and then exit
+
+
 ###############
 # SUBROUTINES #
 ###############
@@ -83,14 +87,23 @@ sub read_sample_info {
       #if ($down) { system("wget -q -O xml/data_$i.xml $aurl"); }
       if ($down) { download($aurl, "xml/data_$i.xml"); }
       my $adoc = $parser->parsefile ("xml/data_$i.xml");
+      my $adoc2 = XML::LibXML->new->parse_file("xml/data_$i.xml");
       my $analysisId = getVal($adoc, 'analysis_id'); #->getElementsByTagName('analysis_id')->item(0)->getFirstChild->getNodeValue;
       my $analysisDataURI = getVal($adoc, 'analysis_data_uri'); #->getElementsByTagName('analysis_data_uri')->item(0)->getFirstChild->getNodeValue;
+      my $submitterAliquotId = getCustomVal($adoc2, 'submitter_aliquot_id');
       my $aliquotId = getVal($adoc, 'aliquot_id');
+      my $submitterParticipantId = getCustomVal($adoc2, 'submitter_participant_id');
       my $participantId = getVal($adoc, 'participant_id');
+      my $submitterSampleId = getCustomVal($adoc2, 'submitter_sample_id');
       my $sampleId = getVal($adoc, 'sample_id');
       print "ANALYSIS:  $analysisDataURI \n";
       print "ANALYSISID: $analysisId\n";
+      print "PARTICIPANT ID: $participantId\n";
+      print "SAMPLE ID: $sampleId\n";
       print "ALIQUOTID: $aliquotId\n";
+      print "SUBMITTER PARTICIPANT ID: $submitterParticipantId\n";
+      print "SUBMITTER SAMPLE ID: $submitterSampleId\n";
+      print "SUBMITTER ALIQUOTID: $submitterAliquotId\n";
       my $libName = getVal($adoc, 'LIBRARY_NAME'); #->getElementsByTagName('LIBRARY_NAME')->item(0)->getFirstChild->getNodeValue;
       my $libStrategy = getVal($adoc, 'LIBRARY_STRATEGY'); #->getElementsByTagName('LIBRARY_STRATEGY')->item(0)->getFirstChild->getNodeValue;
       my $libSource = getVal($adoc, 'LIBRARY_SOURCE'); #->getElementsByTagName('LIBRARY_SOURCE')->item(0)->getFirstChild->getNodeValue;
@@ -101,11 +114,11 @@ sub read_sample_info {
         print "  gtdownload -c gnostest.pem -v -d $analysisDataURI\n";
         #system "gtdownload -c gnostest.pem -vv -d $analysisId\n";
         print "\n";
-        $d->{$participantId}{$sampleId}{$aliquotId}{analysis_id}{$analysisId} = 1; 
-        $d->{$participantId}{$sampleId}{$aliquotId}{analysis_url}{$analysisDataURI} = 1; 
-        $d->{$participantId}{$sampleId}{$aliquotId}{library_name}{$libName} = 1; 
-        $d->{$participantId}{$sampleId}{$aliquotId}{library_strategy}{$libStrategy} = 1; 
-        $d->{$participantId}{$sampleId}{$aliquotId}{library_source}{$libSource} = 1; 
+        $d->{$submitterParticipantId}{$submitterSampleId}{$submitterAliquotId}{analysis_id}{$analysisId} = 1; 
+        $d->{$submitterParticipantId}{$submitterSampleId}{$submitterAliquotId}{analysis_url}{$analysisDataURI} = 1; 
+        $d->{$submitterParticipantId}{$submitterSampleId}{$submitterAliquotId}{library_name}{$libName} = 1; 
+        $d->{$submitterParticipantId}{$submitterSampleId}{$submitterAliquotId}{library_strategy}{$libStrategy} = 1; 
+        $d->{$submitterParticipantId}{$submitterSampleId}{$submitterAliquotId}{library_source}{$libSource} = 1; 
       } else {
         print "ERROR: one or more critical fields not defined, will skip $analysisId\n\n";
         next;
@@ -115,8 +128,8 @@ sub read_sample_info {
       foreach my $file(keys %{$files}) {
         print "  FILE: $file SIZE: ".$files->{$file}{size}." CHECKSUM: ".$files->{$file}{checksum}."\n";
         print "  LOCAL FILE PATH: $analysisId/$file\n";
-        $d->{$participantId}{$sampleId}{$aliquotId}{files}{$file}{size} = $files->{$file}{size}; 
-        $d->{$participantId}{$sampleId}{$aliquotId}{files}{$file}{checksum} = $files->{$file}{checksum}; 
+        $d->{$submitterParticipantId}{$submitterSampleId}{$submitterAliquotId}{files}{$file}{size} = $files->{$file}{size}; 
+        $d->{$submitterParticipantId}{$submitterSampleId}{$submitterAliquotId}{files}{$file}{checksum} = $files->{$file}{checksum}; 
         # URLs?
       }
 
@@ -202,6 +215,30 @@ sub readFiles {
             $ret->{$currFile}{checksum} = $check;
   }
   return($ret);
+}
+
+sub getCustomVal {
+  my ($dom2, $key) = @_;
+  #print "HERE $dom2 $key\n";
+  for my $node ($dom2->findnodes('//ANALYSIS_ATTRIBUTES/ANALYSIS_ATTRIBUTE')) {
+    #print "NODE: ".$node->toString()."\n";
+    my $i=0;
+    for my $currKey ($node->findnodes('//TAG/text()')) {
+      $i++;
+      my $keyStr = $currKey->toString();
+      if ($keyStr eq $key) {
+        my $j=0;
+        for my $currVal ($node->findnodes('//VALUE/text()')) {
+          $j++;   
+          if ($j==$i) { 
+            #print "TAG: $keyStr\n";
+            return($currVal->toString());
+          }
+        } 
+      }
+    }
+  }
+  return("");
 }
 
 sub getVal {
