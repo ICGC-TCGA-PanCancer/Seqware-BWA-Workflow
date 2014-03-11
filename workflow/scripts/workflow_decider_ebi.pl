@@ -24,10 +24,11 @@ my $specific_sample;
 my $test = 0;
 my $ignore_lane_cnt = 0;
 my $force_run = 0;
+my $threads = 1;
 
-if (scalar(@ARGV) < 6 || scalar(@ARGV) > 11) { die "USAGE: 'perl workflow_decider_ebi.pl --gnos-url <URL> --cluster-json <cluster_json> --working-dir <working_dir> [--sample <sample_id>] [--test] [--ignore-lane-count] [--force-run]\n"; }
+if (scalar(@ARGV) < 6 || scalar(@ARGV) > 13) { die "USAGE: 'perl workflow_decider_ebi.pl --gnos-url <URL> --cluster-json <cluster_json> --working-dir <working_dir> [--sample <sample_id>] [--threads <num_threads_bwa>] [--test] [--ignore-lane-count] [--force-run]\n"; }
 
-GetOptions("gnos-url=s" => \$gnos_url, "cluster-json=s" => \$cluster_json, "working-dir=s" => \$working_dir, "sample=s" => \$specific_sample, "test" => \$test, "ignore-lane-count" => \$ignore_lane_cnt, "force-run" => \$force_run);
+GetOptions("gnos-url=s" => \$gnos_url, "cluster-json=s" => \$cluster_json, "working-dir=s" => \$working_dir, "sample=s" => \$specific_sample, "test" => \$test, "ignore-lane-count" => \$ignore_lane_cnt, "force-run" => \$force_run, "threads=i" => \$threads);
 
 
 ##############
@@ -41,7 +42,7 @@ my ($cluster_info, $running_samples) = read_cluster_info($cluster_json);
 
 # READ INFO FROM GNOS
 my $sample_info = read_sample_info();
-#print Dumper($sample_info);
+print Dumper($sample_info);
 
 # FIND SAMPLES
 # now look at each sample, see if it's already schedule, launch if not and a cluster is available, and then exit
@@ -52,6 +53,7 @@ foreach my $participant (keys %{$sample_info}) {
     if (defined($specific_sample) && $specific_sample ne '' && $specific_sample ne $sample) { next; }
     # storing some info
     my $d = {};
+    $d->{gnos_url} = $gnos_url;
     my $aligns = {};
     print "\tSAMPLE OVERVIEW\n";
     print "\tSAMPLE: $sample\n";
@@ -71,13 +73,16 @@ foreach my $participant (keys %{$sample_info}) {
           $d->{total_lanes_hash}{$total_lanes} = 1;
           $d->{total_lanes} = $total_lanes;
           foreach my $bam (keys %{$sample_info->{$participant}{$sample}{$alignment}{$aliquot}{$library}{files}}) {
-            $d->{bams}{$bam} = 1;
+            $d->{bams}{$bam} = $sample_info->{$participant}{$sample}{$alignment}{$aliquot}{$library}{files}{$bam}{localpath};
+            $d->{local_bams}{$sample_info->{$participant}{$sample}{$alignment}{$aliquot}{$library}{files}{$bam}{localpath}} = 1;
             $d->{bams_count}++;
           }
           # analysis
           foreach my $analysis (sort keys %{$sample_info->{$participant}{$sample}{$alignment}{$aliquot}{$library}{analysis_id}}) {
             $d->{analysisURL}{"$gnos_url/cghub/metadata/analysisFull/$analysis"} = 1;
+            $d->{downloadURL}{"$gnos_url/cghub/data/analysis/download/$analysis"} = 1;
           }
+          $d->{gnos_input_file_urls} = join (",", (sort keys %{$d->{downloadURL}}));
           print "\t\t\t\t\tBAMS: ", join(",", (keys %{$sample_info->{$participant}{$sample}{$alignment}{$aliquot}{$library}{files}})), "\n\n";
         }
       }
@@ -93,6 +98,7 @@ foreach my $participant (keys %{$sample_info}) {
     else { print "\t\tCONTAINS ALIGNMENT!\n"; $veto = 1; }
     # now check if this is alreay scheduled
     my $analysis_url_str = join(",", sort(keys(%{$d->{analysisURL}})));
+    $d->{analysis_url} = $analysis_url_str;
     #print "ANALYSISURL $analysis_url_str\n";
     if (!defined($running_samples->{$analysis_url_str}) || $force_run) {
       print "\t\tNOT PREVIOUSLY SCHEDULED OR RUN FORCED!\n";
@@ -108,7 +114,10 @@ foreach my $participant (keys %{$sample_info}) {
       $veto=1;
     }
     if ($veto) { print "\t\tWILL NOT SCHEDULE THIS SAMPLE FOR ALIGNMENT!\n\n"; }
-    else { print "\t\tSCHEDULING WORKFLOW FOR THIS SAMPLE!\n\n"; }
+    else {
+      print "\t\tSCHEDULING WORKFLOW FOR THIS SAMPLE!\n\n";
+      schedule_workflow($d);
+    }
   }
 }
 
@@ -116,6 +125,23 @@ foreach my $participant (keys %{$sample_info}) {
 ###############
 # SUBROUTINES #
 ###############
+
+# input_bam_paths=9c414428-9446-11e3-86c1-ab5c73f0e08b/hg19.chr22.5x.normal.bam
+# gnos_input_file_urls=https://gtrepo-ebi.annailabs.com/cghub/data/analysis/download/9c414428-9446-11e3-86c1-ab5c73f0e08b
+# gnos_input_metadata_urls=https://gtrepo-ebi.annailabs.com/cghub/metadata/analysisFull/9c414428-9446-11e3-86c1-ab5c73f0e08b
+# gnos_output_file_url=https://gtrepo-ebi.annailabs.com
+# readGroup=
+# numOfThreads=1
+sub schedule_workflow {
+  my ($d) = @_;
+  print "input_bam_paths=".join(",",sort(keys(%{$d->{local_bams}})))."\n";
+  print "gnos_input_file_urls=".$d->{gnos_input_file_urls}."\n";
+  print "gnos_input_metadata_urls=".$d->{analysis_url}."\n";
+  print "gnos_output_file_url=$gnos_url\n";
+  print "readGroup=\n";
+  print "numOfThreads=$threads\n";
+  print Dumper($d);
+}
 
 sub read_sample_info {
   
@@ -225,6 +251,7 @@ sub read_sample_info {
         print OUT "  LOCAL FILE PATH: $analysisId/$file\n";
         $d->{$participantId}{$sampleId}{$alignment}{$aliquotId}{$libName}{files}{$file}{size} = $files->{$file}{size}; 
         $d->{$participantId}{$sampleId}{$alignment}{$aliquotId}{$libName}{files}{$file}{checksum} = $files->{$file}{checksum}; 
+        $d->{$participantId}{$sampleId}{$alignment}{$aliquotId}{$libName}{files}{$file}{localpath} = "$analysisId/$file"; 
         # URLs?
       }
 
