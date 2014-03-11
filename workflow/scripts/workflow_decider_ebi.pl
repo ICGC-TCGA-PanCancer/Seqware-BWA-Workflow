@@ -42,90 +42,19 @@ my ($cluster_info, $running_samples) = read_cluster_info($cluster_json);
 
 # READ INFO FROM GNOS
 my $sample_info = read_sample_info();
-print Dumper($sample_info);
+#print Dumper($sample_info);
 
-# FIND SAMPLES
+# SCHEDULE SAMPLES
 # now look at each sample, see if it's already schedule, launch if not and a cluster is available, and then exit
-print "SAMPLE SCHEDULING INFORMATION\n\n";
-foreach my $participant (keys %{$sample_info}) {
-  print "PARTICIPANT: $participant\n\n";
-  foreach my $sample (keys %{$sample_info->{$participant}}) {
-    if (defined($specific_sample) && $specific_sample ne '' && $specific_sample ne $sample) { next; }
-    # storing some info
-    my $d = {};
-    $d->{gnos_url} = $gnos_url;
-    my $aligns = {};
-    print "\tSAMPLE OVERVIEW\n";
-    print "\tSAMPLE: $sample\n";
-    foreach my $alignment (keys %{$sample_info->{$participant}{$sample}}) {
-      print "\t\tALIGNMENT: $alignment\n";
-      $aligns->{$alignment} = 1;
-      foreach my $aliquot (keys %{$sample_info->{$participant}{$sample}{$alignment}}) {
-        print "\t\t\tALIQUOT: $aliquot\n";
-        foreach my $library (keys %{$sample_info->{$participant}{$sample}{$alignment}{$aliquot}}) {
-          print "\t\t\t\tLIBRARY: $library\n";
-          #print "$participant\t$sample\t$alignment\t$aliquot\t$library\n";
-          # read lane counts
-          my $total_lanes = 0;
-          foreach my $lane (keys %{$sample_info->{$participant}{$sample}{$alignment}{$aliquot}{$library}{total_lanes}}) {
-            if ($lane > $total_lanes) { $total_lanes = $lane; }
-          }
-          $d->{total_lanes_hash}{$total_lanes} = 1;
-          $d->{total_lanes} = $total_lanes;
-          foreach my $bam (keys %{$sample_info->{$participant}{$sample}{$alignment}{$aliquot}{$library}{files}}) {
-            $d->{bams}{$bam} = $sample_info->{$participant}{$sample}{$alignment}{$aliquot}{$library}{files}{$bam}{localpath};
-            $d->{local_bams}{$sample_info->{$participant}{$sample}{$alignment}{$aliquot}{$library}{files}{$bam}{localpath}} = 1;
-            $d->{bams_count}++;
-          }
-          # analysis
-          foreach my $analysis (sort keys %{$sample_info->{$participant}{$sample}{$alignment}{$aliquot}{$library}{analysis_id}}) {
-            $d->{analysisURL}{"$gnos_url/cghub/metadata/analysisFull/$analysis"} = 1;
-            $d->{downloadURL}{"$gnos_url/cghub/data/analysis/download/$analysis"} = 1;
-          }
-          $d->{gnos_input_file_urls} = join (",", (sort keys %{$d->{downloadURL}}));
-          print "\t\t\t\t\tBAMS: ", join(",", (keys %{$sample_info->{$participant}{$sample}{$alignment}{$aliquot}{$library}{files}})), "\n\n";
-        }
-      }
-    }
-    print "\tSAMPLE WORKLFOW ACTION OVERVIEW\n";
-    print "\t\tLANES SPECIFIED FOR SAMPLE: $d->{total_lanes}\n";
-    #print Dumper($d->{total_lanes_hash});
-    print "\t\tBAMS FOUND: $d->{bams_count}\n";
-    #print Dumper($d->{bams});
-    my $veto = 0;
-    # so, do I run this?
-    if ((scalar(keys %{$aligns}) == 1 && defined($aligns->{unaligned})) || $force_run) { print "\t\tONLY UNALIGNED OR RUN FORCED!\n"; }
-    else { print "\t\tCONTAINS ALIGNMENT!\n"; $veto = 1; }
-    # now check if this is alreay scheduled
-    my $analysis_url_str = join(",", sort(keys(%{$d->{analysisURL}})));
-    $d->{analysis_url} = $analysis_url_str;
-    #print "ANALYSISURL $analysis_url_str\n";
-    if (!defined($running_samples->{$analysis_url_str}) || $force_run) {
-      print "\t\tNOT PREVIOUSLY SCHEDULED OR RUN FORCED!\n";
-    } else {
-      print "\t\tIS PREVIOUSLY SCHEDULED, RUNNING, OR FAILED!\n";
-      $veto = 1; 
-    }
-    # now check the number of bams == lane count (or this check is suppressed) 
-    if ($d->{total_lanes} == $d->{bams_count} || $ignore_lane_cnt || $force_run) {
-      print "\t\tLANE COUNT MATCHES OR IGNORED OR RUN FORCED: $ignore_lane_cnt $d->{total_lanes} $d->{bams_count}\n";
-    } else {
-      print "\t\tLANE COUNT MISMATCH!\n";
-      $veto=1;
-    }
-    if ($veto) { print "\t\tWILL NOT SCHEDULE THIS SAMPLE FOR ALIGNMENT!\n\n"; }
-    else {
-      print "\t\tSCHEDULING WORKFLOW FOR THIS SAMPLE!\n\n";
-      schedule_workflow($d);
-    }
-  }
-}
+schedule_samples($sample_info);
+
 
 
 ###############
 # SUBROUTINES #
 ###############
 
+# these params are need minimally
 # input_bam_paths=9c414428-9446-11e3-86c1-ab5c73f0e08b/hg19.chr22.5x.normal.bam
 # gnos_input_file_urls=https://gtrepo-ebi.annailabs.com/cghub/data/analysis/download/9c414428-9446-11e3-86c1-ab5c73f0e08b
 # gnos_input_metadata_urls=https://gtrepo-ebi.annailabs.com/cghub/metadata/analysisFull/9c414428-9446-11e3-86c1-ab5c73f0e08b
@@ -134,13 +63,127 @@ foreach my $participant (keys %{$sample_info}) {
 # numOfThreads=1
 sub schedule_workflow {
   my ($d) = @_;
-  print "input_bam_paths=".join(",",sort(keys(%{$d->{local_bams}})))."\n";
-  print "gnos_input_file_urls=".$d->{gnos_input_file_urls}."\n";
-  print "gnos_input_metadata_urls=".$d->{analysis_url}."\n";
-  print "gnos_output_file_url=$gnos_url\n";
-  print "readGroup=\n";
-  print "numOfThreads=$threads\n";
-  print Dumper($d);
+  #print Dumper($cluster_info);
+  #print Dumper($d);
+  my $workflow_accession = 0;
+  my $host = "unknown";
+  my $rand = substr(rand(), 2); 
+  system("mkdir -p $working_dir/$rand");
+  open OUT, ">$working_dir/$rand/workflow.ini" or die;
+  print OUT "input_bam_paths=".join(",",sort(keys(%{$d->{local_bams}})))."\n";
+  print OUT "gnos_input_file_urls=".$d->{gnos_input_file_urls}."\n";
+  print OUT "gnos_input_metadata_urls=".$d->{analysis_url}."\n";
+  print OUT "gnos_output_file_url=$gnos_url\n";
+  print OUT "readGroup=\n";
+  print OUT "numOfThreads=$threads\n";
+  close OUT;
+  my $settings = `cat ~/.seqware/settings`;
+  foreach my $cluster (keys %{$cluster_info}) {
+    my $url = $cluster_info->{$cluster}{webservice}; 
+    my $username = $cluster_info->{$cluster}{username}; 
+    my $password = $cluster_info->{$cluster}{password}; 
+    $workflow_accession = $cluster_info->{$cluster}{workflow_accession};
+    $host = $cluster_info->{$cluster}{host};
+    $settings =~ s/SW_REST_URL=.*/SW_REST_URL=$url/g;
+    $settings =~ s/SW_REST_USER=.*/SW_REST_USER=$username/g;
+    $settings =~ s/SW_REST_PASS=.*/SW_REST_PASS=$password/g;
+    # can only assign one workflow here
+    delete $cluster_info->{$cluster};
+    last;
+  }
+  open OUT, ">$working_dir/$rand/settings" or die;
+  print OUT $settings;
+  close OUT;
+  # now submit the workflow!
+  my $cmd = "SEQWARE_SETTINGS=$working_dir/$rand/settings seqware workflow schedule --accession $workflow_accession --host $host --ini $working_dir/$rand/workflow.ini";
+  if (!$test) {
+    print "\tLAUNCHING WORKFLOW: $working_dir/$rand/workflow.ini\n";
+    print "\t\tLAUNCH CMD: $cmd\n";
+    if (system("$cmd")) {
+      print "\t\tSOMETHING WENT WRONG WITH SCHEDULING THE WORKFLOW\n";
+    }
+  } else {
+    print "\tNOT LAUNCHING WORKFLOW BECAUSE --test SPECIFIED: $working_dir/$rand/workflow.ini\n";
+    print "\t\tLAUNCH CMD WOULD HAVE BEEN: $cmd\n";
+  }
+  print "\n";
+}
+
+sub schedule_samples {
+  print "SAMPLE SCHEDULING INFORMATION\n\n";
+  foreach my $participant (keys %{$sample_info}) {
+    print "PARTICIPANT: $participant\n\n";
+    foreach my $sample (keys %{$sample_info->{$participant}}) {
+      if (defined($specific_sample) && $specific_sample ne '' && $specific_sample ne $sample) { next; }
+      # storing some info
+      my $d = {};
+      $d->{gnos_url} = $gnos_url;
+      my $aligns = {};
+      print "\tSAMPLE OVERVIEW\n";
+      print "\tSAMPLE: $sample\n";
+      foreach my $alignment (keys %{$sample_info->{$participant}{$sample}}) {
+        print "\t\tALIGNMENT: $alignment\n";
+        $aligns->{$alignment} = 1;
+        foreach my $aliquot (keys %{$sample_info->{$participant}{$sample}{$alignment}}) {
+          print "\t\t\tALIQUOT: $aliquot\n";
+          foreach my $library (keys %{$sample_info->{$participant}{$sample}{$alignment}{$aliquot}}) {
+            print "\t\t\t\tLIBRARY: $library\n";
+            #print "$participant\t$sample\t$alignment\t$aliquot\t$library\n";
+            # read lane counts
+            my $total_lanes = 0;
+            foreach my $lane (keys %{$sample_info->{$participant}{$sample}{$alignment}{$aliquot}{$library}{total_lanes}}) {
+              if ($lane > $total_lanes) { $total_lanes = $lane; }
+            }
+            $d->{total_lanes_hash}{$total_lanes} = 1;
+            $d->{total_lanes} = $total_lanes;
+            foreach my $bam (keys %{$sample_info->{$participant}{$sample}{$alignment}{$aliquot}{$library}{files}}) {
+              $d->{bams}{$bam} = $sample_info->{$participant}{$sample}{$alignment}{$aliquot}{$library}{files}{$bam}{localpath};
+              $d->{local_bams}{$sample_info->{$participant}{$sample}{$alignment}{$aliquot}{$library}{files}{$bam}{localpath}} = 1;
+              $d->{bams_count}++;
+            }
+            # analysis
+            foreach my $analysis (sort keys %{$sample_info->{$participant}{$sample}{$alignment}{$aliquot}{$library}{analysis_id}}) {
+              $d->{analysisURL}{"$gnos_url/cghub/metadata/analysisFull/$analysis"} = 1;
+              $d->{downloadURL}{"$gnos_url/cghub/data/analysis/download/$analysis"} = 1;
+            }
+            $d->{gnos_input_file_urls} = join (",", (sort keys %{$d->{downloadURL}}));
+            print "\t\t\t\t\tBAMS: ", join(",", (keys %{$sample_info->{$participant}{$sample}{$alignment}{$aliquot}{$library}{files}})), "\n\n";
+          }
+        }
+      }
+      print "\tSAMPLE WORKLFOW ACTION OVERVIEW\n";
+      print "\t\tLANES SPECIFIED FOR SAMPLE: $d->{total_lanes}\n";
+      #print Dumper($d->{total_lanes_hash});
+      print "\t\tBAMS FOUND: $d->{bams_count}\n";
+      #print Dumper($d->{bams});
+      my $veto = 0;
+      # so, do I run this?
+      if ((scalar(keys %{$aligns}) == 1 && defined($aligns->{unaligned})) || $force_run) { print "\t\tONLY UNALIGNED OR RUN FORCED!\n"; }
+      else { print "\t\tCONTAINS ALIGNMENT!\n"; $veto = 1; }
+      # now check if this is alreay scheduled
+      my $analysis_url_str = join(",", sort(keys(%{$d->{analysisURL}})));
+      $d->{analysis_url} = $analysis_url_str;
+      #print "ANALYSISURL $analysis_url_str\n";
+      if (!defined($running_samples->{$analysis_url_str}) || $force_run) {
+        print "\t\tNOT PREVIOUSLY SCHEDULED OR RUN FORCED!\n";
+      } else {
+        print "\t\tIS PREVIOUSLY SCHEDULED, RUNNING, OR FAILED!\n";
+        $veto = 1; 
+      }
+      # now check the number of bams == lane count (or this check is suppressed) 
+      if ($d->{total_lanes} == $d->{bams_count} || $ignore_lane_cnt || $force_run) {
+        print "\t\tLANE COUNT MATCHES OR IGNORED OR RUN FORCED: $ignore_lane_cnt $d->{total_lanes} $d->{bams_count}\n";
+      } else {
+        print "\t\tLANE COUNT MISMATCH!\n";
+        $veto=1;
+      }
+      if ($veto) { print "\t\tWILL NOT SCHEDULE THIS SAMPLE FOR ALIGNMENT!\n\n"; }
+      else {
+        print "\t\tSCHEDULING WORKFLOW FOR THIS SAMPLE!\n\n";
+        schedule_workflow($d);
+      }
+    }
+  }
 }
 
 sub read_sample_info {

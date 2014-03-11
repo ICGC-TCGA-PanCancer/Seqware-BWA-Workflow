@@ -3,6 +3,7 @@
      "workflow_accession": "1",
      "username": "admin@admin.com",
      "password": "admin",
-     "webservice": "http://master:8080/SeqWareWebService"
+     "webservice": "http://master:8080/SeqWareWebService",
+     "host": "master"
    }
 }
