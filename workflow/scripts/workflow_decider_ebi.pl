@@ -76,6 +76,38 @@ sub schedule_workflow {
   print OUT "gnos_output_file_url=$gnos_url\n";
   print OUT "readGroup=\n";
   print OUT "numOfThreads=$threads\n";
+  print OUT <<END;
+#key=picardSortJobMem:type=integer:display=F:display_name=Memory for Picard merge, sort, index, and md5sum
+picardSortJobMem=6
+#key=picardSortMem:type=integer:display=F:display_name=Memory for Picard merge, sort, index, and md5sum
+picardSortMem=4
+#key=input_reference:type=text:display=F:display_name=The reference used for BWA
+input_reference=\${workflow_bundle_dir}/Workflow_Bundle_BWA/2.0/data/reference/bwa-0.6.2/genome.fa.gz
+#key=maxInsertSize:type=integer:display=F:display_name=The max insert size if known
+maxInsertSize=
+#key=bwaAlignMemG:type=integer:display=F:display_name=Memory for BWA align step
+bwaAlignMemG=8
+#key=skip_upload:type=pulldown:display=T:display_name=Selecting true prevents upload of metadata and data and is used for testing
+skip_upload=true
+#key=output_prefix:type=text:display=F:display_name=The output_prefix is a convention and used to specify the root of the absolute output path or an S3 bucket name
+output_prefix=./
+#key=additionalPicardParams:type=text:display=F:display_name=Any additional parameters you want to pass to Picard
+additionalPicardParams=
+#key=bwaSampeMemG:type=integer:display=F:display_name=Memory for BWA sampe step
+bwaSampeMemG=8
+#key=bwaSampeSortSamMemG:type=integer:display=F:display_name=Memory for BWA sort sam step
+bwaSampeSortSamMemG=4
+#key=bwa_aln_params:type=text:display=F:display_name=Extra params for bwa aln
+bwa_aln_params=
+#key=gnos_key:type=text:display=T:display_name=The path to a GNOS key.pem file
+gnos_key=\${workflow_bundle_dir}/Workflow_Bundle_BWA/2.0/scripts/gnostest.pem
+#key=uploadScriptJobMem:type=integer:display=F:display_name=Memory for upload script
+uploadScriptJobMem=2
+#key=output_dir:type=text:display=F:display_name=The output directory is a conventions and used in many workflows to specify a relative output path
+output_dir=seqware-results
+#key=bwa_sampe_params:type=text:display=F:display_name=Extra params for bwa sampe
+bwa_sampe_params=
+END
   close OUT;
   my $settings = `cat ~/.seqware/settings`;
   foreach my $cluster (keys %{$cluster_info}) {
