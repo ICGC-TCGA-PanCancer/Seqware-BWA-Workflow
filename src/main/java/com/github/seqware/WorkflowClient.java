@@ -1,5 +1,9 @@
 package com.github.seqware;
 
+/**
+ * Mine
+ */
+
 import ca.on.oicr.pde.utilities.workflows.OicrWorkflow;
 import java.util.ArrayList;
 import java.util.Map;
@@ -16,6 +20,7 @@ public class WorkflowClient extends OicrWorkflow {
     ArrayList<String> bamPaths = new ArrayList<String>();
     ArrayList<String> inputURLs = new ArrayList<String>();
     ArrayList<String> inputMetadataURLs = new ArrayList<String>();
+    String bwaChoice = "aln"; //can be "aln" or "mem"
     // used to download with gtdownload
     String gnosInputFileURLs = null;
     String gnosInputMetadataURLs = null;
@@ -71,6 +76,7 @@ public class WorkflowClient extends OicrWorkflow {
             reference_path = getProperty("input_reference");
             outputDir = this.getMetadata_output_dir();
             outputPrefix = this.getMetadata_output_file_prefix();
+            bwaChoice = getProperty("bwa_choice") == null ? "aln" : getProperty("bwa_choice");
             bwaAlignMemG = getProperty("bwaAlignMemG") == null ? "8" : getProperty("bwaAlignMemG");
             bwaSampeMemG = getProperty("bwaSampeMemG") == null ? "8" : getProperty("bwaSampeMemG");
             bwaSampeSortSamMemG = getProperty("bwaSampeSortSamMemG") == null ? "4" : getProperty("bwaSampeSortSamMemG");
@@ -118,12 +124,18 @@ public class WorkflowClient extends OicrWorkflow {
         for (int i=0; i<numBamFiles; i++) {
             
             String file = bamPaths.get(i);
+            
+            Job headerJob = this.getWorkflow().createBashJob("headerJob"+i);
+            headerJob.getCommand().addArgument("samtools view -H "+file+" | grep @RG > bam_header."+i+".txt");
+            for(Job gtDownloadJob : downloadJobs) { headerJob.addParent(gtDownloadJob); }
         
+            if ("aln".equals(bwaChoice)) {
+            
             // BWA ALN STEPS
             //bwa aln   -t 8 -b1 ./reference/genome.fa.gz ./HG00096.chrom20.ILLUMINA.bwa.GBR.low_coverage.20120522.bam_000000.bam > aligned_1.sai 2> aligned_1.err
             //bwa aln   -t 8 -b2 ./reference/genome.fa.gz ./HG00096.chrom20.ILLUMINA.bwa.GBR.low_coverage.20120522.bam_000000.bam > aligned_2.sai 2> aligned_2.err
             Job job01 = this.getWorkflow().createBashJob("bwa_align1_"+i);
-            for(Job gtDownloadJob : downloadJobs) { job01.addParent(gtDownloadJob); }
+            job01.addParent(headerJob);
             job01.getCommand().addArgument(this.getWorkflowBaseDir() + "/bin/bwa-0.6.2/bwa aln ")
                     .addArgument(this.parameters("aln") == null ? " " : this.parameters("aln"))
                     .addArgument(reference_path+" -b1 ")
@@ -164,7 +176,15 @@ public class WorkflowClient extends OicrWorkflow {
             job03.addParent(job01);
             job03.addParent(job02);
             job03.setMaxMemory(bwaSampeMemG+"900");
-            bamJobs.add(job03);        
+            bamJobs.add(job03);      
+            
+            } else if ("mem".equals(bwaChoice)) {
+                
+                
+            } else {
+                // not sure if there's a better way to do this
+                throw new RuntimeException("Don't understand a bwa choice of "+bwaChoice+" needs to be aln or mem");
+            }
 
         }
        
