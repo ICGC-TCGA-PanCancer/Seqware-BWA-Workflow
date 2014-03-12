@@ -126,7 +126,7 @@ public class WorkflowClient extends OicrWorkflow {
             String file = bamPaths.get(i);
             
             Job headerJob = this.getWorkflow().createBashJob("headerJob"+i);
-            headerJob.getCommand().addArgument("samtools view -H "+file+" | grep @RG > bam_header."+i+".txt");
+            headerJob.getCommand().addArgument("samtools view -H "+file+" | grep @RG | sed 's/\\s/\\\\t/g' > bam_header."+i+".txt");
             for(Job gtDownloadJob : downloadJobs) { headerJob.addParent(gtDownloadJob); }
         
             if ("aln".equals(bwaChoice)) {
