@@ -184,7 +184,8 @@ public class WorkflowClient extends OicrWorkflow {
         // BWA MEM
         Job job01 = this.getWorkflow().createBashJob("bwa_mem_" + i);
         job01.addParent(headerJob);
-        job01.getCommand().addArgument(this.getWorkflowBaseDir() + "/bin/PCAP-core_20140312/bin/bamtofastq")
+        job01.getCommand().addArgument("LD_LIBRARY_PATH=" + this.getWorkflowBaseDir() + "/bin/PCAP-core_20140312/lib") 
+                .addArgument(this.getWorkflowBaseDir() + "/bin/PCAP-core_20140312/bin/bamtofastq")
                 .addArgument("exclude=QCFAIL,SECONDARY,SUPPLEMENTARY")
                 .addArgument("T=out_" + i + ".t")
                 .addArgument("S=out_" + i + ".s")
@@ -241,7 +242,8 @@ public class WorkflowClient extends OicrWorkflow {
       if (!getProperty("numOfThreads").isEmpty()) {
         numThreads = Integer.parseInt(getProperty("numOfThreads"));
       }
-      job04.getCommand().addArgument(this.getWorkflowBaseDir() + "/bin/PCAP-core_20140312/bin/bammarkduplicates")
+      job04.getCommand().addArgument("LD_LIBRARY_PATH=" + this.getWorkflowBaseDir() + "/bin/PCAP-core_20140312/lib") 
+              .addArgument(this.getWorkflowBaseDir() + "/bin/PCAP-core_20140312/bin/bammarkduplicates")
               .addArgument("O=" + this.dataDir + outputFileName)
               .addArgument("M=" + this.dataDir + outputFileName + ".metrics")
               .addArgument("tmpfile=" + this.dataDir + outputFileName + ".biormdup")
