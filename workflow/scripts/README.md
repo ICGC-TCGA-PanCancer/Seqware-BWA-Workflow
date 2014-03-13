@@ -42,6 +42,10 @@ JSON for cluster:
 * cpan install XML::DOM
 * cpan install LWP::Protocol::https
 * make sure you have curl and wget or lwp-download installed
+* for the perl packages you can use the following on ubuntu:
+    * libossp-uuid-perl
+    * libjson-perl
+    * libxml-libxml-perl
 
 ### Example
 
