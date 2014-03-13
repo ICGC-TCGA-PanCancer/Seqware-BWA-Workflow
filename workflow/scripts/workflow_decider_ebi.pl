@@ -108,7 +108,7 @@ output_dir=seqware-results
 #key=bwa_sampe_params:type=text:display=F:display_name=Extra params for bwa sampe
 bwa_sampe_params=
 # key=bwa_choice:type=pulldown:display=T:display_name=Choice to use bwa-aln or bwa-mem:pulldown_items=mem|mem;aln|aln
-bwa_choice=
+bwa_choice=mem
 # key=bwa_mem_params:type=text:display=F:display_name=Extra params for bwa mem
 bwa_mem_params=
 END
