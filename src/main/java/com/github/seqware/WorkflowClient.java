@@ -192,7 +192,7 @@ public class WorkflowClient extends OicrWorkflow {
                 .addArgument("O=out_" + i + ".o")
                 .addArgument("O2=out_" + i + ".o2")
                 .addArgument("collate=1")
-                .addArgument("filename=" + file + " | ")
+                .addArgument("filename=" + file + " | LD_LIBRARY_PATH=" + this.getWorkflowBaseDir() + "/bin/PCAP-core_20140312/lib")
                 .addArgument(this.getWorkflowBaseDir() + "/bin/PCAP-core_20140312/bin/bwa mem")
                 // this pulls in threads and extra params
                 .addArgument(this.parameters("mem") == null ? " " : this.parameters("mem"))
@@ -200,7 +200,8 @@ public class WorkflowClient extends OicrWorkflow {
                 .addArgument("-R \"`cat bam_header." + i + ".txt`\"")
                 .addArgument(reference_path)
                 .addArgument("-")
-                .addArgument("| " + this.getWorkflowBaseDir() + "/bin/PCAP-core_20140312/bin/bamsort")
+                .addArgument("| LD_LIBRARY_PATH=" + this.getWorkflowBaseDir() + "/bin/PCAP-core_20140312/lib ")
+                .addArgument(this.getWorkflowBaseDir() + "/bin/PCAP-core_20140312/bin/bamsort")
                 .addArgument("inputformat=sam level=1 inputthreads=2 outputthreads=2")
                 .addArgument("tmpfile=out_" + i + ".sorttmp")
                 .addArgument("O=out_" + i + ".bam");
@@ -212,7 +213,7 @@ public class WorkflowClient extends OicrWorkflow {
 
       } else {
         // not sure if there's a better way to do this
-        //throw new RuntimeException("Don't understand a bwa choice of " + bwaChoice + " needs to be aln or mem");
+        throw new RuntimeException("Don't understand a bwa choice of " + bwaChoice + " needs to be aln or mem");
       }
 
     }
