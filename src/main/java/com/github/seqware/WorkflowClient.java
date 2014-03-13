@@ -212,7 +212,7 @@ public class WorkflowClient extends OicrWorkflow {
 
       } else {
         // not sure if there's a better way to do this
-        throw new RuntimeException("Don't understand a bwa choice of " + bwaChoice + " needs to be aln or mem");
+        //throw new RuntimeException("Don't understand a bwa choice of " + bwaChoice + " needs to be aln or mem");
       }
 
     }
