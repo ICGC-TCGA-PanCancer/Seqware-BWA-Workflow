@@ -1,0 +1,11 @@
+prefix=/vagrant/PCAP-core/target
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: libmauslsf
+Description: succinct data structures lsf module
+Requires: libmaus
+Version: 0.0.104
+Libs: -L${libdir} -lmauslsf 
+Cflags: -I${includedir} 
