@@ -54,6 +54,8 @@ The "decider" that will find and schedule the BWA workflow:
 
     perl workflow_decider_ebi.pl --gnos-url https://gtrepo-ebi.annailabs.com --cluster-json cluster.json --working-dir temp --sample e00d7cfd-b1d2-4bf4-8b7b-74128f906149 --force-run --threads 12 --test 
     perl workflow_decider_ebi.pl --gnos-url https://gtrepo-ebi.annailabs.com --cluster-json cluster.json --working-dir temp --force-run --threads 12 --test 
+    # skip downloading the metadata, use if you know your local cache of metadata is fresh
+    perl workflow_decider_ebi.pl --gnos-url https://gtrepo-ebi.annailabs.com --cluster-json cluster.empty.json --working-dir temp --force-run --threads 12 --test --skip-meta-download
 
 The GNOS uploader script used by the workflow:
 
