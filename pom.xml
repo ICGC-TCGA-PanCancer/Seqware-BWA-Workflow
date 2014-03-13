@@ -214,22 +214,28 @@
                         <configuration>
                             <outputDirectory>${project.build.directory}/Workflow_Bundle_${workflow-directory-name}_${project.version}_SeqWare_${seqware-version}/Workflow_Bundle_${workflow-directory-name}/${project.version}</outputDirectory>
                             <resources>
-                                <resource>
+                               <resource>
                                     <directory>workflow</directory>
                                     <excludes>
-                                        <!--exclude>workflow.ftl</exclude>
+                                        <exclude>workflow.ftl</exclude>
                                         <exclude>workflow.ini</exclude>
-                                        <exclude>**/PCAP-core_20140312</exclude-->
+                                        <exclude>**/PCAP-core_20140312/**/*</exclude>
+                                    </excludes>
+                                    <filtering>true</filtering>
+                                </resource>
+                                <!--resource>
+                                    <directory>workflow</directory>
+                                    <excludes>
                                         <exclude>metadata.xml</exclude>
                                     </excludes>
                                     <filtering>false</filtering>
-                                </resource>
+                                </resource-->
                                 <resource>
                                     <directory>workflow</directory>
                                     <includes>
-                                        <include>metadata.xml</include>
+                                        <include>**/PCAP-core_20140312/**/*</include>
                                     </includes>
-                                    <filtering>true</filtering>
+                                    <filtering>false</filtering>
                                 </resource>
                             </resources>
                         </configuration>
