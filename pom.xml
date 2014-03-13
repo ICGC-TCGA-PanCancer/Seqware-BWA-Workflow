@@ -219,6 +219,7 @@
                                     <excludes>
                                         <exclude>workflow.ftl</exclude>
                                         <exclude>workflow.ini</exclude>
+                                        <exclude>bin/*</exclude>
                                     </excludes>
                                     <filtering>true</filtering>
                                 </resource>

@@ -1,0 +1,12 @@
+prefix=/vagrant/PCAP-core/target
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: libmaus
+Description: succinct data structures
+Requires: zlib
+Version: 0.0.104
+Libs: -L${libdir} -lmaus  -L/vagrant/PCAP-core/target/lib -lsnappy -ldl -fopenmp
+Cflags:   -I/vagrant/PCAP-core/target/include -fopenmp  -std=gnu++0x    -I${includedir}
+Dllib: -ldl

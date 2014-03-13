@@ -1,0 +1,110 @@
+=head2 Wed Mar 12 00:04:13 2014: C<Module> L<File::ShareDir::Install|File::ShareDir::Install>
+
+=over 4
+
+=item *
+
+C<installed into: /vagrant/PCAP-core/target/lib/perl5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 0.08>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Wed Mar 12 00:35:07 2014: C<Module> L<List::Util|List::Util>
+
+=over 4
+
+=item *
+
+C<installed into: /vagrant/PCAP-core/target//lib/perl5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 1.38>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Wed Mar 12 00:35:10 2014: C<Module> L<Proc::ProcessTable|Proc::ProcessTable>
+
+=over 4
+
+=item *
+
+C<installed into: /vagrant/PCAP-core/target//lib/perl5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 0.50>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Wed Mar 12 00:40:23 2014: C<Module> L<PCAP|PCAP>
+
+=over 4
+
+=item *
+
+C<installed into: /vagrant/PCAP-core/target/lib/perl5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 0.1.2>
+
+=item *
+
+C<EXE_FILES: bin/bam_to_sra_sub.pl bin/bwa_aln.pl bin/bwa_mem.pl bin/diff_bams.pl bin/monitor.pl>
+
+=back
+
+=head2 Wed Mar 12 00:57:53 2014: C<Module> L<PCAP|PCAP>
+
+=over 4
+
+=item *
+
+C<installed into: /vagrant/PCAP-core/target/lib/perl5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 0.1.2>
+
+=item *
+
+C<EXE_FILES: bin/bam_to_sra_sub.pl bin/bwa_aln.pl bin/bwa_mem.pl bin/diff_bams.pl bin/monitor.pl>
+
+=back
+
