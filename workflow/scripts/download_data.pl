@@ -15,8 +15,8 @@ download("$link_dir/reference/bwa-0.6.2", "http://s3.amazonaws.com/pan-cancer-da
 download("$link_dir/reference/bwa-0.6.2", "http://s3.amazonaws.com/pan-cancer-data/pan-cancer-reference/genome.fa.gz.64.sa");
 download("$link_dir/testData", "http://s3.amazonaws.com/oicr.bundle.data/pancancer_bwa_workflow/test.genome.read1.fastq.gz");
 download("$link_dir/testData", "http://s3.amazonaws.com/oicr.bundle.data/pancancer_bwa_workflow/test.genome.read2.fastq.gz");
-download("$link_dir/testData", "https://s3.amazonaws.com/pan-cancer-data/pan-cancer-unaligned-bam-samples/8015_5.bam");
-download("$link_dir/testData", "https://s3.amazonaws.com/pan-cancer-data/pan-cancer-unaligned-bam-samples/8031_6.bam");
+download("$link_dir/testData", "http://s3.amazonaws.com/pan-cancer-data/pan-cancer-unaligned-bam-samples/8015_5.bam");
+download("$link_dir/testData", "http://s3.amazonaws.com/pan-cancer-data/pan-cancer-unaligned-bam-samples/8031_6.bam");
 
 sub download {
   my ($dir, $url) = @_;

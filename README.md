@@ -21,6 +21,7 @@ It needs the following Perl modules, install them via CPAN if you don't already 
 
 ### TODO:
 
+* I feel the read groups should come in from the ini (and therefore come from the XML as parsed by the decider). If not defined then I think it's OK to use read groups from the BAM inputs themselves
 * the current ini file includes both tumor and normal, will just want one for a single 'sample'
 * need to be updated to BWA-mem and handle the @RG properly
     * https://wiki.oicr.on.ca/display/PANCANCER/BWA+mem+implementation
