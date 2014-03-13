@@ -217,10 +217,18 @@
                                 <resource>
                                     <directory>workflow</directory>
                                     <excludes>
-                                        <exclude>workflow.ftl</exclude>
+                                        <!--exclude>workflow.ftl</exclude>
                                         <exclude>workflow.ini</exclude>
-                                        <exclude>bin/*</exclude>
+                                        <exclude>**/PCAP-core_20140312</exclude-->
+                                        <exclude>metadata.xml</exclude>
                                     </excludes>
+                                    <filtering>false</filtering>
+                                </resource>
+                                <resource>
+                                    <directory>workflow</directory>
+                                    <includes>
+                                        <include>metadata.xml</include>
+                                    </includes>
                                     <filtering>true</filtering>
                                 </resource>
                             </resources>
