@@ -124,7 +124,7 @@ public class WorkflowClient extends OicrWorkflow {
 
       // in the future this should use the read group if provided otherwise use read group from bam file
       Job headerJob = this.getWorkflow().createBashJob("headerJob" + i);
-      headerJob.getCommand().addArgument("samtools view -H " + file + " | grep @RG | sed 's/\\s/\\\\t/g' > bam_header." + i + ".txt");
+      headerJob.getCommand().addArgument("samtools view -H " + file + " | grep @RG | sed 's/\\t/\\\\t/g' > bam_header." + i + ".txt");
       for (Job gtDownloadJob : downloadJobs) {
         headerJob.addParent(gtDownloadJob);
       }
