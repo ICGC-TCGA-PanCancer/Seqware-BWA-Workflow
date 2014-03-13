@@ -46,8 +46,15 @@ JSON for cluster:
     * libossp-uuid-perl
     * libjson-perl
     * libxml-libxml-perl
+    * libxml-dom-perl
 
 ### Example
+
+The "decider" that will find and schedule the BWA workflow:
+
+    perl workflow_decider_ebi.pl --gnos-url https://gtrepo-ebi.annailabs.com --cluster-json cluster.json --working-dir temp --sample e00d7cfd-b1d2-4bf4-8b7b-74128f906149 --force-run --threads 12 --test 
+
+The GNOS uploader script used by the workflow:
 
     perl gnos_upload_data.pl --metadata-urls https://gtrepo-ebi.annailabs.com/cghub/metadata/analysisFull/4fb18a5a-9504-11e3-8d90-d1f1d69ccc24 --bam /tmp/hadoop-init.log
 
