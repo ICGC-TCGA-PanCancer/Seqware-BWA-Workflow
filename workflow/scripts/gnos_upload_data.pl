@@ -133,7 +133,8 @@ sub generate_submission {
     # TODO: all of these need to be parameterized/read from header/read from XML
     # populate refcenter from original BAM submission 
     # @RG CN:(.*)
-    $refcenter = $m->{$file}{'target'}[0]{'refcenter'};
+    # FIXME: GNOS currently only allows: ^UCSC$|^NHGRI$|^CGHUB$|^The Cancer Genome Atlas Research Network$|^OICR$
+    ############$refcenter = $m->{$file}{'target'}[0]{'refcenter'};
     $sample_uuid = $m->{$file}{'target'}[0]{'refname'};
     # @CO sample_id 
     my @sample_ids = keys %{$m->{$file}{'analysis_attr'}{'sample_id'}};
