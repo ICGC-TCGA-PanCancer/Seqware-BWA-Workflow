@@ -368,6 +368,7 @@ END
     # replace the file 
     $run_block =~ s/filename="\S+"/filename="$bam"/g;
     $run_block =~ s/checksum="\S+"/checksum="$bam_check"/g;
+    $run_block =~ s/center_name="[^"]+"/center_name="$refcenter"/g;
     $run_xml .= $run_block;
   }
   
