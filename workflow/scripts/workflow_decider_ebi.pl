@@ -274,6 +274,7 @@ sub read_sample_info {
       my $use_control = getCustomVal($adoc2, "use_cntl");
       my $alignment = getVal($adoc, "refassem_short_name");
       my $total_lanes = getCustomVal($adoc2, "total_lanes");
+      my $sample_uuid = getXPathAttr($adoc2, "refname", "//ANALYSIS_SET/ANALYSIS/TARGETS/TARGET/\@refname");
       print OUT "ANALYSIS:  $analysisDataURI \n";
       print OUT "ANALYSISID: $analysisId\n";
       print OUT "PARTICIPANT ID: $participantId\n";
@@ -292,17 +293,6 @@ sub read_sample_info {
         print OUT "  gtdownload -c gnostest.pem -v -d $analysisDataURI\n";
         #system "gtdownload -c gnostest.pem -vv -d $analysisId\n";
         print OUT "\n";
-#        $d->{$submitterParticipantId}{$submitterSampleId}{$alignment}{$submitterAliquotId}{$libName}{analysis_id}{$analysisId} = 1; 
-#        $d->{$submitterParticipantId}{$submitterSampleId}{$alignment}{$submitterAliquotId}{$libName}{analysis_url}{$analysisDataURI} = 1; 
-#        $d->{$submitterParticipantId}{$submitterSampleId}{$alignment}{$submitterAliquotId}{$libName}{library_name}{$libName} = 1; 
-#        $d->{$submitterParticipantId}{$submitterSampleId}{$alignment}{$submitterAliquotId}{$libName}{library_strategy}{$libStrategy} = 1; 
-#        $d->{$submitterParticipantId}{$submitterSampleId}{$alignment}{$submitterAliquotId}{$libName}{library_source}{$libSource} = 1; 
-#        $d->{$submitterParticipantId}{$submitterSampleId}{$alignment}{$submitterAliquotId}{$libName}{alignment_genome}{$alignment} = 1; 
-#        $d->{$submitterParticipantId}{$submitterSampleId}{$alignment}{$submitterAliquotId}{$libName}{use_control}{$use_control} = 1; 
-#        $d->{$submitterParticipantId}{$submitterSampleId}{$alignment}{$submitterAliquotId}{$libName}{total_lanes}{$total_lanes} = 1; 
-#        $d->{$submitterParticipantId}{$submitterSampleId}{$alignment}{$submitterAliquotId}{$libName}{submitter_participant_id}{$submitterParticipantId} = 1; 
-#        $d->{$submitterParticipantId}{$submitterSampleId}{$alignment}{$submitterAliquotId}{$libName}{submitter_sample_id}{$submitterSampleId} = 1; 
-#        $d->{$submitterParticipantId}{$submitterSampleId}{$alignment}{$submitterAliquotId}{$libName}{submitter_aliquot_id}{$submitterAliquotId} = 1; 
         $d->{$participantId}{$sampleId}{$alignment}{$aliquotId}{$libName}{analysis_id}{$analysisId} = 1; 
         $d->{$participantId}{$sampleId}{$alignment}{$aliquotId}{$libName}{analysis_url}{$analysisDataURI} = 1; 
         $d->{$participantId}{$sampleId}{$alignment}{$aliquotId}{$libName}{library_name}{$libName} = 1; 
@@ -314,10 +304,11 @@ sub read_sample_info {
         $d->{$participantId}{$sampleId}{$alignment}{$aliquotId}{$libName}{submitter_participant_id}{$submitterParticipantId} = 1; 
         $d->{$participantId}{$sampleId}{$alignment}{$aliquotId}{$libName}{submitter_sample_id}{$submitterSampleId} = 1; 
         $d->{$participantId}{$sampleId}{$alignment}{$aliquotId}{$libName}{submitter_aliquot_id}{$submitterAliquotId} = 1; 
-# need to add
-# input_bam_paths=9c414428-9446-11e3-86c1-ab5c73f0e08b/hg19.chr22.5x.normal.bam
-# gnos_input_file_urls=https://gtrepo-ebi.annailabs.com/cghub/data/analysis/download/9c414428-9446-11e3-86c1-ab5c73f0e08b
-# gnos_input_metadata_urls=https://gtrepo-ebi.annailabs.com/cghub/metadata/analysisFull/9c414428-9446-11e3-86c1-ab5c73f0e08b
+        $d->{$participantId}{$sampleId}{$alignment}{$aliquotId}{$libName}{sample_uuid}{$sample_uuid} = 1; 
+        # need to add
+        # input_bam_paths=9c414428-9446-11e3-86c1-ab5c73f0e08b/hg19.chr22.5x.normal.bam
+        # gnos_input_file_urls=https://gtrepo-ebi.annailabs.com/cghub/data/analysis/download/9c414428-9446-11e3-86c1-ab5c73f0e08b
+        # gnos_input_metadata_urls=https://gtrepo-ebi.annailabs.com/cghub/metadata/analysisFull/9c414428-9446-11e3-86c1-ab5c73f0e08b
 
       } else {
         print OUT "ERROR: one or more critical fields not defined, will skip $analysisId\n\n";
@@ -451,6 +442,16 @@ sub getCustomVal {
     }
   }
   return("");
+}
+
+sub getXPathAttr {
+  my ($dom, $key, $xpath) = @_;
+  #print "HERE $dom $key $xpath\n";
+  for my $node ($dom->findnodes($xpath)) {
+    #print "NODE: ".$node->getValue()."\n";
+    return($node->getValue());
+  }
+  return "";
 }
 
 sub getVal {
