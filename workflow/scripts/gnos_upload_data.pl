@@ -169,7 +169,7 @@ sub generate_submission {
         #print Dumper($bam_info);
         #print Dumper($m->{$file}{'file'}[$index]);
         my $str = "$participant_id|$sample_id|$sample_uuid|$aliquot_id|$library|$platform_unit|$read_group_id|".$m->{$file}{'file'}[$index]{filename}."|".$m->{$file}{'analysis_id'};
-        $global_attr->{"participant_id|sample_id|sample_refname|aliquot_id|library|platform_unit|read_group_id|bam_file|analysis_id"}{$str} = 1;
+        $global_attr->{"input_info:participant_id|sample_id|target_sample_refname|aliquot_id|library|platform_unit|read_group_id|analysis_id|bam_file"}{$str} = 1;
         $read_group_info->{$str} = 1;
       }
       $index++;
@@ -190,8 +190,6 @@ sub generate_submission {
   #<!--CUSTOM DESCRIPTION="hs37d" REFERENCE_SOURCE="ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/phase2_reference_assembly_sequence/README_human_reference_20110707"/-->
 
   my $analysis_xml = <<END;
-  <!-- TODO: ultimately everything comes back to \@RG. SampleID is correctly linked in here but I'm worried that  
-  aliquot ID is never used and linked to the RG either.  -->
   <ANALYSIS_SET xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.ncbi.nlm.nih.gov/viewvc/v1/trunk/sra/doc/SRA_1-5/SRA.analysis.xsd?view=co">
     <ANALYSIS center_name="$analysis_center" analysis_date="$datetime">
       <TITLE>PanCancer Sample-Level Alignment for Sample ID: $sample_id</TITLE>
@@ -328,7 +326,6 @@ END
                    my $rgl = $run->{'read_group_label'};
                    my $rn = $run->{'refname'};
   $analysis_xml .= <<END;
-              <!-- TODO -->
               <PIPE_SECTION section_name="Mapping">
                 <STEP_INDEX>$rgl</STEP_INDEX>
                 <PREV_STEP_INDEX>NIL</PREV_STEP_INDEX>
@@ -363,7 +360,7 @@ END
         <FILES>
 END
   
-       $analysis_xml .= "<FILE filename=\"$bam\" filetype=\"bam\" checksum_method=\"MD5\" checksum=\"$bam_check\" />\n";
+       $analysis_xml .= "          <FILE filename=\"$bam\" filetype=\"bam\" checksum_method=\"MD5\" checksum=\"$bam_check\" />\n";
   
        # incorrect, there's only one bam!
        my $i=0;
@@ -387,8 +384,7 @@ END
   
     foreach my $key (keys %{$global_attr}) {
       foreach my $val (keys %{$global_attr->{$key}}) {
-        $analysis_xml .= "
-        <ANALYSIS_ATTRIBUTE>
+        $analysis_xml .= "        <ANALYSIS_ATTRIBUTE>
           <TAG>$key</TAG>
           <VALUE>$val</VALUE>
         </ANALYSIS_ATTRIBUTE>
