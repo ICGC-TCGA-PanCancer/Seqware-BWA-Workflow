@@ -353,7 +353,8 @@ END
       <TARGETS>
 END
   foreach my $curr_sample_uuid (keys %{$sample_uuids}) {
-    $analysis_xml .= <<END;        <TARGET sra_object_type="SAMPLE" refcenter="$refcenter" refname="$curr_sample_uuid" />
+    $analysis_xml .= <<END;
+        <TARGET sra_object_type="SAMPLE" refcenter="$refcenter" refname="$curr_sample_uuid" />
 END
   }
   $analysis_xml .= <<END;
