@@ -85,14 +85,16 @@ sub validate_submission {
 sub upload_submission {
   my ($sub_path) = @_;
   my $cmd = "cgsubmit -s $upload_url -o metadata_upload.log -u $sub_path -vv -c $key";
-  if ($test) { $cmd = "echo ".$cmd; }
   print "UPLOADING METADATA: $cmd\n";
-  if (system($cmd)) { return(1); }
+  if (!$test) { 
+    if (system($cmd)) { return(1); }
+  }
 
   $cmd = "cd $sub_path; gtupload -v -c $key -u ./manifest.xml; cd -";
-  if ($test) { $cmd = "echo ".$cmd; }
   print "UPLOADING DATA: $cmd\n";
-  if (system($cmd)) { return(1); }
+  if (!$test) { 
+    if (system($cmd)) { return(1); }
+  }
 
 }
 
