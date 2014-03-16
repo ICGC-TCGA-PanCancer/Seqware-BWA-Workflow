@@ -387,7 +387,7 @@ END
           <TAG>$key</TAG>
           <VALUE>$val</VALUE>
         </ANALYSIS_ATTRIBUTE>
-        ";
+";
       }
     }
   
