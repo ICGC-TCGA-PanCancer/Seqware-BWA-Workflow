@@ -48,6 +48,8 @@ $output_dir = $output_dir."/$uuid/";
 my $bam_check = `cat $md5_file`;
 chomp $bam_check;
 # symlink for bam and md5sum file
+print ("ln -s `pwd`/$bam $output_dir/$uuid/$bam_check.bam\n");
+print ("ln -s `pwd`/$md5_file $output_dir/$uuid/$bam_check.bam.md5\n");
 system("ln -s `pwd`/$bam $output_dir/$uuid/$bam_check.bam");
 system("ln -s `pwd`/$md5_file $output_dir/$uuid/$bam_check.bam.md5");
 
