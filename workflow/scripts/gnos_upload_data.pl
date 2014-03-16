@@ -168,7 +168,7 @@ sub generate_submission {
         #print Dumper($bam_info);
         #print Dumper($m->{$file}{'file'}[$index]);
         my $str = "$participant_id|$sample_id|$sample_uuid|$aliquot_id|$library|$platform_unit|$read_group_id|".$m->{$file}{'file'}[$index]{filename}."|".$m->{$file}{'analysis_id'};
-        $global_attr->{"input_info:participant_id|sample_id|target_sample_refname|aliquot_id|library|platform_unit|read_group_id|analysis_id|bam_file"}{$str} = 1;
+        $global_attr->{"pipeline_input_info:participant_id|sample_id|target_sample_refname|aliquot_id|library|platform_unit|read_group_id|analysis_id|bam_file"}{$str} = 1;
         $read_group_info->{$str} = 1;
       }
       $index++;
