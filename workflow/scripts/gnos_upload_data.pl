@@ -84,16 +84,15 @@ sub validate_submission {
 
 sub upload_submission {
   my ($sub_path) = @_;
-  my $cmd = "cgsubmit -s $upload_url -o metadata_upload.log -u $sub_path -vv -c $key";
+  my $cmd = "cd $sub_path; cgsubmit -s $upload_url -o metadata_upload.log -u ./ -vv -c $key; cd -";
   if ($test) { $cmd = "echo ".$cmd; }
   print "UPLOADING METADATA: $cmd\n";
   if (system($cmd)) { return(1); }
 
-  # FIXME: need to correct path issues here
   $cmd = "cd $sub_path; gtupload -v -c $key -u ./manifest.xml; cd -";
   if ($test) { $cmd = "echo ".$cmd; }
   print "UPLOADING DATA: $cmd\n";
-  return(system($cmd));
+  if (system($cmd)) { return(1); }
 
 }
 
