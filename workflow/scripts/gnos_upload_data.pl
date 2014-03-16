@@ -84,7 +84,7 @@ sub validate_submission {
 
 sub upload_submission {
   my ($sub_path) = @_;
-  my $cmd = "cd $sub_path; cgsubmit -s $upload_url -o metadata_upload.log -u ./ -vv -c $key; cd -";
+  my $cmd = "cgsubmit -s $upload_url -o metadata_upload.log -u $sub_path -vv -c $key";
   if ($test) { $cmd = "echo ".$cmd; }
   print "UPLOADING METADATA: $cmd\n";
   if (system($cmd)) { return(1); }
