@@ -5,6 +5,7 @@ use XML::DOM;
 use JSON;
 use Data::UUID;
 use XML::LibXML;
+use Time::Piece;
 
 #############################################################################################
 # DESCRIPTION                                                                               #
@@ -13,6 +14,14 @@ use XML::LibXML;
 # parses it, generates headers, the submission files and then performs the uploads.         #
 #############################################################################################
 
+#############################################################################################
+# TODO                                                                                      #
+#############################################################################################
+# * generally, this script needs to be re-written so it fully parses the input XML into a   #
+#   data model and then creates the output XML.  There is far too much hacking on XML text. #
+# * add workflow version param, url param                                                   #
+# * need GNOS to support the reference we're using                                          #
+#############################################################################################
 
 #############
 # VARIABLES #
@@ -27,7 +36,6 @@ my $md5_file = "";
 my $upload_url = "";
 my $test = 0;
 
-# FIXME: add workflow version param, url param
 if (scalar(@ARGV) != 12 && scalar(@ARGV) != 13) { die "USAGE: 'perl gnos_upload_data.pl --metadata-urls <URLs_comma_separated> --bam <sample-level_bam_file_path> --bam-md5sum-file <file_with_bam_md5sum> --outdir <output_dir> --key <gnos.pem> --upload-url <gnos_server_url> [--test]\n"; }
 GetOptions("metadata-urls=s" => \$metadata_urls, "bam=s" => \$bam, "outdir=s" => \$output_dir, "key=s" => \$key, "bam-md5sum-file=s" => \$md5_file, "upload-url=s" => \$upload_url, "test" => \$test);
 
@@ -89,39 +97,37 @@ sub generate_submission {
   my ($m) = @_;
   
   # const
-  # TODO: generate this 
-  my $datetime = "2011-09-05T00:00:00";
-  # TODO: all of these need to be parameterized/read from header/read from XML
+  my $t = gmtime; 
+  my $datetime = $t->datetime();
   # populate refcenter from original BAM submission 
   # @RG CN:(.*)
   my $refcenter = "OICR";
   # @CO sample_id 
-  my $sample_id = "6895c0b9-de4c-4a80-8fba-6ade7ce1e1dc";
+  my $sample_id = "";
   # capture list
   my $sample_uuids = {};
   # current sample_uuid (which seems to actually be aliquot ID, this is sample ID from the BAM header)
-  my $sample_uuid = "6895c0b9-de4c-4a80-8fba-6ade7ce1e1dc";
+  my $sample_uuid = "";
   # @RG SM or @CO aliquoit_id
-  my $aliquot_id = "f7ada105-3771-45ad-a5bb-b00664d6c8e8";
+  my $aliquot_id = "";
   # hardcoded
   my $workflow_version = "2.0";
   # hardcoded
   my $workflow_url = "http://seqware.io/workflows/Workflow_Bundle_PanCancer_BWA_Mem/2.0/Workflow_Bundle_PanCancer_BWA_Mem_SeqWare_1.0.11.zip"; 
   # @RG LB:(.*)
-  my $library = "WGS:OICR:3a690774-f056-470b-b0b9-01ee2222c87d";
+  my $library = "";
   # @RG ID:(.*)
-  my $read_group_id = "OICR:963b780d-09dd-494b-bd54-36d7316643c9";
+  my $read_group_id = "";
   # @RG PU:(.*)
-  my $platform_unit = "OICR:182919";
-  # TODO: I think the data_block_name should be the aliquot_id, at least that's what I saw in the example for TCGA
+  my $platform_unit = "";
   # hardcoded
   my $analysis_center = "OICR";
   # @CO participant_id
-  my $participant_id = "40df3135381b41bdae5e4650c6b28fc3";
+  my $participant_id = "";
   # hardcoded
-  my $bam_file = "foo.bam";
+  my $bam_file = "";
   # hardcoded
-  my $bam_file_checksum = "0e4f1bd5c5cc83b37d6c511dda98866c";
+  my $bam_file_checksum = "";
   
   # these data are collected from all files
   # aliquot_id|library_id|platform_unit|read_group_id|input_url
@@ -132,9 +138,6 @@ sub generate_submission {
   
   # this isn't going to work if there are multiple files/readgroups!
   foreach my $file (keys %{$m}) {
-    # TODO: generate this 
-    $datetime = "2011-09-05T00:00:00";
-    # TODO: all of these need to be parameterized/read from header/read from XML
     # populate refcenter from original BAM submission 
     # @RG CN:(.*)
     # FIXME: GNOS currently only allows: ^UCSC$|^NHGRI$|^CGHUB$|^The Cancer Genome Atlas Research Network$|^OICR$
@@ -153,16 +156,12 @@ sub generate_submission {
     $read_group_id = $m->{$file}{'run'}[0]{'read_group_label'};
     # @RG PU:(.*)
     $platform_unit = $m->{$file}{'run'}[0]{'refname'};
-    # TODO: I think the data_block_name should be the aliquot_id, at least that's what I saw in the example for TCGA
+    # FIXME: GNOS limitation
     # hardcoded
     ########$analysis_center = $refcenter;
     # @CO participant_id
     my @participant_ids = keys %{$m->{$file}{'analysis_attr'}{'participant_id'}};
     $participant_id = $participant_ids[0];
-    # hardcoded
-    #$bam_file = "foo.bam";
-    # hardcoded
-    #$bam_file_checksum = "0e4f1bd5c5cc83b37d6c511dda98866c";
     my $index = 0;
     foreach my $bam_info (@{$m->{$file}{'run'}}) {
       if ($bam_info->{data_block_name} ne '') {
@@ -186,7 +185,7 @@ sub generate_submission {
   #print Dumper($read_group_info);
   #print Dumper($global_attr);
 
-  #<!-- CUSTOM doesn't work -->
+  # FIXME: either custom needs to work or the reference needs to be listed in GNOS
   #<!--CUSTOM DESCRIPTION="hs37d" REFERENCE_SOURCE="ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/phase2_reference_assembly_sequence/README_human_reference_20110707"/-->
 
   my $analysis_xml = <<END;
@@ -427,7 +426,13 @@ END
   # make a uniq list of blocks
   my $uniq_run_xml = {};
   foreach my $url (keys %{$m}) {
-    $uniq_run_xml->{$m->{$url}{'run_block'}} = 1;
+    my $run_block = $m->{$url}{'run_block'};
+    # replace the file 
+    # FIXME: this is risky
+    $run_block =~ s/filename="\S+"/filename="$bam"/g;
+    $run_block =~ s/checksum="\S+"/checksum="$bam_check"/g;
+    $run_block =~ s/center_name="[^"]+"/center_name="$refcenter"/g;
+    $uniq_run_xml->{$run_block} = 1;
   }
   
   my $run_xml = <<END;
@@ -435,10 +440,6 @@ END
 END
   
   foreach my $run_block (keys %{$uniq_run_xml}) {
-    # replace the file 
-    $run_block =~ s/filename="\S+"/filename="$bam"/g;
-    $run_block =~ s/checksum="\S+"/checksum="$bam_check"/g;
-    $run_block =~ s/center_name="[^"]+"/center_name="$refcenter"/g;
     $run_xml .= $run_block;
   }
   
