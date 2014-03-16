@@ -85,7 +85,8 @@ sub upload_submission {
   print "UPLOADING METADATA: $cmd\n";
   if (system($cmd)) { return(1); }
 
-  $cmd = "gtupload -c $key -s $upload_url -u $sub_path/manifest.xml";
+  # FIXME: need to correct path issues here
+  $cmd = "gtupload -c $key -u $sub_path/manifest.xml";
   if ($test) { $cmd = "echo ".$cmd; }
   print "UPLOADING DATA: $cmd\n";
   return(system($cmd));
