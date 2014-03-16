@@ -44,11 +44,13 @@ my $ug = Data::UUID->new;
 my $uuid = lc($ug->create_str());
 system("mkdir -p $output_dir/$uuid");
 $output_dir = $output_dir."/$uuid/";
-system("ln -s $bam $output_dir/");
-
 # md5sum
 my $bam_check = `cat $md5_file`;
 chomp $bam_check;
+# symlink for bam and md5sum file
+system("ln -s `pwd`/$bam $output_dir/$uuid/$bam_check.bam");
+system("ln -s `pwd`/$md5_file $output_dir/$uuid/$bam_check.bam.md5");
+
 
 ##############
 # MAIN STEPS #
@@ -360,7 +362,7 @@ END
         <FILES>
 END
   
-       $analysis_xml .= "          <FILE filename=\"$bam\" filetype=\"bam\" checksum_method=\"MD5\" checksum=\"$bam_check\" />\n";
+       $analysis_xml .= "          <FILE filename=\"$bam_check.bam\" filetype=\"bam\" checksum_method=\"MD5\" checksum=\"$bam_check\" />\n";
   
        # incorrect, there's only one bam!
        my $i=0;
@@ -430,7 +432,7 @@ END
     my $run_block = $m->{$url}{'run_block'};
     # replace the file 
     # FIXME: this is risky
-    $run_block =~ s/filename="\S+"/filename="$bam"/g;
+    $run_block =~ s/filename="\S+"/filename="$bam_check.bam"/g;
     $run_block =~ s/checksum="\S+"/checksum="$bam_check"/g;
     $run_block =~ s/center_name="[^"]+"/center_name="$refcenter"/g;
     $uniq_run_xml->{$run_block} = 1;
