@@ -24,16 +24,20 @@ my $specific_sample;
 my $test = 0;
 my $ignore_lane_cnt = 0;
 my $force_run = 0;
-my $threads = 1;
+my $threads = 8;
+my $report_name = "workflow_decider_report.txt";
 
-if (scalar(@ARGV) < 6 || scalar(@ARGV) > 14) { die "USAGE: 'perl workflow_decider_ebi.pl --gnos-url <URL> --cluster-json <cluster_json> --working-dir <working_dir> [--sample <sample_id>] [--threads <num_threads_bwa>] [--test] [--ignore-lane-count] [--force-run] [--skip-meta-download]\n"; }
+if (scalar(@ARGV) < 6 || scalar(@ARGV) > 16) { die "USAGE: 'perl $0 --gnos-url <URL> --cluster-json <cluster.json> --working-dir <working_dir> [--sample <sample_id>] [--threads <num_threads_bwa_default_8>] [--test] [--ignore-lane-count] [--force-run] [--skip-meta-download] [--report <workflow_decider_report.txt>]\n"; }
 
-GetOptions("gnos-url=s" => \$gnos_url, "cluster-json=s" => \$cluster_json, "working-dir=s" => \$working_dir, "sample=s" => \$specific_sample, "test" => \$test, "ignore-lane-count" => \$ignore_lane_cnt, "force-run" => \$force_run, "threads=i" => \$threads, "skip-meta-download" => \$skip_down);
+GetOptions("gnos-url=s" => \$gnos_url, "cluster-json=s" => \$cluster_json, "working-dir=s" => \$working_dir, "sample=s" => \$specific_sample, "test" => \$test, "ignore-lane-count" => \$ignore_lane_cnt, "force-run" => \$force_run, "threads=i" => \$threads, "skip-meta-download" => \$skip_down, "report=s" => \$report_name);
 
 
 ##############
 # MAIN STEPS #
 ##############
+
+# output report file
+open R, ">$report_name" or die;
 
 # READ CLUSTER INFO AND RUNNING SAMPLES
 my ($cluster_info, $running_samples) = read_cluster_info($cluster_json);
@@ -48,7 +52,7 @@ my $sample_info = read_sample_info();
 # now look at each sample, see if it's already schedule, launch if not and a cluster is available, and then exit
 schedule_samples($sample_info);
 
-
+close R;
 
 ###############
 # SUBROUTINES #
@@ -133,7 +137,7 @@ END
   # now submit the workflow!
   my $cmd = "SEQWARE_SETTINGS=$working_dir/$rand/settings seqware workflow schedule --accession $workflow_accession --host $host --ini $working_dir/$rand/workflow.ini";
   if (!$test) {
-    print "\tLAUNCHING WORKFLOW: $working_dir/$rand/workflow.ini\n";
+    print R "\tLAUNCHING WORKFLOW: $working_dir/$rand/workflow.ini\n";
     print "\t\tLAUNCH CMD: $cmd\n";
     if (system("$cmd")) {
       print "\t\tSOMETHING WENT WRONG WITH SCHEDULING THE WORKFLOW\n";
@@ -344,56 +348,58 @@ sub read_cluster_info {
   my $json_txt = "";
   my $d = {};
   my $run_samples = {};
-  open IN, "<$cluster_info" or die "Can't open $cluster_info";
-  while(<IN>) {
-    $json_txt .= $_;
-  }
-  close IN; 
-  my $json = decode_json($json_txt);
-
-  foreach my $c (keys %{$json}) {
-    my $user = $json->{$c}{username};
-    my $pass = $json->{$c}{password};
-    my $web = $json->{$c}{webservice};
-    my $acc = $json->{$c}{workflow_accession};
-    print "EXAMINING CLUSER: $c\n";
-    #print "wget -O - --http-user=$user --http-password=$pass -q $web\n"; 
-    my $info = `wget -O - --http-user='$user' --http-password=$pass -q $web/workflows/$acc`; 
-    #print "INFO: $info\n";
-    my $dom = XML::LibXML->new->parse_string($info);
-    # check the XML returned above
-    if ($dom->findnodes('//Workflow/name/text()')) {
-      # now figure out if any of these workflows are currently scheduled here
-      #print "wget -O - --http-user='$user' --http-password=$pass -q $web/workflows/$acc/runs\n";
-      my $wr = `wget -O - --http-user='$user' --http-password=$pass -q $web/workflows/$acc/runs`; 
-      #print "WR: $wr\n";
-      my $dom2 = XML::LibXML->new->parse_string($wr);
-
-      # find available clusters
-      my $running = 0;
-      print "\tWORKFLOWS ON THIS CLUSTER\n";
-      my $i=0;
-      for my $node ($dom2->findnodes('//WorkflowRunList2/list/status/text()')) {
-        $i++;
-        print "\tWORKFLOW: ".$acc." STATUS: ".$node->toString()."\n";
-        if ($node->toString() eq 'running' || $node->toString() eq 'scheduled' || $node->toString() eq 'submitted') { $running++; }
-        # find running samples
-        my $j=0;
-        for my $node2 ($dom2->findnodes('//WorkflowRunList2/list/iniFile/text()')) {
-          $j++;
-          my $ini_contents = $node2->toString();
-          $ini_contents =~ /gnos_input_metadata_urls=(\S+)/;
-          my @urls = split /,/, $1;
-          my $sorted_urls = join(",", sort @urls);
-          if ($i==$j) { $run_samples->{$sorted_urls} = $node->toString(); print "\t\tINPUTS: $sorted_urls\n"; }
+  if (-e "$cluster_info") {
+    open IN, "<$cluster_info" or die "Can't open $cluster_info";
+    while(<IN>) {
+      $json_txt .= $_;
+    }
+    close IN; 
+    my $json = decode_json($json_txt);
+  
+    foreach my $c (keys %{$json}) {
+      my $user = $json->{$c}{username};
+      my $pass = $json->{$c}{password};
+      my $web = $json->{$c}{webservice};
+      my $acc = $json->{$c}{workflow_accession};
+      print "EXAMINING CLUSER: $c\n";
+      #print "wget -O - --http-user=$user --http-password=$pass -q $web\n"; 
+      my $info = `wget -O - --http-user='$user' --http-password=$pass -q $web/workflows/$acc`; 
+      #print "INFO: $info\n";
+      my $dom = XML::LibXML->new->parse_string($info);
+      # check the XML returned above
+      if ($dom->findnodes('//Workflow/name/text()')) {
+        # now figure out if any of these workflows are currently scheduled here
+        #print "wget -O - --http-user='$user' --http-password=$pass -q $web/workflows/$acc/runs\n";
+        my $wr = `wget -O - --http-user='$user' --http-password=$pass -q $web/workflows/$acc/runs`; 
+        #print "WR: $wr\n";
+        my $dom2 = XML::LibXML->new->parse_string($wr);
+  
+        # find available clusters
+        my $running = 0;
+        print "\tWORKFLOWS ON THIS CLUSTER\n";
+        my $i=0;
+        for my $node ($dom2->findnodes('//WorkflowRunList2/list/status/text()')) {
+          $i++;
+          print "\tWORKFLOW: ".$acc." STATUS: ".$node->toString()."\n";
+          if ($node->toString() eq 'running' || $node->toString() eq 'scheduled' || $node->toString() eq 'submitted') { $running++; }
+          # find running samples
+          my $j=0;
+          for my $node2 ($dom2->findnodes('//WorkflowRunList2/list/iniFile/text()')) {
+            $j++;
+            my $ini_contents = $node2->toString();
+            $ini_contents =~ /gnos_input_metadata_urls=(\S+)/;
+            my @urls = split /,/, $1;
+            my $sorted_urls = join(",", sort @urls);
+            if ($i==$j) { $run_samples->{$sorted_urls} = $node->toString(); print "\t\tINPUTS: $sorted_urls\n"; }
+          }
+        } 
+        # if there are no running workflows on this cluster it's a candidate
+        if ($running == 0) {
+          print "\tNO RUNNING WORKFLOWS, ADDING TO LIST OF AVAILABLE CLUSTERS\n\n";
+          $d->{$c} = $json->{$c}; 
+        } else {
+          print "\tCLUSTER HAS RUNNING WORKFLOWS, NOT ADDING TO AVAILABLE CLUSTERS\n\n";
         }
-      } 
-      # if there are no running workflows on this cluster it's a candidate
-      if ($running == 0) {
-        print "\tNO RUNNING WORKFLOWS, ADDING TO LIST OF AVAILABLE CLUSTERS\n\n";
-        $d->{$c} = $json->{$c}; 
-      } else {
-        print "\tCLUSTER HAS RUNNING WORKFLOWS, NOT ADDING TO AVAILABLE CLUSTERS\n\n";
       }
     }
   }
