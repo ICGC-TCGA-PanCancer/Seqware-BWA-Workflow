@@ -27,7 +27,7 @@ my $force_run = 0;
 my $threads = 8;
 my $report_name = "workflow_decider_report.txt";
 
-if (scalar(@ARGV) < 6 || scalar(@ARGV) > 16) { die "USAGE: 'perl $0 --gnos-url <URL> --cluster-json <cluster.json> --working-dir <working_dir> [--sample <sample_id>] [--threads <num_threads_bwa_default_8>] [--test] [--ignore-lane-count] [--force-run] [--skip-meta-download] [--report <workflow_decider_report.txt>]\n"; }
+if (scalar(@ARGV) < 6 || scalar(@ARGV) > 16) { die "USAGE: 'perl $0 --gnos-url <URL> --cluster-json <cluster.json> --working-dir <working_dir> [--sample <sample_id>] [--threads <num_threads_bwa_default_8>] [--test] [--ignore-lane-count] [--force-run] [--skip-meta-download] [--report <workflow_decider_report.txt>]'\n"; }
 
 GetOptions("gnos-url=s" => \$gnos_url, "cluster-json=s" => \$cluster_json, "working-dir=s" => \$working_dir, "sample=s" => \$specific_sample, "test" => \$test, "ignore-lane-count" => \$ignore_lane_cnt, "force-run" => \$force_run, "threads=i" => \$threads, "skip-meta-download" => \$skip_down, "report=s" => \$report_name);
 
@@ -138,36 +138,36 @@ END
   my $cmd = "SEQWARE_SETTINGS=$working_dir/$rand/settings seqware workflow schedule --accession $workflow_accession --host $host --ini $working_dir/$rand/workflow.ini";
   if (!$test) {
     print R "\tLAUNCHING WORKFLOW: $working_dir/$rand/workflow.ini\n";
-    print "\t\tLAUNCH CMD: $cmd\n";
+    print R "\t\tLAUNCH CMD: $cmd\n";
     if (system("$cmd")) {
-      print "\t\tSOMETHING WENT WRONG WITH SCHEDULING THE WORKFLOW\n";
+      print R "\t\tSOMETHING WENT WRONG WITH SCHEDULING THE WORKFLOW\n";
     }
   } else {
-    print "\tNOT LAUNCHING WORKFLOW BECAUSE --test SPECIFIED: $working_dir/$rand/workflow.ini\n";
-    print "\t\tLAUNCH CMD WOULD HAVE BEEN: $cmd\n";
+    print R "\tNOT LAUNCHING WORKFLOW BECAUSE --test SPECIFIED: $working_dir/$rand/workflow.ini\n";
+    print R "\t\tLAUNCH CMD WOULD HAVE BEEN: $cmd\n";
   }
-  print "\n";
+  print R "\n";
 }
 
 sub schedule_samples {
-  print "SAMPLE SCHEDULING INFORMATION\n\n";
+  print R "SAMPLE SCHEDULING INFORMATION\n\n";
   foreach my $participant (keys %{$sample_info}) {
-    print "PARTICIPANT: $participant\n\n";
+    print R "PARTICIPANT: $participant\n\n";
     foreach my $sample (keys %{$sample_info->{$participant}}) {
       if (defined($specific_sample) && $specific_sample ne '' && $specific_sample ne $sample) { next; }
       # storing some info
       my $d = {};
       $d->{gnos_url} = $gnos_url;
       my $aligns = {};
-      print "\tSAMPLE OVERVIEW\n";
-      print "\tSAMPLE: $sample\n";
+      print R "\tSAMPLE OVERVIEW\n";
+      print R "\tSAMPLE: $sample\n";
       foreach my $alignment (keys %{$sample_info->{$participant}{$sample}}) {
-        print "\t\tALIGNMENT: $alignment\n";
+        print R "\t\tALIGNMENT: $alignment\n";
         $aligns->{$alignment} = 1;
         foreach my $aliquot (keys %{$sample_info->{$participant}{$sample}{$alignment}}) {
-          print "\t\t\tALIQUOT: $aliquot\n";
+          print R "\t\t\tALIQUOT: $aliquot\n";
           foreach my $library (keys %{$sample_info->{$participant}{$sample}{$alignment}{$aliquot}}) {
-            print "\t\t\t\tLIBRARY: $library\n";
+            print R "\t\t\t\tLIBRARY: $library\n";
             #print "$participant\t$sample\t$alignment\t$aliquot\t$library\n";
             # read lane counts
             my $total_lanes = 0;
@@ -187,39 +187,39 @@ sub schedule_samples {
               $d->{downloadURL}{"$gnos_url/cghub/data/analysis/download/$analysis"} = 1;
             }
             $d->{gnos_input_file_urls} = join (",", (sort keys %{$d->{downloadURL}}));
-            print "\t\t\t\t\tBAMS: ", join(",", (keys %{$sample_info->{$participant}{$sample}{$alignment}{$aliquot}{$library}{files}})), "\n\n";
+            print R "\t\t\t\t\tBAMS: ", join(",", (keys %{$sample_info->{$participant}{$sample}{$alignment}{$aliquot}{$library}{files}})), "\n\n";
           }
         }
       }
-      print "\tSAMPLE WORKLFOW ACTION OVERVIEW\n";
-      print "\t\tLANES SPECIFIED FOR SAMPLE: $d->{total_lanes}\n";
+      print R "\tSAMPLE WORKLFOW ACTION OVERVIEW\n";
+      print R "\t\tLANES SPECIFIED FOR SAMPLE: $d->{total_lanes}\n";
       #print Dumper($d->{total_lanes_hash});
-      print "\t\tBAMS FOUND: $d->{bams_count}\n";
+      print R "\t\tBAMS FOUND: $d->{bams_count}\n";
       #print Dumper($d->{bams});
       my $veto = 0;
       # so, do I run this?
-      if ((scalar(keys %{$aligns}) == 1 && defined($aligns->{unaligned})) || $force_run) { print "\t\tONLY UNALIGNED OR RUN FORCED!\n"; }
-      else { print "\t\tCONTAINS ALIGNMENT!\n"; $veto = 1; }
+      if ((scalar(keys %{$aligns}) == 1 && defined($aligns->{unaligned})) || $force_run) { print R "\t\tONLY UNALIGNED OR RUN FORCED!\n"; }
+      else { print R "\t\tCONTAINS ALIGNMENT!\n"; $veto = 1; }
       # now check if this is alreay scheduled
       my $analysis_url_str = join(",", sort(keys(%{$d->{analysisURL}})));
       $d->{analysis_url} = $analysis_url_str;
       #print "ANALYSISURL $analysis_url_str\n";
       if (!defined($running_samples->{$analysis_url_str}) || $force_run) {
-        print "\t\tNOT PREVIOUSLY SCHEDULED OR RUN FORCED!\n";
+        print R "\t\tNOT PREVIOUSLY SCHEDULED OR RUN FORCED!\n";
       } else {
-        print "\t\tIS PREVIOUSLY SCHEDULED, RUNNING, OR FAILED!\n";
+        print R "\t\tIS PREVIOUSLY SCHEDULED, RUNNING, OR FAILED!\n";
         $veto = 1; 
       }
       # now check the number of bams == lane count (or this check is suppressed) 
       if ($d->{total_lanes} == $d->{bams_count} || $ignore_lane_cnt || $force_run) {
-        print "\t\tLANE COUNT MATCHES OR IGNORED OR RUN FORCED: $ignore_lane_cnt $d->{total_lanes} $d->{bams_count}\n";
+        print R "\t\tLANE COUNT MATCHES OR IGNORED OR RUN FORCED: $ignore_lane_cnt $d->{total_lanes} $d->{bams_count}\n";
       } else {
-        print "\t\tLANE COUNT MISMATCH!\n";
+        print R "\t\tLANE COUNT MISMATCH!\n";
         $veto=1;
       }
-      if ($veto) { print "\t\tWILL NOT SCHEDULE THIS SAMPLE FOR ALIGNMENT!\n\n"; }
+      if ($veto) { print R "\t\tWILL NOT SCHEDULE THIS SAMPLE FOR ALIGNMENT!\n\n"; }
       else {
-        print "\t\tSCHEDULING WORKFLOW FOR THIS SAMPLE!\n\n";
+        print R "\t\tSCHEDULING WORKFLOW FOR THIS SAMPLE!\n\n";
         schedule_workflow($d);
       }
     }
@@ -361,7 +361,7 @@ sub read_cluster_info {
       my $pass = $json->{$c}{password};
       my $web = $json->{$c}{webservice};
       my $acc = $json->{$c}{workflow_accession};
-      print "EXAMINING CLUSER: $c\n";
+      print R "EXAMINING CLUSER: $c\n";
       #print "wget -O - --http-user=$user --http-password=$pass -q $web\n"; 
       my $info = `wget -O - --http-user='$user' --http-password=$pass -q $web/workflows/$acc`; 
       #print "INFO: $info\n";
@@ -376,11 +376,11 @@ sub read_cluster_info {
   
         # find available clusters
         my $running = 0;
-        print "\tWORKFLOWS ON THIS CLUSTER\n";
+        print R "\tWORKFLOWS ON THIS CLUSTER\n";
         my $i=0;
         for my $node ($dom2->findnodes('//WorkflowRunList2/list/status/text()')) {
           $i++;
-          print "\tWORKFLOW: ".$acc." STATUS: ".$node->toString()."\n";
+          print R "\tWORKFLOW: ".$acc." STATUS: ".$node->toString()."\n";
           if ($node->toString() eq 'running' || $node->toString() eq 'scheduled' || $node->toString() eq 'submitted') { $running++; }
           # find running samples
           my $j=0;
@@ -390,15 +390,15 @@ sub read_cluster_info {
             $ini_contents =~ /gnos_input_metadata_urls=(\S+)/;
             my @urls = split /,/, $1;
             my $sorted_urls = join(",", sort @urls);
-            if ($i==$j) { $run_samples->{$sorted_urls} = $node->toString(); print "\t\tINPUTS: $sorted_urls\n"; }
+            if ($i==$j) { $run_samples->{$sorted_urls} = $node->toString(); print R "\t\tINPUTS: $sorted_urls\n"; }
           }
         } 
         # if there are no running workflows on this cluster it's a candidate
         if ($running == 0) {
-          print "\tNO RUNNING WORKFLOWS, ADDING TO LIST OF AVAILABLE CLUSTERS\n\n";
+          print R "\tNO RUNNING WORKFLOWS, ADDING TO LIST OF AVAILABLE CLUSTERS\n\n";
           $d->{$c} = $json->{$c}; 
         } else {
-          print "\tCLUSTER HAS RUNNING WORKFLOWS, NOT ADDING TO AVAILABLE CLUSTERS\n\n";
+          print R "\tCLUSTER HAS RUNNING WORKFLOWS, NOT ADDING TO AVAILABLE CLUSTERS\n\n";
         }
       }
     }
