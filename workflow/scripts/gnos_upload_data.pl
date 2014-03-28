@@ -117,9 +117,9 @@ sub generate_submission {
   # @RG SM or @CO aliquoit_id
   my $aliquot_id = "";
   # hardcoded
-  my $workflow_version = "2.0";
+  my $workflow_version = "2.1";
   # hardcoded
-  my $workflow_url = "http://seqware.io/workflows/Workflow_Bundle_PanCancer_BWA_Mem/2.0/Workflow_Bundle_PanCancer_BWA_Mem_SeqWare_1.0.11.zip"; 
+  my $workflow_url = "https://s3.amazonaws.com/oicr.workflow.bundles/released-bundles/Workflow_Bundle_BWA_2.1_SeqWare_1.0.11.zip"; 
   # @RG LB:(.*)
   my $library = "";
   # @RG ID:(.*)
