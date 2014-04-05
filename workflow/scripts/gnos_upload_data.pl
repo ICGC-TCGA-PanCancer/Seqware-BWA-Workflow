@@ -152,9 +152,13 @@ sub generate_submission {
     $sample_uuids->{$m->{$file}{'target'}[0]{'refname'}} = 1;
     # @CO sample_id 
     my @sample_ids = keys %{$m->{$file}{'analysis_attr'}{'sample_id'}};
+    # workaround for updated XML
+    if (scalar(@sample_ids) == 0) { @sample_ids = keys %{$m->{$file}{'analysis_attr'}{'submitter_specimen_id'}}; }
     $sample_id = $sample_ids[0];
     # @RG SM or @CO aliquoit_id
     my @aliquot_ids = keys %{$m->{$file}{'analysis_attr'}{'aliquot_id'}};
+    # workaround for updated XML
+    if (scalar(@aliquot_ids) == 0) { @aliquot_ids = keys %{$m->{$file}{'analysis_attr'}{'submitter_sample_id'}}; }
     $aliquot_id = $aliquot_ids[0];
     # @RG LB:(.*)
     $library = $m->{$file}{'run'}[0]{'data_block_name'};
@@ -167,6 +171,7 @@ sub generate_submission {
     ########$analysis_center = $refcenter;
     # @CO participant_id
     my @participant_ids = keys %{$m->{$file}{'analysis_attr'}{'participant_id'}};
+    if (scalar(@participant_ids) == 0) { @participant_ids = keys %{$m->{$file}{'analysis_attr'}{'submitter_donor_id'}}; }
     $participant_id = $participant_ids[0];
     my $index = 0;
     foreach my $bam_info (@{$m->{$file}{'run'}}) {
