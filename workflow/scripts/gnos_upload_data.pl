@@ -70,6 +70,10 @@ if (validate_submission($sub_path)) { die "The submission did not pass validatio
 print "UPLOADING SUBMISSION\n";
 if (upload_submission($sub_path)) { die "The upload of files did not work!  Files are located at: $sub_path\n"; }
 
+# hack, this will cleanup the working directory 
+if (!$test) {
+  system("cd $sub_path/../../; rm -rf *");
+}
 
 ###############
 # SUBROUTINES #
