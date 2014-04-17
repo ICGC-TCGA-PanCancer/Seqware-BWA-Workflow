@@ -178,6 +178,10 @@ public class WorkflowClient extends OicrWorkflow {
         job03.addParent(job02);
         job03.setMaxMemory(bwaSampeMemG + "900");
         bamJobs.add(job03);
+        
+        Job qcJob = this.getWorkflow().createBashJob("bam_stats_qc_" + i);
+        qcJob = addBamStatsQcJobArgument(i, qcJob);
+        qcJob.addParent(job03);
 
       } else if ("mem".equals(bwaChoice)) {
 
@@ -210,6 +214,10 @@ public class WorkflowClient extends OicrWorkflow {
           job01.setThreads(Integer.parseInt(getProperty("numOfThreads")));
         }*/
         bamJobs.add(job01);
+        
+        Job qcJob = this.getWorkflow().createBashJob("bam_stats_qc_" + i);
+        qcJob = addBamStatsQcJobArgument(i, qcJob);
+        qcJob.addParent(job01);
 
       } else {
         // not sure if there's a better way to do this
@@ -352,5 +360,14 @@ public class WorkflowClient extends OicrWorkflow {
     } catch (Exception e) {
     }
     return paramCommand;
+  }
+  
+  private Job addBamStatsQcJobArgument (final int i, Job job) {
+	  
+	job.getCommand().addArgument(this.getWorkflowBaseDir() + "/bin/PCAP-core_0.3.0/bin/bam_stats.pl")
+	                .addArgument("-i " + "out_" + i + "bam")
+	                .addArgument("-o " + "out_" + i + "bam.stats.txt");
+	  
+	return job;  
   }
 }
