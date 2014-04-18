@@ -72,7 +72,7 @@ if (upload_submission($sub_path)) { die "The upload of files did not work!  File
 
 # hack, this will cleanup the working directory 
 if (!$test) {
-  system("cd $sub_path/../../; rm -rf *");
+  system("cd $sub_path/../../; rm -rf `find . | grep '\.bam\$'`");
 }
 
 ###############
