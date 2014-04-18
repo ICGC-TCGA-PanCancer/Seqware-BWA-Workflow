@@ -368,8 +368,8 @@ public class WorkflowClient extends OicrWorkflow {
 	job.getCommand().addArgument("perl -I " + this.getWorkflowBaseDir() + pcapPath + "/lib/perl5/")
                     .addArgument("-I " + this.getWorkflowBaseDir() + pcapPath + "/lib/perl5/x86_64-linux-gnu-thread-multi/")
                     .addArgument(this.getWorkflowBaseDir() + pcapPath + "/bin/bam_stats.pl")
-                    .addArgument("-i " + "out_" + i + "bam")
-                    .addArgument("-o " + "out_" + i + "bam.stats.txt");
+                    .addArgument("-i " + "out_" + i + ".bam")
+                    .addArgument("-o " + "out_" + i + ".bam.stats.txt");
 	  
 	return job;  
   }
