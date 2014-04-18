@@ -46,6 +46,7 @@ public class WorkflowClient extends OicrWorkflow {
   String bwa_aln_params;
   String bwa_sampe_params;
   String skipUpload = null;
+  String pcapPath = "/bin/PCAP-core_0.3.0";
 
   @Override
   public Map<String, SqwFile> setupFiles() {
@@ -188,24 +189,24 @@ public class WorkflowClient extends OicrWorkflow {
         // BWA MEM
         Job job01 = this.getWorkflow().createBashJob("bwa_mem_" + i);
         job01.addParent(headerJob);
-        job01.getCommand().addArgument("LD_LIBRARY_PATH=" + this.getWorkflowBaseDir() + "/bin/PCAP-core_20140312/lib") 
-                .addArgument(this.getWorkflowBaseDir() + "/bin/PCAP-core_20140312/bin/bamtofastq")
+        job01.getCommand().addArgument("LD_LIBRARY_PATH=" + this.getWorkflowBaseDir() + pcapPath + "/lib") 
+                .addArgument(this.getWorkflowBaseDir() + pcapPath + "/bin/bamtofastq")
                 .addArgument("exclude=QCFAIL,SECONDARY,SUPPLEMENTARY")
                 .addArgument("T=out_" + i + ".t")
                 .addArgument("S=out_" + i + ".s")
                 .addArgument("O=out_" + i + ".o")
                 .addArgument("O2=out_" + i + ".o2")
                 .addArgument("collate=1")
-                .addArgument("filename=" + file + " | LD_LIBRARY_PATH=" + this.getWorkflowBaseDir() + "/bin/PCAP-core_20140312/lib")
-                .addArgument(this.getWorkflowBaseDir() + "/bin/PCAP-core_20140312/bin/bwa mem")
+                .addArgument("filename=" + file + " | LD_LIBRARY_PATH=" + this.getWorkflowBaseDir() + pcapPath + "/lib")
+                .addArgument(this.getWorkflowBaseDir() + pcapPath + "/bin/bwa mem")
                 // this pulls in threads and extra params
                 .addArgument(this.parameters("mem") == null ? " " : this.parameters("mem"))
                 .addArgument("-p -T 0")
                 .addArgument("-R \"`cat bam_header." + i + ".txt`\"")
                 .addArgument(reference_path)
                 .addArgument("-")
-                .addArgument("| LD_LIBRARY_PATH=" + this.getWorkflowBaseDir() + "/bin/PCAP-core_20140312/lib ")
-                .addArgument(this.getWorkflowBaseDir() + "/bin/PCAP-core_20140312/bin/bamsort")
+                .addArgument("| LD_LIBRARY_PATH=" + this.getWorkflowBaseDir() + pcapPath + "/lib ")
+                .addArgument(this.getWorkflowBaseDir() + pcapPath + "/bin/bamsort")
                 .addArgument("inputformat=sam level=1 inputthreads=2 outputthreads=2")
                 .addArgument("tmpfile=out_" + i + ".sorttmp")
                 .addArgument("O=out_" + i + ".bam");
@@ -251,8 +252,8 @@ public class WorkflowClient extends OicrWorkflow {
       if (!getProperty("numOfThreads").isEmpty()) {
         numThreads = Integer.parseInt(getProperty("numOfThreads"));
       }
-      job04.getCommand().addArgument("LD_LIBRARY_PATH=" + this.getWorkflowBaseDir() + "/bin/PCAP-core_20140312/lib") 
-              .addArgument(this.getWorkflowBaseDir() + "/bin/PCAP-core_20140312/bin/bammarkduplicates")
+      job04.getCommand().addArgument("LD_LIBRARY_PATH=" + this.getWorkflowBaseDir() + pcapPath + "/lib") 
+              .addArgument(this.getWorkflowBaseDir() + pcapPath + "/bin/bammarkduplicates")
               .addArgument("O=" + this.dataDir + outputFileName)
               .addArgument("M=" + this.dataDir + outputFileName + ".metrics")
               .addArgument("tmpfile=" + this.dataDir + outputFileName + ".biormdup")
@@ -364,9 +365,11 @@ public class WorkflowClient extends OicrWorkflow {
   
   private Job addBamStatsQcJobArgument (final int i, Job job) {
 	  
-	job.getCommand().addArgument(this.getWorkflowBaseDir() + "/bin/PCAP-core_0.3.0/bin/bam_stats.pl")
-	                .addArgument("-i " + "out_" + i + "bam")
-	                .addArgument("-o " + "out_" + i + "bam.stats.txt");
+	job.getCommand().addArgument("perl -I " + this.getWorkflowBaseDir() + pcapPath + "/lib/perl5/")
+                    .addArgument("-I " + this.getWorkflowBaseDir() + pcapPath + "/lib/perl5/x86_64-linux-gnu-thread-multi/")
+                    .addArgument(this.getWorkflowBaseDir() + pcapPath + "/bin/bam_stats.pl")
+                    .addArgument("-i " + "out_" + i + "bam")
+                    .addArgument("-o " + "out_" + i + "bam.stats.txt");
 	  
 	return job;  
   }
