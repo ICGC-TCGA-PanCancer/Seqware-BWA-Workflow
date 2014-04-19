@@ -641,7 +641,7 @@ sub getVals {
 }
 
 sub getQcResult {
-  # detect all the QC report files by checking file name pattern in the directory: $output_dir/../
+  # detect all the QC report files by checking file name pattern
 
   opendir(DIR, ".");
 
