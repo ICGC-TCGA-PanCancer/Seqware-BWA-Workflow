@@ -405,6 +405,12 @@ END
 ";
       }
     }
+
+  $analysis_xml .= "        <ANALYSIS_ATTRIBUTE>
+          <TAG>qc_metrics</TAG>
+          <VALUE>" . &getQcResult() . "</VALUE>
+        </ANALYSIS_ATTRIBUTE>
+";
   
   $analysis_xml .= <<END;
       </ANALYSIS_ATTRIBUTES>
@@ -632,6 +638,36 @@ sub getVals {
     }
   }
   return(@r);
+}
+
+sub getQcResult {
+  # detect all the QC report files by checking file name pattern in the directory: $output_dir/../
+
+  opendir(DIR, ".");
+
+  my @qc_result_files = grep { /^out_\d+\.bam\.stats\.txt/ } readdir(DIR);
+
+  close(DIR);
+
+  my $ret = { "qc_metrics" => [] };
+
+  foreach (@qc_result_files) {
+
+    open (QC, "< $_");
+
+    my @header = split /\t/, <QC>;
+    my @data = split /\t/, <QC>;
+    chomp ((@header, @data));
+
+    close (QC);
+
+    my $qc_metrics = {};
+    $qc_metrics->{$_} = shift @data for (@header);
+
+    push @{ $ret->{qc_metrics} }, $qc_metrics;
+  }
+
+  return to_json $ret;
 }
 
 0;
