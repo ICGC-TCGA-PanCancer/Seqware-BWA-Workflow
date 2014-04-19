@@ -1,0 +1,4 @@
+/opt/PCAP/bin/pwhich
+/opt/PCAP/lib/perl5/File/Which.pm
+/opt/PCAP/man/man1/pwhich.1p
+/opt/PCAP/man/man3/File::Which.3pm

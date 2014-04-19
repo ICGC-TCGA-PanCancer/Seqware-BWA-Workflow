@@ -46,7 +46,7 @@ public class WorkflowClient extends OicrWorkflow {
   String bwa_aln_params;
   String bwa_sampe_params;
   String skipUpload = null;
-  String pcapPath = "/bin/PCAP-core_0.3.0";
+  String pcapPath = "/bin/PCAP-core_1.0.0";
 
   @Override
   public Map<String, SqwFile> setupFiles() {

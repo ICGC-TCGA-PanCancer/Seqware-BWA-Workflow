@@ -1,0 +1,12 @@
+prefix=/opt/PCAP
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: libmaus
+Description: succinct data structures
+Requires: zlib
+Version: 0.0.112
+Libs: -L${libdir} -lmaus  -L/opt/PCAP/lib -lsnappy -ldl -fopenmp
+Cflags:   -I/opt/PCAP/include -fopenmp  -std=gnu++0x    -I${includedir}
+Dllib: -ldl

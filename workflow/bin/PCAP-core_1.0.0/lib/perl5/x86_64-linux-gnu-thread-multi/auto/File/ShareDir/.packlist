@@ -1,0 +1,5 @@
+/opt/PCAP/lib/perl5/File/ShareDir.pm
+/opt/PCAP/lib/perl5/auto/share/dist/File-ShareDir/sample.txt
+/opt/PCAP/lib/perl5/auto/share/dist/File-ShareDir/subdir/sample.txt
+/opt/PCAP/lib/perl5/auto/share/module/File-ShareDir/test_file.txt
+/opt/PCAP/man/man3/File::ShareDir.3pm
