@@ -664,7 +664,7 @@ sub getQcResult {
     my $qc_metrics = {};
     $qc_metrics->{$_} = shift @data for (@header);
 
-    push @{ $ret->{qc_metrics} }, $qc_metrics;
+    push @{ $ret->{qc_metrics} }, {"rg_id" => $qc_metrics->{readgroup}, "metrics" => $qc_metrics};
   }
 
   return to_json $ret;
