@@ -91,8 +91,8 @@ sub upload_submission {
   }
 
   $cmd = "cd $sub_path; gtupload -v -c $key -u ./manifest.xml; cd -";
-  print "UPLOADING DATA: $cmd\n";
   if (!$test) {
+    print "UPLOADING DATA: $cmd\n";
     if (system($cmd)) { return(1); }
   }
 
@@ -119,7 +119,7 @@ sub generate_submission {
   # hardcoded
   my $workflow_version = "2.1";
   # hardcoded
-  my $workflow_url = "https://s3.amazonaws.com/oicr.workflow.bundles/released-bundles/Workflow_Bundle_BWA_2.1_SeqWare_1.0.11.zip";
+  my $workflow_url = "https://s3.amazonaws.com/oicr.workflow.bundles/released-bundles/Workflow_Bundle_BWA_2.2.0_SeqWare_1.0.13.zip";
   # @RG LB:(.*)
   my $library = "";
   # @RG ID:(.*)
@@ -178,8 +178,22 @@ sub generate_submission {
       if ($bam_info->{data_block_name} ne '') {
         #print Dumper($bam_info);
         #print Dumper($m->{$file}{'file'}[$index]);
-        my $str = "$participant_id|$sample_id|$sample_uuid|$aliquot_id|$library|$platform_unit|$read_group_id|".$m->{$file}{'file'}[$index]{filename}."|".$m->{$file}{'analysis_id'};
-        $global_attr->{"pipeline_input_info:participant_id|sample_id|target_sample_refname|aliquot_id|library|platform_unit|read_group_id|analysis_id|bam_file"}{$str} = 1;
+        my $pi = {};
+        $pi->{'donor_id'} = $participant_id;
+        $pi->{'specimen_id'} = $sample_id;
+        $pi->{'target_sample_refname'} = $sample_uuid;
+        $pi->{'analyzed_sample'} = $aliquot_id;
+        $pi->{'library'} = $library;
+        $pi->{'platform_unit'} = $platform_unit;
+        $pi->{'read_group_id'} = $read_group_id;
+        $pi->{'analysis_id'} = $m->{$file}{'analysis_id'};
+        $pi->{'bam_file'} = $m->{$file}{'file'}[$index]{filename};
+        my $str = to_json($pi);
+        $global_attr->{"pipeline_input_info"}{$str} = 1;
+        #"$participant_id|$sample_id|$sample_uuid|$aliquot_id|$library|$platform_unit|$read_group_id|".$m->{$file}{'file'}[$index]{filename}."|".$m->{$file}{'analysis_id'};
+#$global_attr->{"pipeline_input_info:participant_id|sample_id|target_sample_refname|aliquot_id|library|platform_unit|read_group_id|analysis_id|bam_file"}{$str} = 1;
+
+        # not used?
         $read_group_info->{$str} = 1;
       }
       $index++;
@@ -392,6 +406,7 @@ END
       <ANALYSIS_ATTRIBUTES>
 END
 
+    # this is a merge of the key-values from input XML
     foreach my $key (keys %{$global_attr}) {
       foreach my $val (keys %{$global_attr->{$key}}) {
         $analysis_xml .= "        <ANALYSIS_ATTRIBUTE>
@@ -402,6 +417,7 @@ END
       }
     }
 
+  # QC
   $analysis_xml .= "        <ANALYSIS_ATTRIBUTE>
           <TAG>qc_metrics</TAG>
           <VALUE>" . &getQcResult() . "</VALUE>
