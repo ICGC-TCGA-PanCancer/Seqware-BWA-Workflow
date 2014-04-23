@@ -70,10 +70,6 @@ if (validate_submission($sub_path)) { die "The submission did not pass validatio
 print "UPLOADING SUBMISSION\n";
 if (upload_submission($sub_path)) { die "The upload of files did not work!  Files are located at: $sub_path\n"; }
 
-# hack, this will cleanup the working directory 
-if (!$test) {
-  system("cd $sub_path/../../; rm -rf `find . | grep '\.bam\$'`");
-}
 
 ###############
 # SUBROUTINES #
@@ -90,13 +86,13 @@ sub upload_submission {
   my ($sub_path) = @_;
   my $cmd = "cgsubmit -s $upload_url -o metadata_upload.log -u $sub_path -vv -c $key";
   print "UPLOADING METADATA: $cmd\n";
-  if (!$test) { 
+  if (!$test) {
     if (system($cmd)) { return(1); }
   }
 
   $cmd = "cd $sub_path; gtupload -v -c $key -u ./manifest.xml; cd -";
   print "UPLOADING DATA: $cmd\n";
-  if (!$test) { 
+  if (!$test) {
     if (system($cmd)) { return(1); }
   }
 
@@ -105,14 +101,14 @@ sub upload_submission {
 sub generate_submission {
 
   my ($m) = @_;
-  
+
   # const
-  my $t = gmtime; 
+  my $t = gmtime;
   my $datetime = $t->datetime();
-  # populate refcenter from original BAM submission 
+  # populate refcenter from original BAM submission
   # @RG CN:(.*)
   my $refcenter = "OICR";
-  # @CO sample_id 
+  # @CO sample_id
   my $sample_id = "";
   # capture list
   my $sample_uuids = {};
@@ -123,7 +119,7 @@ sub generate_submission {
   # hardcoded
   my $workflow_version = "2.1";
   # hardcoded
-  my $workflow_url = "https://s3.amazonaws.com/oicr.workflow.bundles/released-bundles/Workflow_Bundle_BWA_2.1_SeqWare_1.0.11.zip"; 
+  my $workflow_url = "https://s3.amazonaws.com/oicr.workflow.bundles/released-bundles/Workflow_Bundle_BWA_2.1_SeqWare_1.0.11.zip";
   # @RG LB:(.*)
   my $library = "";
   # @RG ID:(.*)
@@ -138,23 +134,23 @@ sub generate_submission {
   my $bam_file = "";
   # hardcoded
   my $bam_file_checksum = "";
-  
+
   # these data are collected from all files
   # aliquot_id|library_id|platform_unit|read_group_id|input_url
   my $read_group_info = {};
   my $global_attr = {};
-  
+
   #print Dumper($m);
-  
+
   # this isn't going to work if there are multiple files/readgroups!
   foreach my $file (keys %{$m}) {
-    # populate refcenter from original BAM submission 
+    # populate refcenter from original BAM submission
     # @RG CN:(.*)
     # FIXME: GNOS currently only allows: ^UCSC$|^NHGRI$|^CGHUB$|^The Cancer Genome Atlas Research Network$|^OICR$
     ############$refcenter = $m->{$file}{'target'}[0]{'refcenter'};
     $sample_uuid = $m->{$file}{'target'}[0]{'refname'};
     $sample_uuids->{$m->{$file}{'target'}[0]{'refname'}} = 1;
-    # @CO sample_id 
+    # @CO sample_id
     my @sample_ids = keys %{$m->{$file}{'analysis_attr'}{'sample_id'}};
     # workaround for updated XML
     if (scalar(@sample_ids) == 0) { @sample_ids = keys %{$m->{$file}{'analysis_attr'}{'submitter_specimen_id'}}; }
@@ -188,7 +184,7 @@ sub generate_submission {
       }
       $index++;
     }
-  
+
     # now combine the analysis attr
     foreach my $attName (keys %{$m->{$file}{analysis_attr}}) {
       foreach my $attVal (keys %{$m->{$file}{analysis_attr}{$attName}}) {
@@ -196,7 +192,7 @@ sub generate_submission {
       }
     }
   }
-  
+
   #print Dumper($read_group_info);
   #print Dumper($global_attr);
 
@@ -225,16 +221,16 @@ END
                    my $rgl = $run->{'read_group_label'};
                    my $rn = $run->{'refname'};
                  $analysis_xml .= "              <RUN data_block_name=\"$dbn\" read_group_label=\"$rgl\" refname=\"$rn\" refcenter=\"$refcenter\" />\n";
-                }              
+                }
               }
-  
+
   	  }
-  
+
   $analysis_xml .= <<END;
           </RUN_LABELS>
           <SEQ_LABELS>
 END
-  
+
             foreach my $dbn (keys %{$sample_uuids}) {
   $analysis_xml .= <<END;
             <SEQUENCE data_block_name="$dbn" accession="NC_000001.10" seq_label="1" />
@@ -325,7 +321,7 @@ END
             <SEQUENCE data_block_name="$dbn" accession="hs37d5" seq_label="hs37d5" />
 END
             }
-  
+
   $analysis_xml .= <<END;
           </SEQ_LABELS>
           <PROCESSING>
@@ -373,13 +369,13 @@ END
       <DATA_BLOCK>
         <FILES>
 END
-  
+
        $analysis_xml .= "          <FILE filename=\"$bam_check.bam\" filetype=\"bam\" checksum_method=\"MD5\" checksum=\"$bam_check\" />\n";
-  
+
        # incorrect, there's only one bam!
        my $i=0;
        foreach my $url (keys %{$m}) {
-       foreach my $run (@{$m->{$url}{'run'}}) {   
+       foreach my $run (@{$m->{$url}{'run'}}) {
        if (defined($run->{'read_group_label'})) {
           my $fname = $m->{$url}{'file'}[$i]{'filename'};
           my $ftype= $m->{$url}{'file'}[$i]{'filetype'};
@@ -389,13 +385,13 @@ END
        $i++;
        }
        }
-  
+
   $analysis_xml .= <<END;
         </FILES>
       </DATA_BLOCK>
       <ANALYSIS_ATTRIBUTES>
 END
-  
+
     foreach my $key (keys %{$global_attr}) {
       foreach my $val (keys %{$global_attr->{$key}}) {
         $analysis_xml .= "        <ANALYSIS_ATTRIBUTE>
@@ -411,13 +407,13 @@ END
           <VALUE>" . &getQcResult() . "</VALUE>
         </ANALYSIS_ATTRIBUTE>
 ";
-  
+
   $analysis_xml .= <<END;
       </ANALYSIS_ATTRIBUTES>
     </ANALYSIS>
   </ANALYSIS_SET>
 END
-  
+
   open OUT, ">$output_dir/analysis.xml" or die;
   print OUT $analysis_xml;
   close OUT;
@@ -427,19 +423,19 @@ END
   foreach my $url (keys %{$m}) {
     $uniq_exp_xml->{$m->{$url}{'experiment'}} = 1;
   }
-  
+
   my $exp_xml = <<END;
   <EXPERIMENT_SET xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.ncbi.nlm.nih.gov/viewvc/v1/trunk/sra/doc/SRA_1-5/SRA.experiment.xsd?view=co">
 END
-  
+
   foreach my $curr_xml_block (keys %{$uniq_exp_xml}) {
     $exp_xml .= $curr_xml_block;
   }
-  
+
   $exp_xml .= <<END;
   </EXPERIMENT_SET>
 END
-  
+
   open OUT, ">$output_dir/experiment.xml" or die;
   print OUT "$exp_xml\n";
   close OUT;
@@ -448,32 +444,32 @@ END
   my $uniq_run_xml = {};
   foreach my $url (keys %{$m}) {
     my $run_block = $m->{$url}{'run_block'};
-    # replace the file 
+    # replace the file
     # FIXME: this is risky
     $run_block =~ s/filename="\S+"/filename="$bam_check.bam"/g;
     $run_block =~ s/checksum="\S+"/checksum="$bam_check"/g;
     $run_block =~ s/center_name="[^"]+"/center_name="$refcenter"/g;
     $uniq_run_xml->{$run_block} = 1;
   }
-  
+
   my $run_xml = <<END;
   <RUN_SET xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.ncbi.nlm.nih.gov/viewvc/v1/trunk/sra/doc/SRA_1-5/SRA.run.xsd?view=co">
 END
-  
+
   foreach my $run_block (keys %{$uniq_run_xml}) {
     $run_xml .= $run_block;
   }
-  
+
   $run_xml .= <<END;
   </RUN_SET>
 END
-  
+
   open OUT, ">$output_dir/run.xml" or die;
   print OUT $run_xml;
   close OUT;
-  
+
   return($output_dir);
-  
+
 }
 
 sub read_header {
@@ -484,7 +480,7 @@ sub read_header {
     chomp;
     my @a = split /\t+/;
     my $type = $a[0];
-    if ($type =~ /^@/) { 
+    if ($type =~ /^@/) {
       $type =~ s/@//;
       for(my $i=1; $i<scalar(@a); $i++) {
         $a[$i] =~ /^([^:]+):(.+)$/;
@@ -512,15 +508,15 @@ sub download_metadata {
 
 sub parse_metadata {
   my ($xml_path) = @_;
-  my $doc = $parser->parsefile($xml_path);  
+  my $doc = $parser->parsefile($xml_path);
   my $m = {};
-  $m->{'analysis_id'} = getVal($doc, 'analysis_id');  
-  $m->{'center_name'} = getVal($doc, 'center_name');  
-  push @{$m->{'study_ref'}}, getValsMulti($doc, 'STUDY_REF', "refcenter,refname");  
-  push @{$m->{'run'}}, getValsMulti($doc, 'RUN', "data_block_name,read_group_label,refname");  
-  push @{$m->{'target'}}, getValsMulti($doc, 'TARGET', "refcenter,refname");  
-  push @{$m->{'file'}}, getValsMulti($doc, 'FILE', "checksum,filename,filetype");  
-  $m->{'analysis_attr'} = getAttrs($doc);  
+  $m->{'analysis_id'} = getVal($doc, 'analysis_id');
+  $m->{'center_name'} = getVal($doc, 'center_name');
+  push @{$m->{'study_ref'}}, getValsMulti($doc, 'STUDY_REF', "refcenter,refname");
+  push @{$m->{'run'}}, getValsMulti($doc, 'RUN', "data_block_name,read_group_label,refname");
+  push @{$m->{'target'}}, getValsMulti($doc, 'TARGET', "refcenter,refname");
+  push @{$m->{'file'}}, getValsMulti($doc, 'FILE', "checksum,filename,filetype");
+  $m->{'analysis_attr'} = getAttrs($doc);
   $m->{'experiment'} = getBlock($xml_path, "EXPERIMENT ", "EXPERIMENT");
   $m->{'run_block'} = getBlock($xml_path, "RUN center_name", "RUN");
   return($m);
@@ -671,4 +667,3 @@ sub getQcResult {
 }
 
 0;
-

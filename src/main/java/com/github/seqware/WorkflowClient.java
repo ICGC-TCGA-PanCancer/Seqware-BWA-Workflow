@@ -102,34 +102,32 @@ public class WorkflowClient extends OicrWorkflow {
   @Override
   public void buildWorkflow() {
 
-    ArrayList<Job> downloadJobs = new ArrayList<Job>();
+    int numBamFiles = bamPaths.size();
     ArrayList<Job> bamJobs = new ArrayList<Job>();
 
     // DOWNLOAD DATA
     // let's start by downloading the input BAMs
     int numInputURLs = this.inputURLs.size();
     for (int i = 0; i < numInputURLs; i++) {
+        
       Job gtDownloadJob = this.getWorkflow().createBashJob("gtdownload");
       gtDownloadJob.getCommand().addArgument("gtdownload")
               .addArgument("-c " + gnosKey)
               .addArgument("-v -d")
               .addArgument(this.inputURLs.get(i));
-      downloadJobs.add(gtDownloadJob);
-    }
 
-    // TODO for loop here
-    int numBamFiles = bamPaths.size();
-    for (int i = 0; i < numBamFiles; i++) {
-
+      // the file downloaded will be in this path
       String file = bamPaths.get(i);
 
       // in the future this should use the read group if provided otherwise use read group from bam file
       Job headerJob = this.getWorkflow().createBashJob("headerJob" + i);
+      // TODO: REPLACE THIS WITH A SCRIPT THAT WILL USE UUID
       headerJob.getCommand().addArgument("samtools view -H " + file + " | grep @RG | sed 's/\\t/\\\\t/g' > bam_header." + i + ".txt");
-      for (Job gtDownloadJob : downloadJobs) {
-        headerJob.addParent(gtDownloadJob);
-      }
+      headerJob.addParent(gtDownloadJob);
 
+      // the QC job used by either path below
+      Job qcJob = null;
+      
       if ("aln".equals(bwaChoice)) {
 
         // BWA ALN STEPS
@@ -180,9 +178,15 @@ public class WorkflowClient extends OicrWorkflow {
         job03.setMaxMemory(bwaSampeMemG + "900");
         bamJobs.add(job03);
         
-        Job qcJob = this.getWorkflow().createBashJob("bam_stats_qc_" + i);
-        qcJob = addBamStatsQcJobArgument(i, qcJob);
+        // QC JOB
+        qcJob = this.getWorkflow().createBashJob("bam_stats_qc_" + i);
+        addBamStatsQcJobArgument(i, qcJob);
         qcJob.addParent(job03);
+        
+        // CLEANUP DOWNLOADED INPUT UNALIGNED BAM FILES
+        Job cleanup1 = this.getWorkflow().createBashJob("cleanup_" + i);
+        cleanup1.getCommand().addArgument("rm " + file);
+        cleanup1.addParent(job03);
 
       } else if ("mem".equals(bwaChoice)) {
 
@@ -216,9 +220,15 @@ public class WorkflowClient extends OicrWorkflow {
         }*/
         bamJobs.add(job01);
         
-        Job qcJob = this.getWorkflow().createBashJob("bam_stats_qc_" + i);
-        qcJob = addBamStatsQcJobArgument(i, qcJob);
+        // QC JOB
+        qcJob = this.getWorkflow().createBashJob("bam_stats_qc_" + i);
+        addBamStatsQcJobArgument(i, qcJob);
         qcJob.addParent(job01);
+        
+        // CLEANUP DOWNLOADED INPUT UNALIGNED BAM FILES
+        Job cleanup1 = this.getWorkflow().createBashJob("cleanup2_" + i);
+        cleanup1.getCommand().addArgument("rm " + file);
+        cleanup1.addParent(job01);
 
       } else {
         // not sure if there's a better way to do this
@@ -271,6 +281,13 @@ public class WorkflowClient extends OicrWorkflow {
       job04.setMaxMemory(picardSortJobMem + "900");
       
     }
+    
+    // CLEANUP LANE LEVEL BAM FILES
+    for (int i = 0; i < numBamFiles; i++) {
+      Job cleanup2 = this.getWorkflow().createBashJob("cleanup3_" + i);
+      cleanup2.getCommand().addArgument("rm out_" + i + ".bam");
+      cleanup2.addParent(job04);
+    }
 
     // PREPARE METADATA & UPLOAD
     Job job05 = this.getWorkflow().createBashJob("upload");
@@ -286,6 +303,11 @@ public class WorkflowClient extends OicrWorkflow {
     }
     job05.setMaxMemory(uploadScriptJobMem + "900");
     job05.addParent(job04);
+    
+    // CLEANUP FINAL BAM
+    Job cleanup3 = this.getWorkflow().createBashJob("cleanup4");
+    cleanup3.getCommand().addArgument("rm " + this.dataDir + outputFileName);
+    cleanup3.addParent(job05);
 
   }
 

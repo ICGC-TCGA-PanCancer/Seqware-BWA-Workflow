@@ -9,7 +9,7 @@
 
     <groupId>com.github.seqware</groupId>
     <artifactId>BWA</artifactId>
-    <version>2.1</version>
+    <version>2.2.0</version>
     <packaging>jar</packaging>
 
     <name>workflow-bwa-pancancer</name>
@@ -153,7 +153,7 @@
                 <version>2.16</version>
                 <configuration>
                     <skip>${skipITs}</skip>
-                    <systemPropertyVariables>                   
+                    <systemPropertyVariables>
                         <bundledJava>${bundleDirectory}/bin/jre1.6.0_29/bin/java</bundledJava>
                         <seqwareDistribution>${seqwareDistribution}</seqwareDistribution>
                         <bundledWorkflow>${project.build.directory}/Workflow_Bundle_${workflow-directory-name}_${project.version}_SeqWare_${seqware-version}/</bundledWorkflow>
@@ -169,7 +169,7 @@
                     </suiteXmlFiles>
                 </configuration>
             </plugin>
-            
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -179,7 +179,7 @@
                     <target>1.6</target>
                 </configuration>
             </plugin>
-      
+
 
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
@@ -220,6 +220,8 @@
                                         <exclude>workflow.ftl</exclude>
                                         <exclude>workflow.ini</exclude>
                                         <exclude>**/PCAP-core_20140312/**/*</exclude>
+                                        <exclude>**/PCAP-core_0.3.0/**/*</exclude>
+                                        <exclude>**/PCAP-core_1.0.0/**/*</exclude>
                                     </excludes>
                                     <filtering>true</filtering>
                                 </resource>
@@ -234,6 +236,8 @@
                                     <directory>workflow</directory>
                                     <includes>
                                         <include>**/PCAP-core_20140312/**/*</include>
+                                        <include>**/PCAP-core_0.3.0/**/*</include>
+                                        <include>**/PCAP-core_1.0.0/**/*</include>
                                     </includes>
                                     <filtering>false</filtering>
                                 </resource>
@@ -370,7 +374,7 @@
                         </fileset>
                     </filesets>
                 </configuration>
-            </plugin> 
+            </plugin>
             <plugin>
                 <groupId>com.pyx4j</groupId>
                 <artifactId>maven-junction-plugin</artifactId>
