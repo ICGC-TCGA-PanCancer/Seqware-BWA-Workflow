@@ -104,6 +104,7 @@ public class WorkflowClient extends OicrWorkflow {
 
     int numBamFiles = bamPaths.size();
     ArrayList<Job> bamJobs = new ArrayList<Job>();
+    ArrayList<Job> qcJobs = new ArrayList<Job>();
 
     // DOWNLOAD DATA
     // let's start by downloading the input BAMs
@@ -182,6 +183,7 @@ public class WorkflowClient extends OicrWorkflow {
         qcJob = this.getWorkflow().createBashJob("bam_stats_qc_" + i);
         addBamStatsQcJobArgument(i, qcJob);
         qcJob.addParent(job03);
+        qcJobs.add(qcJob);
         
         // CLEANUP DOWNLOADED INPUT UNALIGNED BAM FILES
         Job cleanup1 = this.getWorkflow().createBashJob("cleanup_" + i);
@@ -224,6 +226,7 @@ public class WorkflowClient extends OicrWorkflow {
         qcJob = this.getWorkflow().createBashJob("bam_stats_qc_" + i);
         addBamStatsQcJobArgument(i, qcJob);
         qcJob.addParent(job01);
+        qcJobs.add(qcJob);
         
         // CLEANUP DOWNLOADED INPUT UNALIGNED BAM FILES
         Job cleanup1 = this.getWorkflow().createBashJob("cleanup2_" + i);
@@ -287,6 +290,7 @@ public class WorkflowClient extends OicrWorkflow {
       Job cleanup2 = this.getWorkflow().createBashJob("cleanup3_" + i);
       cleanup2.getCommand().addArgument("rm out_" + i + ".bam");
       cleanup2.addParent(job04);
+      cleanup2.addParent(qcJobs.get(i));
     }
 
     // PREPARE METADATA & UPLOAD
@@ -308,6 +312,9 @@ public class WorkflowClient extends OicrWorkflow {
     Job cleanup3 = this.getWorkflow().createBashJob("cleanup4");
     cleanup3.getCommand().addArgument("rm " + this.dataDir + outputFileName);
     cleanup3.addParent(job05);
+    for (Job qcJob : qcJobs) {
+      cleanup3.addParent(qcJob);
+    }
 
   }
 
