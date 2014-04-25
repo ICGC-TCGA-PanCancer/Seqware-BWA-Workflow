@@ -186,9 +186,9 @@ public class WorkflowClient extends OicrWorkflow {
         qcJobs.add(qcJob);
         
         // CLEANUP DOWNLOADED INPUT UNALIGNED BAM FILES
-        Job cleanup1 = this.getWorkflow().createBashJob("cleanup_" + i);
+        /*Job cleanup1 = this.getWorkflow().createBashJob("cleanup_" + i);
         cleanup1.getCommand().addArgument("rm " + file);
-        cleanup1.addParent(job03);
+        cleanup1.addParent(job03);*/
 
       } else if ("mem".equals(bwaChoice)) {
 
@@ -229,9 +229,9 @@ public class WorkflowClient extends OicrWorkflow {
         qcJobs.add(qcJob);
         
         // CLEANUP DOWNLOADED INPUT UNALIGNED BAM FILES
-        Job cleanup1 = this.getWorkflow().createBashJob("cleanup2_" + i);
+        /*Job cleanup1 = this.getWorkflow().createBashJob("cleanup2_" + i);
         cleanup1.getCommand().addArgument("rm " + file);
-        cleanup1.addParent(job01);
+        cleanup1.addParent(job01);*/
 
       } else {
         // not sure if there's a better way to do this
@@ -286,12 +286,12 @@ public class WorkflowClient extends OicrWorkflow {
     }
     
     // CLEANUP LANE LEVEL BAM FILES
-    for (int i = 0; i < numBamFiles; i++) {
+    /* for (int i = 0; i < numBamFiles; i++) {
       Job cleanup2 = this.getWorkflow().createBashJob("cleanup3_" + i);
       cleanup2.getCommand().addArgument("rm out_" + i + ".bam");
       cleanup2.addParent(job04);
       cleanup2.addParent(qcJobs.get(i));
-    }
+    }*/
 
     // PREPARE METADATA & UPLOAD
     Job job05 = this.getWorkflow().createBashJob("upload");
@@ -309,12 +309,12 @@ public class WorkflowClient extends OicrWorkflow {
     job05.addParent(job04);
     
     // CLEANUP FINAL BAM
-    Job cleanup3 = this.getWorkflow().createBashJob("cleanup4");
+    /*Job cleanup3 = this.getWorkflow().createBashJob("cleanup4");
     cleanup3.getCommand().addArgument("rm " + this.dataDir + outputFileName);
     cleanup3.addParent(job05);
     for (Job qcJob : qcJobs) {
       cleanup3.addParent(qcJob);
-    }
+    }*/
 
   }
 
