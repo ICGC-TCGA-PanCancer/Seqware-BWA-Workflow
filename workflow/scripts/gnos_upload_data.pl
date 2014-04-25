@@ -137,10 +137,12 @@ sub generate_submission {
 
   # these data are collected from all files
   # aliquot_id|library_id|platform_unit|read_group_id|input_url
-  my $read_group_info = {};
   my $global_attr = {};
 
   #print Dumper($m);
+
+  # input info
+  my $pi2 = {};
 
   # this isn't going to work if there are multiple files/readgroups!
   foreach my $file (keys %{$m}) {
@@ -174,7 +176,6 @@ sub generate_submission {
     if (scalar(@participant_ids) == 0) { @participant_ids = keys %{$m->{$file}{'analysis_attr'}{'submitter_donor_id'}}; }
     $participant_id = $participant_ids[0];
     my $index = 0;
-    my $pi2 = {};
     foreach my $bam_info (@{$m->{$file}{'run'}}) {
       if ($bam_info->{data_block_name} ne '') {
         #print Dumper($bam_info);
@@ -190,13 +191,9 @@ sub generate_submission {
         $pi->{'input_info'}{'analysis_id'} = $m->{$file}{'analysis_id'};
         $pi->{'input_info'}{'bam_file'} = $m->{$file}{'file'}[$index]{filename};
         push @{$pi2->{'pipeline_input_info'}}, $pi;
-        # not used?
-        $read_group_info->{$str} = 1;
       }
       $index++;
     }
-    my $str = to_json($pi2);
-    $global_attr->{"pipeline_input_info"}{$str} = 1;
 
     # now combine the analysis attr
     foreach my $attName (keys %{$m->{$file}{analysis_attr}}) {
@@ -205,8 +202,8 @@ sub generate_submission {
       }
     }
   }
-
-  #print Dumper($read_group_info);
+  my $str = to_json($pi2);
+  $global_attr->{"pipeline_input_info"}{$str} = 1;
   #print Dumper($global_attr);
 
   # FIXME: either custom needs to work or the reference needs to be listed in GNOS
