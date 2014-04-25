@@ -174,30 +174,29 @@ sub generate_submission {
     if (scalar(@participant_ids) == 0) { @participant_ids = keys %{$m->{$file}{'analysis_attr'}{'submitter_donor_id'}}; }
     $participant_id = $participant_ids[0];
     my $index = 0;
+    my $pi2 = {};
     foreach my $bam_info (@{$m->{$file}{'run'}}) {
       if ($bam_info->{data_block_name} ne '') {
         #print Dumper($bam_info);
         #print Dumper($m->{$file}{'file'}[$index]);
         my $pi = {};
-        $pi->{'donor_id'} = $participant_id;
-        $pi->{'specimen_id'} = $sample_id;
-        $pi->{'target_sample_refname'} = $sample_uuid;
-        $pi->{'analyzed_sample'} = $aliquot_id;
-        $pi->{'library'} = $library;
-        $pi->{'platform_unit'} = $platform_unit;
+        $pi->{'input_info'}{'donor_id'} = $participant_id;
+        $pi->{'input_info'}{'specimen_id'} = $sample_id;
+        $pi->{'input_info'}{'target_sample_refname'} = $sample_uuid;
+        $pi->{'input_info'}{'analyzed_sample'} = $aliquot_id;
+        $pi->{'input_info'}{'library'} = $library;
+        $pi->{'input_info'}{'platform_unit'} = $platform_unit;
         $pi->{'read_group_id'} = $read_group_id;
-        $pi->{'analysis_id'} = $m->{$file}{'analysis_id'};
-        $pi->{'bam_file'} = $m->{$file}{'file'}[$index]{filename};
-        my $str = to_json($pi);
-        $global_attr->{"pipeline_input_info"}{$str} = 1;
-        #"$participant_id|$sample_id|$sample_uuid|$aliquot_id|$library|$platform_unit|$read_group_id|".$m->{$file}{'file'}[$index]{filename}."|".$m->{$file}{'analysis_id'};
-#$global_attr->{"pipeline_input_info:participant_id|sample_id|target_sample_refname|aliquot_id|library|platform_unit|read_group_id|analysis_id|bam_file"}{$str} = 1;
-
+        $pi->{'input_info'}{'analysis_id'} = $m->{$file}{'analysis_id'};
+        $pi->{'input_info'}{'bam_file'} = $m->{$file}{'file'}[$index]{filename};
+        push @{$pi2->{'pipeline_input_info'}}, $pi;
         # not used?
         $read_group_info->{$str} = 1;
       }
       $index++;
     }
+    my $str = to_json($pi2);
+    $global_attr->{"pipeline_input_info"}{$str} = 1;
 
     # now combine the analysis attr
     foreach my $attName (keys %{$m->{$file}{analysis_attr}}) {
@@ -676,7 +675,7 @@ sub getQcResult {
     my $qc_metrics = {};
     $qc_metrics->{$_} = shift @data for (@header);
 
-    push @{ $ret->{qc_metrics} }, {"rg_id" => $qc_metrics->{readgroup}, "metrics" => $qc_metrics};
+    push @{ $ret->{qc_metrics} }, {"read_group_id" => $qc_metrics->{readgroup}, "metrics" => $qc_metrics};
   }
 
   return to_json $ret;
