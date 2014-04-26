@@ -214,7 +214,7 @@ sub generate_submission {
     <ANALYSIS center_name="$analysis_center" analysis_date="$datetime">
       <TITLE>TCGA/ICGC PanCancer Specimen-Level Alignment for Specimen $sample_id from Participant $participant_id</TITLE>
       <STUDY_REF refcenter="$refcenter" refname="icgc_pancancer" />
-      <DESCRIPTION>Sample-level BAM from the reference alignment of specimen $sample_id from donor $participant_id. This uses the SeqWare BWA-Mem PanCancer Workflow version $workflow_version available at $workflow_url.  This workflow can be created from source, see https://github.com/SeqWare/public-workflows.  New features for this workflow compared to 2.1 include: 1) inclusion of QC information in the metadata uploaded to GNOS along with the aligned BAM, 2) cleanup steps added throughout the workflow to reduce the runtime storage footprint, 3) update of the PCAP tools to version 1.0.0 (along with the associated tools including BWA-Mem 0.7.7-r441), 4) improved efficiency with regards to doing more steps in parallel, 5) more consistent encoding of information in the GNOS metadata using JSON values, and 6) improvements and bug fixes to the metadata uploaded to GNOS.  Please note the reference is hs37d, see ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/phase2_reference_assembly_sequence/README_human_reference_20110707 for more information. Briefly this is the integrated reference sequence from the GRCh37 primary assembly (chromosomal plus unlocalized and unplaced contigs), the rCRS mitochondrial sequence (AC:NC_012920), Human herpesvirus 4 type 1 (AC:NC_007605) and the concatenated decoy sequences (hs37d5cs.fa.gz).</DESCRIPTION>
+      <DESCRIPTION>Specimen-level BAM from the reference alignment of specimen $sample_id from donor $participant_id. This uses the SeqWare BWA-Mem PanCancer Workflow version $workflow_version available at $workflow_url.  This workflow can be created from source, see https://github.com/SeqWare/public-workflows.  New features for this workflow compared to 2.1 include: 1) inclusion of QC information in the metadata uploaded to GNOS along with the aligned BAM, 2) cleanup steps added throughout the workflow to reduce the runtime storage footprint, 3) update of the PCAP tools to version 1.0.0 (along with the associated tools including BWA-Mem 0.7.7-r441), 4) improved efficiency with regards to doing more steps in parallel, 5) more consistent encoding of information in the GNOS metadata using JSON values, and 6) improvements and bug fixes to the metadata uploaded to GNOS.  Please note the reference is hs37d, see ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/phase2_reference_assembly_sequence/README_human_reference_20110707 for more information. Briefly this is the integrated reference sequence from the GRCh37 primary assembly (chromosomal plus unlocalized and unplaced contigs), the rCRS mitochondrial sequence (AC:NC_012920), Human herpesvirus 4 type 1 (AC:NC_007605) and the concatenated decoy sequences (hs37d5cs.fa.gz).</DESCRIPTION>
       <ANALYSIS_TYPE>
         <REFERENCE_ALIGNMENT>
           <ASSEMBLY>
@@ -337,6 +337,7 @@ END
           <PROCESSING>
             <PIPELINE>
 END
+            my $i=0;
             foreach my $url (keys %{$m}) {
               foreach my $run (@{$m->{$url}{'run'}}) {
               #print Dumper($run);
@@ -345,16 +346,18 @@ END
                    my $dbn = $run->{'data_block_name'};
                    my $rgl = $run->{'read_group_label'};
                    my $rn = $run->{'refname'};
+                   my $fname = $m->{$url}{'file'}[$i]{'filename'};
   $analysis_xml .= <<END;
               <PIPE_SECTION section_name="Mapping">
                 <STEP_INDEX>$rgl</STEP_INDEX>
                 <PREV_STEP_INDEX>NIL</PREV_STEP_INDEX>
                 <PROGRAM>bwa</PROGRAM>
                 <VERSION>0.7.7-r441</VERSION>
-                <NOTES>bwa mem -t 8 -p -T 0 genome.fa.gz reference.fasta</NOTES>
+                <NOTES>bwa mem -t 8 -p -T 0 genome.fa.gz $fname</NOTES>
               </PIPE_SECTION>
 END
                  }
+                 $i++;
                }
             }
   $analysis_xml .= <<END;
@@ -383,7 +386,7 @@ END
        $analysis_xml .= "          <FILE filename=\"$bam_check.bam\" filetype=\"bam\" checksum_method=\"MD5\" checksum=\"$bam_check\" />\n";
 
        # incorrect, there's only one bam!
-       my $i=0;
+       $i=0;
        foreach my $url (keys %{$m}) {
        foreach my $run (@{$m->{$url}{'run'}}) {
        if (defined($run->{'read_group_label'})) {

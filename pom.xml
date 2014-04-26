@@ -32,19 +32,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>cutadapt</groupId>
-            <artifactId>cutadapt</artifactId>
-            <version>1.2.1</version>
-            <classifier>compiled</classifier>
-            <type>tar.gz</type>
-        </dependency>
-        <dependency>
-            <groupId>Python-artifactory.tar</groupId>
-            <artifactId>Python-artifactory.tar</artifactId>
-            <version>Python-artifactory.tar</version>
-            <type>gz</type>
-        </dependency>
-        <dependency>
             <groupId>bwa</groupId>
             <artifactId>bwa</artifactId>
             <version>0.6.2</version>
@@ -69,16 +56,6 @@
             <version>1.0.0</version>
         </dependency>
         <dependency>
-            <groupId>net.sourceforge.seqware</groupId>
-            <artifactId>seqware-bin-linux-x86-64-perl-5.14.1</artifactId>
-            <version>1.0.0</version>
-        </dependency>
-        <dependency>
-            <groupId>net.sourceforge.seqware</groupId>
-            <artifactId>seqware-bin-noarch-pegasus-dirmanager</artifactId>
-            <version>1.0.0</version>
-        </dependency>
-        <dependency>
             <groupId>com.github.seqware</groupId>
             <artifactId>seqware-pipeline</artifactId>
             <version>${seqware-version}</version>
@@ -94,6 +71,12 @@
             <artifactId>testng</artifactId>
             <version>6.8.7</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>PCAP-core</groupId>
+            <artifactId>PCAP-core</artifactId>
+            <version>1.0.0</version>
+            <type>tar.gz</type>
         </dependency>
     </dependencies>
 
@@ -179,7 +162,6 @@
                     <target>1.6</target>
                 </configuration>
             </plugin>
-
 
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
@@ -409,7 +391,6 @@
                 </configuration>
             </plugin>
         </plugins>
-
 
     </build>
 
