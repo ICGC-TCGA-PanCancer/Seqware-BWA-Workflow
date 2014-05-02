@@ -46,7 +46,7 @@ public class WorkflowClient extends OicrWorkflow {
   String bwa_aln_params;
   String bwa_sampe_params;
   String skipUpload = null;
-  String pcapPath = "/bin/PCAP-core_1.0.0";
+  String pcapPath = "/bin/PCAP-core-1.0.2";
 
   @Override
   public Map<String, SqwFile> setupFiles() {
@@ -214,6 +214,7 @@ public class WorkflowClient extends OicrWorkflow {
                 .addArgument("| LD_LIBRARY_PATH=" + this.getWorkflowBaseDir() + pcapPath + "/lib ")
                 .addArgument(this.getWorkflowBaseDir() + pcapPath + "/bin/bamsort")
                 .addArgument("inputformat=sam level=1 inputthreads=2 outputthreads=2")
+                .addArgument("calmdnm=1 calmdnmrecompindetonly=1 calmdnmreference=" + reference_path)
                 .addArgument("tmpfile=out_" + i + ".sorttmp")
                 .addArgument("O=out_" + i + ".bam");
         job01.setMaxMemory(bwaAlignMemG + "900");
