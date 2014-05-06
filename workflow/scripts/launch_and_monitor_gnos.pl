@@ -23,7 +23,7 @@ my @files;
 my $orig_retries = 30;
 my $retries = $orig_retries;
 # seconds
-my $cooldown = 60;
+my $cooldown = 5;
 # file size
 my $previous_size = 0;
 
@@ -32,11 +32,15 @@ GetOptions (
   "files=s" => \@files,
 );
 
+print "FILES: ".join(' ', @files)."\n";
+
 my $thr = threads->create(\&launch_and_monitor, $command);
 while(1) {
-  if ($thr->is_running()) {   
+  if ($thr->is_running()) {
+    print "RUNNING\n";
     sleep $cooldown;
     if(getCurrentSize(@files) == $previous_size) {
+      print "PREVIOUS SIZE UNCHANGED!!!\n";
       $retries--;
       if ($retries == 0) {
         $retries = $orig_retries;
@@ -45,9 +49,11 @@ while(1) {
         sleep $cooldown;
       }
     } else {
+      print "SIZE INCREASED!!!\n";
       $previous_size = getCurrentSize(@files);
     }
   } else {
+    print "DONE\n";
     # then we're done so just exit
     exit(0);
   }
@@ -62,7 +68,18 @@ sub getCurrentSize {
   my @files = @_;
   my $size = 0;
   foreach my $file(@files) {
-    $size += -s $file;
+    foreach my $actual_file (find_file($file)) {
+      print "CONSIDER: $actual_file\n";
+      $size += -s $actual_file;
+    }
   }
   return($size);
+}
+
+sub find_file {
+  my ($file) = @_;
+  my $output = `find . | grep $file`;
+  my @a = split /\n/, $output;
+  print join "\n", @a;
+  return(@a);
 }
