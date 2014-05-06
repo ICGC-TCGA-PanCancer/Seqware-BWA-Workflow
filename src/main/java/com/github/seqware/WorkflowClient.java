@@ -308,6 +308,9 @@ public class WorkflowClient extends OicrWorkflow {
     }
     job05.setMaxMemory(uploadScriptJobMem + "900");
     job05.addParent(job04);
+    for (Job qcJob : qcJobs) {
+      job05.addParent(qcJob);
+    }
     
     // CLEANUP FINAL BAM
     Job cleanup3 = this.getWorkflow().createBashJob("cleanup4");
