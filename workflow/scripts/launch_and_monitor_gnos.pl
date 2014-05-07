@@ -42,7 +42,8 @@ while(1) {
   if ($thr->is_running()) {
     print "RUNNING\n";
     sleep $cooldown;
-    if(getCurrentSize(@files) == $previous_size) {
+    my $currSize = getCurrentSize(@files);
+    if($currSize == $previous_size) {
       print "PREVIOUS SIZE UNCHANGED!!! $previous_size\n";
       $retries--;
       if ($retries == 0) {
@@ -54,7 +55,7 @@ while(1) {
         sleep $cooldown;
       }
     } else {
-      $previous_size = getCurrentSize(@files);
+      $previous_size = $currSize;
       print "SIZE INCREASED!!! $previous_size\n";
     }
   } else {
