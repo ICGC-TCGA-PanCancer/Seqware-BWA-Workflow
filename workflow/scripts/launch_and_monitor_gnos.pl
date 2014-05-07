@@ -4,8 +4,9 @@ use Data::Dumper;
 use JSON;
 use Config;
 $Config{useithreads} or die('Recompile Perl with threads to run this program.');
-use threads;
+use threads 'exit' => 'threads_only';
 use Storable 'dclone';
+use IPC::Open2;
 
 # PURPOSE:
 # the program takes a command (use single quotes to encapsulate it in bash) and
@@ -26,6 +27,8 @@ my $retries = $orig_retries;
 my $cooldown = 5;
 # file size
 my $previous_size = 0;
+# pid
+my $pid = 0;
 
 GetOptions (
   "command=s" => \$command,
@@ -45,10 +48,16 @@ while(1) {
       if ($retries == 0) {
         $retries = $orig_retries;
         #$thr->kill('KILL')->detach();
-        $thr->kill('KILL')->join();
+        print
+        print "KILLING THE THREAD!!\n";
+        print "  TID: ".$thr->tid."\n";
+        print "  PID: $pid \n";
+        print("kill -9 $pid");
+        $thr->kill('KILL')->detach();
+        #$thr->kill('KILL')->join();
         #threads->exit();
         #$thr->kill('SIGTERM');
-        $thr = threads->create(\&launch_and_monitor, $command);
+        #$thr = threads->create(\&launch_and_monitor, $command);
         sleep $cooldown;
       }
     } else {
@@ -62,10 +71,20 @@ while(1) {
   }
 }
 
+
 sub launch_and_monitor {
   my ($cmd) = @_;
-  local $SIG{KILL} = sub { threads->exit };
-  system($cmd);
+  my $myobject = threads->self;
+  my $mytid= $myobject->tid;
+
+  local $SIG{KILL} = sub { print "GOT KILL FOR THREAD: $mytid\n"; threads->exit };
+  #system($cmd);
+  #open2 my $out, my $in, $cmd or die "Could not run '$cmd'\n";
+  #while(<$out>) {
+  #  print $_;
+  #}
+  $pid = open my $in, '-|', "$cmd 2>&1" or die "Can't open command\n";
+  while(<$in>) { print $_; }
 }
 
 
