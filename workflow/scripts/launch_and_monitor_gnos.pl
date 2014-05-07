@@ -20,7 +20,7 @@ use Storable 'dclone';
 my $command;
 my @files;
 # 30 retries at 60 seconds each is 0.5 hours
-my $orig_retries = 30;
+my $orig_retries = 3;
 my $retries = $orig_retries;
 # seconds
 my $cooldown = 5;
@@ -44,7 +44,10 @@ while(1) {
       $retries--;
       if ($retries == 0) {
         $retries = $orig_retries;
-        $thr->kill('KILL')->detach();
+        #$thr->kill('KILL')->detach();
+        $thr->kill('KILL')->join();
+        #threads->exit();
+        #$thr->kill('SIGTERM');
         $thr = threads->create(\&launch_and_monitor, $command);
         sleep $cooldown;
       }
@@ -61,18 +64,22 @@ while(1) {
 
 sub launch_and_monitor {
   my ($cmd) = @_;
+  local $SIG{KILL} = sub { threads->exit };
   system($cmd);
 }
+
 
 sub getCurrentSize {
   my @files = @_;
   my $size = 0;
   foreach my $file(@files) {
     foreach my $actual_file (find_file($file)) {
-      print "CONSIDER: $actual_file\n";
-      $size += -s $actual_file;
+      print "\nCONSIDER: $actual_file\n";
+      if (-e $actual_file && -f $actual_file) { $size += -s $actual_file; }
+# TODO: this needs to use stat instead! look for "Blocks: \d+
     }
   }
+  print "SIZE: $size\n";
   return($size);
 }
 
