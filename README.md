@@ -41,3 +41,18 @@ Feel free to email our [mailing list](http://seqware.github.io/community/) if yo
 * Keiran Raine: PCAP-Core and BWA-Mem workflow design
 * Roshaan Tahir: Original BWA-Align workflow design 
 
+## Workflow Authors' Release Checklist
+
+Make sure you:
+
+* update the workflow version in:
+    * workflow.properties
+    * pom.xml
+    * gnos_upload_data.pl
+    * make sure you grep for any other files
+* update the description of the workflow in workflow.properties and gnos_upload_data.pl, this includes differences with the previous release
+* test the workflow
+* do not package your gnostest.pem key!
+* release in Github
+* upload to S3
+* email the technical working group
