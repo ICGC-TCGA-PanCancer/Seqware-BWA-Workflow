@@ -47,6 +47,9 @@ public class WorkflowClient extends OicrWorkflow {
   String bwa_sampe_params;
   String skipUpload = null;
   String pcapPath = "/bin/PCAP-core-1.0.2";
+  // GTDownload
+  // each retry is 1 minute
+  String gtdownloadRetries = "120";
 
   @Override
   public Map<String, SqwFile> setupFiles() {
@@ -84,6 +87,7 @@ public class WorkflowClient extends OicrWorkflow {
       uploadScriptJobMem = getProperty("uploadScriptJobMem") == null ? "2" : getProperty("uploadScriptJobMem");
       additionalPicardParams = getProperty("additionalPicardParams");
       skipUpload = getProperty("skip_upload") == null ? "true" : getProperty("skip_upload");
+      gtdownloadRetries = getProperty("gtdownload_retries") == null ? "120" : getProperty("gtdownload_retries");
 
     } catch (Exception e) {
       Logger.getLogger(WorkflowClient.class.getName()).log(Level.SEVERE, null, e);
@@ -110,19 +114,22 @@ public class WorkflowClient extends OicrWorkflow {
     // let's start by downloading the input BAMs
     int numInputURLs = this.inputURLs.size();
     for (int i = 0; i < numInputURLs; i++) {
-        
-      Job gtDownloadJob = this.getWorkflow().createBashJob("gtdownload");
-      gtDownloadJob.getCommand().addArgument("gtdownload")
-              .addArgument("-c " + gnosKey)
-              .addArgument("-v -d")
-              .addArgument(this.inputURLs.get(i));
-
+      
       // the file downloaded will be in this path
       String file = bamPaths.get(i);
+      // a little unsafe
+      String[] pathElements = file.split("/");
+      String analysisId = pathElements[0];
+        
+      Job gtDownloadJob = this.getWorkflow().createBashJob("gtdownload");
+      gtDownloadJob.getCommand().addArgument("perl " + this.getWorkflowBaseDir() + "/scripts/launch_and_monitor_gnos.pl")
+              .addArgument("--command 'gtdownload -c "+gnosKey+" -v -d "+this.inputURLs.get(i)+"'")
+              .addArgument("--file-grep "+analysisId)
+              .addArgument("--search-path .")
+              .addArgument("--retries "+gtdownloadRetries);
 
       // in the future this should use the read group if provided otherwise use read group from bam file
       Job headerJob = this.getWorkflow().createBashJob("headerJob" + i);
-      // TODO: REPLACE THIS WITH A SCRIPT THAT WILL USE UUID
       headerJob.getCommand().addArgument(this.getWorkflowBaseDir() + "/bin/samtools-0.1.19/samtools view -H " + file + " | grep @RG | sed 's/\\t/\\\\t/g' > bam_header." + i + ".txt");
       headerJob.addParent(gtDownloadJob);
 

@@ -33,6 +33,8 @@ GetOptions (
   "command=s" => \$command,
   "file-grep=s" => \@files,
   "search-path=s" => \$search_path,
+  "retries=i" => \$orig_retries,
+  "sleep=i" => \$cooldown,
 );
 
 print "FILE GREPS: ".join(' ', @files)."\n";
