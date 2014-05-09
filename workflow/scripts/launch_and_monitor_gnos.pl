@@ -21,7 +21,6 @@ my $command;
 my @files;
 # 30 retries at 60 seconds each is 0.5 hours
 my $orig_retries = 30;
-my $retries = $orig_retries;
 # seconds
 my $cooldown = 60;
 # file size
@@ -36,6 +35,9 @@ GetOptions (
   "retries=i" => \$orig_retries,
   "sleep=i" => \$cooldown,
 );
+
+
+my $retries = $orig_retries;
 
 print "FILE GREPS: ".join(' ', @files)."\n";
 
