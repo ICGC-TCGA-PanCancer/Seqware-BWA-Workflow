@@ -190,11 +190,13 @@ public class WorkflowClient extends OicrWorkflow {
         qcJob = this.getWorkflow().createBashJob("bam_stats_qc_" + i);
         addBamStatsQcJobArgument(i, qcJob);
         qcJob.addParent(job03);
+        qcJob.setMaxMemory("2000");
         qcJobs.add(qcJob);
         
         // CLEANUP DOWNLOADED INPUT UNALIGNED BAM FILES
         Job cleanup1 = this.getWorkflow().createBashJob("cleanup_" + i);
         cleanup1.getCommand().addArgument("rm " + file);
+        cleanup1.setMaxMemory("2000");
         cleanup1.addParent(job03);
 
       } else if ("mem".equals(bwaChoice)) {
@@ -234,11 +236,13 @@ public class WorkflowClient extends OicrWorkflow {
         qcJob = this.getWorkflow().createBashJob("bam_stats_qc_" + i);
         addBamStatsQcJobArgument(i, qcJob);
         qcJob.addParent(job01);
+        qcJob.setMaxMemory("2000");
         qcJobs.add(qcJob);
         
         // CLEANUP DOWNLOADED INPUT UNALIGNED BAM FILES
         Job cleanup1 = this.getWorkflow().createBashJob("cleanup2_" + i);
         cleanup1.getCommand().addArgument("rm " + file);
+        cleanup1.setMaxMemory("2000");
         cleanup1.addParent(job01);
 
       } else {
@@ -298,6 +302,7 @@ public class WorkflowClient extends OicrWorkflow {
       Job cleanup2 = this.getWorkflow().createBashJob("cleanup3_" + i);
       cleanup2.getCommand().addArgument("rm out_" + i + ".bam");
       cleanup2.addParent(job04);
+      cleanup2.setMaxMemory("2000");
       cleanup2.addParent(qcJobs.get(i));
     }
 
@@ -323,6 +328,7 @@ public class WorkflowClient extends OicrWorkflow {
     Job cleanup3 = this.getWorkflow().createBashJob("cleanup4");
     cleanup3.getCommand().addArgument("rm " + this.dataDir + outputFileName);
     cleanup3.addParent(job05);
+    cleanup3.setMaxMemory("2000");
     for (Job qcJob : qcJobs) {
       cleanup3.addParent(qcJob);
     }
