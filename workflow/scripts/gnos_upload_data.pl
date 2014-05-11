@@ -39,9 +39,10 @@ my $test = 0;
 my $workflow_version = "2.4.0";
 # hardcoded
 my $workflow_url = "https://s3.amazonaws.com/oicr.workflow.bundles/released-bundles/Workflow_Bundle_BWA_".$workflow_version."_SeqWare_1.0.13.zip";
+my $force_copy = 0;
 
 if (scalar(@ARGV) != 12 && scalar(@ARGV) != 13) { die "USAGE: 'perl gnos_upload_data.pl --metadata-urls <URLs_comma_separated> --bam <sample-level_bam_file_path> --bam-md5sum-file <file_with_bam_md5sum> --outdir <output_dir> --key <gnos.pem> --upload-url <gnos_server_url> [--test]\n"; }
-GetOptions("metadata-urls=s" => \$metadata_urls, "bam=s" => \$bam, "outdir=s" => \$output_dir, "key=s" => \$key, "bam-md5sum-file=s" => \$md5_file, "upload-url=s" => \$upload_url, "test" => \$test);
+GetOptions("metadata-urls=s" => \$metadata_urls, "bam=s" => \$bam, "outdir=s" => \$output_dir, "key=s" => \$key, "bam-md5sum-file=s" => \$md5_file, "upload-url=s" => \$upload_url, "test" => \$test, "force-copy" => \$force_copy);
 
 # setup output dir
 my $ug = Data::UUID->new;
@@ -51,11 +52,19 @@ $output_dir = $output_dir."/$uuid/";
 # md5sum
 my $bam_check = `cat $md5_file`;
 chomp $bam_check;
-# symlink for bam and md5sum file
-print ("ln -s `pwd`/$bam $output_dir/$bam_check.bam\n");
-print ("ln -s `pwd`/$md5_file $output_dir/$bam_check.bam.md5\n");
-system("ln -s `pwd`/$bam $output_dir/$bam_check.bam");
-system("ln -s `pwd`/$md5_file $output_dir/$bam_check.bam.md5");
+if ($force_copy) {
+  # rsync to destination
+  print ("rsync -rauv `pwd`/$bam $output_dir/$bam_check.bam\n");
+  print ("rsync -rauv `pwd`/$md5_file $output_dir/$bam_check.bam.md5\n");
+  system("rsync -rauv `pwd`/$bam $output_dir/$bam_check.bam");
+  system("rsync -rauv `pwd`/$md5_file $output_dir/$bam_check.bam.md5");
+} else {
+  # symlink for bam and md5sum file
+  print ("ln -s `pwd`/$bam $output_dir/$bam_check.bam\n");
+  print ("ln -s `pwd`/$md5_file $output_dir/$bam_check.bam.md5\n");
+  system("ln -s `pwd`/$bam $output_dir/$bam_check.bam");
+  system("ln -s `pwd`/$md5_file $output_dir/$bam_check.bam.md5");
+}
 
 
 ##############

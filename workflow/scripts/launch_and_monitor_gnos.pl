@@ -21,7 +21,9 @@ my $command;
 my @files;
 # 30 retries at 60 seconds each is 0.5 hours
 my $orig_retries = 30;
-# seconds
+# retries for md5sum, 2 hours
+my $md5_retries = 120;
+# seconds to wait for a retry
 my $cooldown = 60;
 # file size
 my $previous_size = 0;
@@ -34,6 +36,7 @@ GetOptions (
   "search-path=s" => \$search_path,
   "retries=i" => \$orig_retries,
   "sleep=i" => \$cooldown,
+  "md5-retries=i" => \$md5_retries,
 );
 
 
@@ -56,7 +59,7 @@ while(1) {
         # kill and wait to exit
         $thr->kill('KILL')->join();
         $thr = threads->create(\&launch_and_monitor, $command);
-        sleep $cooldown;
+        sleep ($cooldown * $md5_retries);
       }
     } else {
       $previous_size = $currSize;
@@ -64,6 +67,7 @@ while(1) {
     }
   } else {
     print "DONE\n";
+    if ($thr->is_running()) { $thr->join(); }
     # then we're done so just exit
     exit(0);
   }

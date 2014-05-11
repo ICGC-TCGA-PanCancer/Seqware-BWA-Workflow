@@ -25,12 +25,15 @@ public class WorkflowClient extends OicrWorkflow {
   String gnosInputMetadataURLs = null;
   String gnosUploadFileURL = null;
   String gnosKey = null;
+  boolean useGtDownload = true;
+  boolean useGtUpload = true;
   // number of splits for bam files, default 1=no split
   int bamSplits = 1;
   String reference_path = null;
   String outputPrefix = null;
   String outputDir = null;
   String dataDir = "data/";
+  String resultsDir = "./";
   String outputFileName = "merged_output.bam";
   //BWA
   String bwaAlignMemG = "8";
@@ -49,7 +52,10 @@ public class WorkflowClient extends OicrWorkflow {
   String pcapPath = "/bin/PCAP-core-1.0.2";
   // GTDownload
   // each retry is 1 minute
-  String gtdownloadRetries = "120";
+  String gtdownloadRetries = "30";
+  String gtdownloadMd5Time = "120";
+  String gtdownloadMem = "8";
+  String smallJobMemM = "2000";
 
   @Override
   public Map<String, SqwFile> setupFiles() {
@@ -87,11 +93,17 @@ public class WorkflowClient extends OicrWorkflow {
       uploadScriptJobMem = getProperty("uploadScriptJobMem") == null ? "2" : getProperty("uploadScriptJobMem");
       additionalPicardParams = getProperty("additionalPicardParams");
       skipUpload = getProperty("skip_upload") == null ? "true" : getProperty("skip_upload");
-      gtdownloadRetries = getProperty("gtdownload_retries") == null ? "120" : getProperty("gtdownload_retries");
+      gtdownloadRetries = getProperty("gtdownloadRetries") == null ? "30" : getProperty("gtdownloadRetries");
+      gtdownloadMd5Time = getProperty("gtdownloadMd5time") == null ? "120" : getProperty("gtdownloadMd5time");
+      gtdownloadMem = getProperty("gtdownloadMemG") == null ? "8" : getProperty("gtdownloadMemG");
+      smallJobMemM = getProperty("smallJobMemM") == null ? "2000" : getProperty("smallJobMemM");
+      resultsDir = getProperty("out_dir") == null ? "./" : getProperty("out_dir");
+      if (getProperty("use_gtdownload") != null) { if("false".equals(getProperty("use_gtdownload"))) { useGtDownload = false; } }
+      if (getProperty("use_gtupload") != null) { if("false".equals(getProperty("use_gtupload"))) { useGtUpload = false; } }
 
     } catch (Exception e) {
       Logger.getLogger(WorkflowClient.class.getName()).log(Level.SEVERE, null, e);
-      System.exit(1);
+      throw new RuntimeException("Problem parsing variable values: "+e.getMessage());
     }
 
     return this.getFiles();
@@ -101,6 +113,7 @@ public class WorkflowClient extends OicrWorkflow {
   public void setupDirectory() {
     // creates the final output 
     this.addDirectory(dataDir);
+    this.addDirectory(resultsDir);
   }
 
   @Override
@@ -117,21 +130,22 @@ public class WorkflowClient extends OicrWorkflow {
       
       // the file downloaded will be in this path
       String file = bamPaths.get(i);
-      // a little unsafe
-      String[] pathElements = file.split("/");
-      String analysisId = pathElements[0];
+      // the URL to download this from
+      String fileURL = inputURLs.get(i);
         
-      Job gtDownloadJob = this.getWorkflow().createBashJob("gtdownload");
-      gtDownloadJob.getCommand().addArgument("perl " + this.getWorkflowBaseDir() + "/scripts/launch_and_monitor_gnos.pl")
-              .addArgument("--command 'gtdownload -c "+gnosKey+" -v -d "+this.inputURLs.get(i)+"'")
-              .addArgument("--file-grep "+analysisId)
-              .addArgument("--search-path .")
-              .addArgument("--retries "+gtdownloadRetries);
+      // the download job that either downloads or locates the file on the filesystem
+      Job downloadJob = null;
+      if (useGtDownload) {
+        downloadJob = this.getWorkflow().createBashJob("gtdownload");
+        addDownloadJobArgs(downloadJob, file, fileURL);
+        downloadJob.setMaxMemory( gtdownloadMem + "000");
+      }
 
       // in the future this should use the read group if provided otherwise use read group from bam file
       Job headerJob = this.getWorkflow().createBashJob("headerJob" + i);
       headerJob.getCommand().addArgument(this.getWorkflowBaseDir() + "/bin/samtools-0.1.19/samtools view -H " + file + " | grep @RG | sed 's/\\t/\\\\t/g' > bam_header." + i + ".txt");
-      headerJob.addParent(gtDownloadJob);
+      if (useGtDownload) { headerJob.addParent(downloadJob); }
+      headerJob.setMaxMemory(smallJobMemM);
 
       // the QC job used by either path below
       Job qcJob = null;
@@ -190,13 +204,13 @@ public class WorkflowClient extends OicrWorkflow {
         qcJob = this.getWorkflow().createBashJob("bam_stats_qc_" + i);
         addBamStatsQcJobArgument(i, qcJob);
         qcJob.addParent(job03);
-        qcJob.setMaxMemory("2000");
+        qcJob.setMaxMemory(smallJobMemM);
         qcJobs.add(qcJob);
         
         // CLEANUP DOWNLOADED INPUT UNALIGNED BAM FILES
         Job cleanup1 = this.getWorkflow().createBashJob("cleanup_" + i);
-        cleanup1.getCommand().addArgument("rm " + file);
-        cleanup1.setMaxMemory("2000");
+        cleanup1.getCommand().addArgument("rm -f " + file);
+        cleanup1.setMaxMemory(smallJobMemM);
         cleanup1.addParent(job03);
 
       } else if ("mem".equals(bwaChoice)) {
@@ -236,13 +250,13 @@ public class WorkflowClient extends OicrWorkflow {
         qcJob = this.getWorkflow().createBashJob("bam_stats_qc_" + i);
         addBamStatsQcJobArgument(i, qcJob);
         qcJob.addParent(job01);
-        qcJob.setMaxMemory("2000");
+        qcJob.setMaxMemory(smallJobMemM);
         qcJobs.add(qcJob);
         
         // CLEANUP DOWNLOADED INPUT UNALIGNED BAM FILES
         Job cleanup1 = this.getWorkflow().createBashJob("cleanup2_" + i);
-        cleanup1.getCommand().addArgument("rm " + file);
-        cleanup1.setMaxMemory("2000");
+        cleanup1.getCommand().addArgument("rm -f " + file);
+        cleanup1.setMaxMemory(smallJobMemM);
         cleanup1.addParent(job01);
 
       } else {
@@ -300,22 +314,27 @@ public class WorkflowClient extends OicrWorkflow {
     // CLEANUP LANE LEVEL BAM FILES
     for (int i = 0; i < numBamFiles; i++) {
       Job cleanup2 = this.getWorkflow().createBashJob("cleanup3_" + i);
-      cleanup2.getCommand().addArgument("rm out_" + i + ".bam");
+      cleanup2.getCommand().addArgument("rm -f out_" + i + ".bam");
       cleanup2.addParent(job04);
-      cleanup2.setMaxMemory("2000");
+      cleanup2.setMaxMemory(smallJobMemM);
       cleanup2.addParent(qcJobs.get(i));
     }
 
     // PREPARE METADATA & UPLOAD
+    String finalOutDir = this.dataDir;
+    if (!useGtUpload) { finalOutDir = this.resultsDir; }
     Job job05 = this.getWorkflow().createBashJob("upload");
     job05.getCommand().addArgument("perl " + this.getWorkflowBaseDir() + "/scripts/gnos_upload_data.pl")
             .addArgument("--bam " + this.dataDir + outputFileName)
             .addArgument("--key " + gnosKey)
-            .addArgument("--outdir " + this.dataDir)
+            .addArgument("--outdir " + finalOutDir)
             .addArgument("--metadata-urls " + gnosInputMetadataURLs)
             .addArgument("--upload-url " + gnosUploadFileURL)
             .addArgument("--bam-md5sum-file " + this.dataDir + outputFileName + ".md5");
-    if ("true".equals(skipUpload)) {
+    if (!useGtUpload) {
+      job05.getCommand().addArgument("--force-copy");
+    }
+    if ("true".equals(skipUpload) || !useGtUpload) {
       job05.getCommand().addArgument("--test");
     }
     job05.setMaxMemory(uploadScriptJobMem + "900");
@@ -326,9 +345,9 @@ public class WorkflowClient extends OicrWorkflow {
     
     // CLEANUP FINAL BAM
     Job cleanup3 = this.getWorkflow().createBashJob("cleanup4");
-    cleanup3.getCommand().addArgument("rm " + this.dataDir + outputFileName);
+    cleanup3.getCommand().addArgument("rm -f " + this.dataDir + outputFileName);
     cleanup3.addParent(job05);
-    cleanup3.setMaxMemory("2000");
+    cleanup3.setMaxMemory(smallJobMemM);
     for (Job qcJob : qcJobs) {
       cleanup3.addParent(qcJob);
     }
@@ -405,8 +424,26 @@ public class WorkflowClient extends OicrWorkflow {
       }
 
     } catch (Exception e) {
+      Logger.getLogger(WorkflowClient.class.getName()).log(Level.SEVERE, null, e);
+      throw new RuntimeException("Param Parsing exception " + e.getMessage());
     }
     return paramCommand;
+  }
+  
+  private Job addDownloadJobArgs (Job job, String file, String fileURL) {
+    
+    // a little unsafe
+    String[] pathElements = file.split("/");
+    String analysisId = pathElements[0];
+
+    job.getCommand().addArgument("perl " + this.getWorkflowBaseDir() + "/scripts/launch_and_monitor_gnos.pl")
+    .addArgument("--command 'gtdownload -c "+gnosKey+" -v -d "+fileURL+"'")
+    .addArgument("--file-grep "+analysisId)
+    .addArgument("--search-path .")
+    .addArgument("--retries "+gtdownloadRetries)
+    .addArgument("--md5-retries "+gtdownloadMd5Time);
+    
+    return(job);
   }
   
   private Job addBamStatsQcJobArgument (final int i, Job job) {
