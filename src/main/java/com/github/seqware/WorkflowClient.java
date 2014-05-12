@@ -30,10 +30,10 @@ public class WorkflowClient extends OicrWorkflow {
   // number of splits for bam files, default 1=no split
   int bamSplits = 1;
   String reference_path = null;
-  String outputPrefix = null;
-  String outputDir = null;
   String dataDir = "data/";
-  String resultsDir = "./";
+  String outputDir = "results";
+  String outputPrefix = "./";
+  String resultsDir = outputPrefix + outputDir;
   String outputFileName = "merged_output.bam";
   //BWA
   String bwaAlignMemG = "8";
@@ -79,11 +79,12 @@ public class WorkflowClient extends OicrWorkflow {
       for (String url : gnosInputMetadataURLs.split(",")) {
         inputMetadataURLs.add(url);
       }
+      outputDir = this.getMetadata_output_dir();
+      outputPrefix = this.getMetadata_output_file_prefix();
+      resultsDir = outputPrefix + outputDir;
       gnosUploadFileURL = getProperty("gnos_output_file_url");
       gnosKey = getProperty("gnos_key");
       reference_path = getProperty("input_reference");
-      outputDir = this.getMetadata_output_dir();
-      outputPrefix = this.getMetadata_output_file_prefix();
       bwaChoice = getProperty("bwa_choice") == null ? "aln" : getProperty("bwa_choice");
       bwaAlignMemG = getProperty("bwaAlignMemG") == null ? "8" : getProperty("bwaAlignMemG");
       bwaSampeMemG = getProperty("bwaSampeMemG") == null ? "8" : getProperty("bwaSampeMemG");
@@ -97,7 +98,6 @@ public class WorkflowClient extends OicrWorkflow {
       gtdownloadMd5Time = getProperty("gtdownloadMd5time") == null ? "120" : getProperty("gtdownloadMd5time");
       gtdownloadMem = getProperty("gtdownloadMemG") == null ? "8" : getProperty("gtdownloadMemG");
       smallJobMemM = getProperty("smallJobMemM") == null ? "2000" : getProperty("smallJobMemM");
-      resultsDir = getProperty("out_dir") == null ? "./" : getProperty("out_dir");
       if (getProperty("use_gtdownload") != null) { if("false".equals(getProperty("use_gtdownload"))) { useGtDownload = false; } }
       if (getProperty("use_gtupload") != null) { if("false".equals(getProperty("use_gtupload"))) { useGtUpload = false; } }
 
