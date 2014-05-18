@@ -4,6 +4,8 @@ use strict;
 
 my ($link_dir) = @ARGV;
 
+system("mkdir -p $link_dir");
+
 check_tools();
 
 download("$link_dir/reference/bwa-0.6.2", "http://s3.amazonaws.com/pan-cancer-data/pan-cancer-reference/genome.fa.gz");
