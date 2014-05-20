@@ -36,7 +36,7 @@ my $md5_file = "";
 my $upload_url = "";
 my $test = 0;
 # hardcoded
-my $workflow_version = "2.4.0";
+my $workflow_version = "2.5.0";
 # hardcoded
 my $workflow_url = "https://s3.amazonaws.com/oicr.workflow.bundles/released-bundles/Workflow_Bundle_BWA_".$workflow_version."_SeqWare_1.0.13.zip";
 my $force_copy = 0;
@@ -223,7 +223,7 @@ sub generate_submission {
     <ANALYSIS center_name="$analysis_center" analysis_date="$datetime">
       <TITLE>TCGA/ICGC PanCancer Specimen-Level Alignment for Specimen $sample_id from Participant $participant_id</TITLE>
       <STUDY_REF refcenter="$refcenter" refname="icgc_pancancer" />
-      <DESCRIPTION>Specimen-level BAM from the reference alignment of specimen $sample_id from donor $participant_id. This uses the SeqWare BWA-Mem PanCancer Workflow version $workflow_version available at $workflow_url.  This workflow can be created from source, see https://github.com/SeqWare/public-workflows.  New features for this workflow compared to 2.3 include: 1) a gtdownload wrapper that monitors progress and kills and restarts the job if it freezes and 2) an option for skipping download/upload from/to GNOS and instead use local file paths (GNOS is still used to retrieve metadata).  Please note the reference is hs37d, see ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/phase2_reference_assembly_sequence/README_human_reference_20110707 for more information. Briefly this is the integrated reference sequence from the GRCh37 primary assembly (chromosomal plus unlocalized and unplaced contigs), the rCRS mitochondrial sequence (AC:NC_012920), Human herpesvirus 4 type 1 (AC:NC_007605) and the concatenated decoy sequences (hs37d5cs.fa.gz).</DESCRIPTION>
+      <DESCRIPTION>Specimen-level BAM from the reference alignment of specimen $sample_id from donor $participant_id. This uses the SeqWare BWA-Mem PanCancer Workflow version $workflow_version available at $workflow_url. This workflow can be created from source, see https://github.com/SeqWare/public-workflows.  New features for this workflow compared to 2.4 include: 1) an option for skipping download/upload from/to GNOS and instead use local file paths (GNOS is still used to retrieve and validate metadata).  Please note the reference is hs37d, see ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/phase2_reference_assembly_sequence/README_human_reference_20110707 for more information. Briefly this is the integrated reference sequence from the GRCh37 primary assembly (chromosomal plus unlocalized and unplaced contigs), the rCRS mitochondrial sequence (AC:NC_012920), Human herpesvirus 4 type 1 (AC:NC_007605) and the concatenated decoy sequences (hs37d5cs.fa.gz).</DESCRIPTION>
       <ANALYSIS_TYPE>
         <REFERENCE_ALIGNMENT>
           <ASSEMBLY>
