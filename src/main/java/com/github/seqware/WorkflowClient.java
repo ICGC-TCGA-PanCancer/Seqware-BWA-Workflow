@@ -132,6 +132,10 @@ public class WorkflowClient extends OicrWorkflow {
       String file = bamPaths.get(i);
       // the URL to download this from
       String fileURL = inputURLs.get(i);
+      
+    /* Job job05 = this.getWorkflow().createBashJob("upload");
+    job05.getCommand().addArgument(""
+      + "synapse -u <uSERNAME > -p <PASSWORD> -parentId add " + fileURL + " > " + file +".synapse" ); */
         
       // the download job that either downloads or locates the file on the filesystem
       Job downloadJob = null;
@@ -342,6 +346,13 @@ public class WorkflowClient extends OicrWorkflow {
     for (Job qcJob : qcJobs) {
       job05.addParent(qcJob);
     }
+    
+    /* Job job05 = this.getWorkflow().createBashJob("upload");
+    job05.getCommand().addArgument(""
+     for (int i = 0; i < numBamFiles; i++) {
+        job04.getCommand().addArgument(" I=out_" + i + ".bam");
+      }
+     */
     
     // CLEANUP FINAL BAM
     Job cleanup3 = this.getWorkflow().createBashJob("cleanup4");
