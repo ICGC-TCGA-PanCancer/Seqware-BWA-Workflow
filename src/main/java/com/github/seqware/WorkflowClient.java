@@ -212,10 +212,12 @@ public class WorkflowClient extends OicrWorkflow {
         qcJobs.add(qcJob);
         
         // CLEANUP DOWNLOADED INPUT UNALIGNED BAM FILES
-        Job cleanup1 = this.getWorkflow().createBashJob("cleanup_" + i);
-        cleanup1.getCommand().addArgument("rm -f " + file);
-        cleanup1.setMaxMemory(smallJobMemM);
-        cleanup1.addParent(job03);
+        if (useGtDownload) {
+          Job cleanup1 = this.getWorkflow().createBashJob("cleanup_" + i);
+          cleanup1.getCommand().addArgument("rm -f " + file);
+          cleanup1.setMaxMemory(smallJobMemM);
+          cleanup1.addParent(job03);
+        }
 
       } else if ("mem".equals(bwaChoice)) {
 
@@ -258,10 +260,12 @@ public class WorkflowClient extends OicrWorkflow {
         qcJobs.add(qcJob);
         
         // CLEANUP DOWNLOADED INPUT UNALIGNED BAM FILES
-        Job cleanup1 = this.getWorkflow().createBashJob("cleanup2_" + i);
-        cleanup1.getCommand().addArgument("rm -f " + file);
-        cleanup1.setMaxMemory(smallJobMemM);
-        cleanup1.addParent(job01);
+        if (useGtDownload) {
+          Job cleanup1 = this.getWorkflow().createBashJob("cleanup2_" + i);
+          cleanup1.getCommand().addArgument("rm -f " + file);
+          cleanup1.setMaxMemory(smallJobMemM);
+          cleanup1.addParent(job01);
+        }
 
       } else {
         // not sure if there's a better way to do this
