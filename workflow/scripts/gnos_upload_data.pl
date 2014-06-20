@@ -35,14 +35,15 @@ my $key = "gnostest.pem";
 my $md5_file = "";
 my $upload_url = "";
 my $test = 0;
+my $skip_validate = 0;
 # hardcoded
 my $workflow_version = "2.5.0";
 # hardcoded
 my $workflow_url = "https://s3.amazonaws.com/oicr.workflow.bundles/released-bundles/Workflow_Bundle_BWA_".$workflow_version."_SeqWare_1.0.13.zip";
 my $force_copy = 0;
 
-if (scalar(@ARGV) < 12 || scalar(@ARGV) > 14) { die "USAGE: 'perl gnos_upload_data.pl --metadata-urls <URLs_comma_separated> --bam <sample-level_bam_file_path> --bam-md5sum-file <file_with_bam_md5sum> --outdir <output_dir> --key <gnos.pem> --upload-url <gnos_server_url> [--test]\n"; }
-GetOptions("metadata-urls=s" => \$metadata_urls, "bam=s" => \$bam, "outdir=s" => \$output_dir, "key=s" => \$key, "bam-md5sum-file=s" => \$md5_file, "upload-url=s" => \$upload_url, "test" => \$test, "force-copy" => \$force_copy);
+if (scalar(@ARGV) < 12 || scalar(@ARGV) > 15) { die "USAGE: 'perl gnos_upload_data.pl --metadata-urls <URLs_comma_separated> --bam <sample-level_bam_file_path> --bam-md5sum-file <file_with_bam_md5sum> --outdir <output_dir> --key <gnos.pem> --upload-url <gnos_server_url> [--test]\n"; }
+GetOptions("metadata-urls=s" => \$metadata_urls, "bam=s" => \$bam, "outdir=s" => \$output_dir, "key=s" => \$key, "bam-md5sum-file=s" => \$md5_file, "upload-url=s" => \$upload_url, "test" => \$test, "force-copy" => \$force_copy, "skip-validate" => \$skip_validate);
 
 # setup output dir
 my $ug = Data::UUID->new;
@@ -92,7 +93,9 @@ sub validate_submission {
   my ($sub_path) = @_;
   my $cmd = "cgsubmit --validate-only -s $upload_url -o validation.log -u $sub_path -vv";
   print "VALIDATING: $cmd\n";
-  return(system($cmd));
+  if (!$skip_validate) {
+    return(system($cmd));
+  }
 }
 
 sub upload_submission {

@@ -27,6 +27,7 @@ public class WorkflowClient extends OicrWorkflow {
   String gnosKey = null;
   boolean useGtDownload = true;
   boolean useGtUpload = true;
+  boolean useGtValidation = true;
   // number of splits for bam files, default 1=no split
   int bamSplits = 1;
   String reference_path = null;
@@ -43,7 +44,7 @@ public class WorkflowClient extends OicrWorkflow {
   String picardSortMem = "6";
   String picardSortJobMem = "8";
   String uploadScriptJobMem = "2";
-  int numOfThreads; //aln 
+  int numOfThreads; //aln
   int maxInsertSize; //sampe
   String readGroup;//sampe
   String bwa_aln_params;
@@ -61,7 +62,7 @@ public class WorkflowClient extends OicrWorkflow {
   public Map<String, SqwFile> setupFiles() {
 
     /*
-     This workflow isn't using file provisioning since 
+     This workflow isn't using file provisioning since
      we're using GeneTorrent. So this method is just being
      used to setup various variables.
      */
@@ -100,6 +101,7 @@ public class WorkflowClient extends OicrWorkflow {
       smallJobMemM = getProperty("smallJobMemM") == null ? "3000" : getProperty("smallJobMemM");
       if (getProperty("use_gtdownload") != null) { if("false".equals(getProperty("use_gtdownload"))) { useGtDownload = false; } }
       if (getProperty("use_gtupload") != null) { if("false".equals(getProperty("use_gtupload"))) { useGtUpload = false; } }
+      if (getProperty("use_gtvalidation") != null) { if("false".equals(getProperty("use_gtvalidation"))) { useGtValidation = false; } }
 
     } catch (Exception e) {
       Logger.getLogger(WorkflowClient.class.getName()).log(Level.SEVERE, null, e);
@@ -111,7 +113,7 @@ public class WorkflowClient extends OicrWorkflow {
 
   @Override
   public void setupDirectory() {
-    // creates the final output 
+    // creates the final output
     this.addDirectory(dataDir);
     this.addDirectory(resultsDir);
   }
@@ -127,16 +129,16 @@ public class WorkflowClient extends OicrWorkflow {
     // let's start by downloading the input BAMs
     int numInputURLs = this.inputURLs.size();
     for (int i = 0; i < numInputURLs; i++) {
-      
+
       // the file downloaded will be in this path
       String file = bamPaths.get(i);
       // the URL to download this from
       String fileURL = inputURLs.get(i);
-      
+
     /* Job job05 = this.getWorkflow().createBashJob("upload");
     job05.getCommand().addArgument(""
       + "synapse -u <uSERNAME > -p <PASSWORD> -parentId add " + fileURL + " > " + file +".synapse" ); */
-        
+
       // the download job that either downloads or locates the file on the filesystem
       Job downloadJob = null;
       if (useGtDownload) {
@@ -153,7 +155,7 @@ public class WorkflowClient extends OicrWorkflow {
 
       // the QC job used by either path below
       Job qcJob = null;
-      
+
       if ("aln".equals(bwaChoice)) {
 
         // BWA ALN STEPS
@@ -203,14 +205,14 @@ public class WorkflowClient extends OicrWorkflow {
         job03.addParent(job02);
         job03.setMaxMemory(bwaSampeMemG + "900");
         bamJobs.add(job03);
-        
+
         // QC JOB
         qcJob = this.getWorkflow().createBashJob("bam_stats_qc_" + i);
         addBamStatsQcJobArgument(i, qcJob);
         qcJob.addParent(job03);
         qcJob.setMaxMemory(smallJobMemM);
         qcJobs.add(qcJob);
-        
+
         // CLEANUP DOWNLOADED INPUT UNALIGNED BAM FILES
         if (useGtDownload) {
           Job cleanup1 = this.getWorkflow().createBashJob("cleanup_" + i);
@@ -224,7 +226,7 @@ public class WorkflowClient extends OicrWorkflow {
         // BWA MEM
         Job job01 = this.getWorkflow().createBashJob("bwa_mem_" + i);
         job01.addParent(headerJob);
-        job01.getCommand().addArgument("LD_LIBRARY_PATH=" + this.getWorkflowBaseDir() + pcapPath + "/lib") 
+        job01.getCommand().addArgument("LD_LIBRARY_PATH=" + this.getWorkflowBaseDir() + pcapPath + "/lib")
                 .addArgument(this.getWorkflowBaseDir() + pcapPath + "/bin/bamtofastq")
                 .addArgument("exclude=QCFAIL,SECONDARY,SUPPLEMENTARY")
                 .addArgument("T=out_" + i + ".t")
@@ -251,14 +253,14 @@ public class WorkflowClient extends OicrWorkflow {
           job01.setThreads(Integer.parseInt(getProperty("numOfThreads")));
         }*/
         bamJobs.add(job01);
-        
+
         // QC JOB
         qcJob = this.getWorkflow().createBashJob("bam_stats_qc_" + i);
         addBamStatsQcJobArgument(i, qcJob);
         qcJob.addParent(job01);
         qcJob.setMaxMemory(smallJobMemM);
         qcJobs.add(qcJob);
-        
+
         // CLEANUP DOWNLOADED INPUT UNALIGNED BAM FILES
         if (useGtDownload) {
           Job cleanup1 = this.getWorkflow().createBashJob("cleanup2_" + i);
@@ -274,7 +276,7 @@ public class WorkflowClient extends OicrWorkflow {
 
     }
 
-    // MERGE 
+    // MERGE
     Job job04 = this.getWorkflow().createBashJob("mergeBAM");
 
     if ("aln".equals(bwaChoice)) {
@@ -299,7 +301,7 @@ public class WorkflowClient extends OicrWorkflow {
       if (!getProperty("numOfThreads").isEmpty()) {
         numThreads = Integer.parseInt(getProperty("numOfThreads"));
       }
-      job04.getCommand().addArgument("LD_LIBRARY_PATH=" + this.getWorkflowBaseDir() + pcapPath + "/lib") 
+      job04.getCommand().addArgument("LD_LIBRARY_PATH=" + this.getWorkflowBaseDir() + pcapPath + "/lib")
               .addArgument(this.getWorkflowBaseDir() + pcapPath + "/bin/bammarkduplicates")
               .addArgument("O=" + this.dataDir + outputFileName)
               .addArgument("M=" + this.dataDir + outputFileName + ".metrics")
@@ -316,9 +318,9 @@ public class WorkflowClient extends OicrWorkflow {
         job04.setThreads(Integer.parseInt(getProperty("numOfThreads")));
       }*/
       job04.setMaxMemory(picardSortJobMem + "900");
-      
+
     }
-    
+
     // CLEANUP LANE LEVEL BAM FILES
     for (int i = 0; i < numBamFiles; i++) {
       Job cleanup2 = this.getWorkflow().createBashJob("cleanup3_" + i);
@@ -345,19 +347,22 @@ public class WorkflowClient extends OicrWorkflow {
     if ("true".equals(skipUpload) || !useGtUpload) {
       job05.getCommand().addArgument("--test");
     }
+    if (!useGtValidation) {
+      job05.getCommand().addArgument("--skip-validate");
+    }
     job05.setMaxMemory(uploadScriptJobMem + "900");
     job05.addParent(job04);
     for (Job qcJob : qcJobs) {
       job05.addParent(qcJob);
     }
-    
+
     /* Job job05 = this.getWorkflow().createBashJob("upload");
     job05.getCommand().addArgument(""
      for (int i = 0; i < numBamFiles; i++) {
         job04.getCommand().addArgument(" I=out_" + i + ".bam");
       }
      */
-    
+
     // CLEANUP FINAL BAM
     Job cleanup3 = this.getWorkflow().createBashJob("cleanup4");
     cleanup3.getCommand().addArgument("rm -f " + this.dataDir + outputFileName);
@@ -444,9 +449,9 @@ public class WorkflowClient extends OicrWorkflow {
     }
     return paramCommand;
   }
-  
+
   private Job addDownloadJobArgs (Job job, String file, String fileURL) {
-    
+
     // a little unsafe
     String[] pathElements = file.split("/");
     String analysisId = pathElements[0];
@@ -457,18 +462,18 @@ public class WorkflowClient extends OicrWorkflow {
     .addArgument("--search-path .")
     .addArgument("--retries "+gtdownloadRetries)
     .addArgument("--md5-retries "+gtdownloadMd5Time);
-    
+
     return(job);
   }
-  
+
   private Job addBamStatsQcJobArgument (final int i, Job job) {
-	  
+
 	job.getCommand().addArgument("perl -I " + this.getWorkflowBaseDir() + pcapPath + "/lib/perl5/")
                     .addArgument("-I " + this.getWorkflowBaseDir() + pcapPath + "/lib/perl5/x86_64-linux-gnu-thread-multi/")
                     .addArgument(this.getWorkflowBaseDir() + pcapPath + "/bin/bam_stats.pl")
                     .addArgument("-i " + "out_" + i + ".bam")
                     .addArgument("-o " + "out_" + i + ".bam.stats.txt");
-	  
-	return job;  
+
+	return job;
   }
 }
