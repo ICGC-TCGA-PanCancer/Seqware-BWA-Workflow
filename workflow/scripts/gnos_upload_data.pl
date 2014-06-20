@@ -55,10 +55,10 @@ my $bam_check = `cat $md5_file`;
 chomp $bam_check;
 if ($force_copy) {
   # rsync to destination
-  print ("rsync -rauv `pwd`/$bam $output_dir/$bam_check.bam\n");
-  print ("rsync -rauv `pwd`/$md5_file $output_dir/$bam_check.bam.md5\n");
-  system("rsync -rauv `pwd`/$bam $output_dir/$bam_check.bam");
-  system("rsync -rauv `pwd`/$md5_file $output_dir/$bam_check.bam.md5");
+  print ("mv `pwd`/$bam $output_dir/$bam_check.bam\n");
+  print ("mv `pwd`/$md5_file $output_dir/$bam_check.bam.md5\n");
+  system("mv `pwd`/$bam $output_dir/$bam_check.bam");
+  system("mv `pwd`/$md5_file $output_dir/$bam_check.bam.md5");
 } else {
   # symlink for bam and md5sum file
   print ("ln -s `pwd`/$bam $output_dir/$bam_check.bam\n");
