@@ -37,34 +37,53 @@ my $upload_url = "";
 my $test = 0;
 my $skip_validate = 0;
 # hardcoded
-my $workflow_version = "2.5.0";
+my $workflow_version = "2.6.0";
+my $workflow_name = "Workflow_Bundle_BWA";
 # hardcoded
+my $workflow_src_url = "https://github.com/SeqWare/public-workflows";
 my $workflow_url = "https://s3.amazonaws.com/oicr.workflow.bundles/released-bundles/Workflow_Bundle_BWA_".$workflow_version."_SeqWare_1.0.13.zip";
+my $bwa_version = "0.7.7-r441";
+my $pcap_version = "1.0.2";
 my $force_copy = 0;
 
-if (scalar(@ARGV) < 12 || scalar(@ARGV) > 15) { die "USAGE: 'perl gnos_upload_data.pl --metadata-urls <URLs_comma_separated> --bam <sample-level_bam_file_path> --bam-md5sum-file <file_with_bam_md5sum> --outdir <output_dir> --key <gnos.pem> --upload-url <gnos_server_url> [--test]\n"; }
-GetOptions("metadata-urls=s" => \$metadata_urls, "bam=s" => \$bam, "outdir=s" => \$output_dir, "key=s" => \$key, "bam-md5sum-file=s" => \$md5_file, "upload-url=s" => \$upload_url, "test" => \$test, "force-copy" => \$force_copy, "skip-validate" => \$skip_validate);
+if (scalar(@ARGV) < 12 || scalar(@ARGV) > 15) {
+  die "USAGE: 'perl gnos_upload_data.pl
+       --metadata-urls <URLs_comma_separated>
+       --bam <sample-level_bam_file_path>
+       --bam-md5sum-file <file_with_bam_md5sum>
+       --outdir <output_dir>
+       --key <gnos.pem>
+       --upload-url <gnos_server_url>
+       [--skip-validate]
+       [--test]\n"; }
+
+GetOptions(
+     "metadata-urls=s" => \$metadata_urls,
+     "bam=s" => \$bam,
+     "outdir=s" => \$output_dir,
+     "key=s" => \$key,
+     "bam-md5sum-file=s" => \$md5_file,
+     "upload-url=s" => \$upload_url,
+     "test" => \$test,
+     "force-copy" => \$force_copy,
+     "skip-validate" => \$skip_validate,
+     );
 
 # setup output dir
 my $ug = Data::UUID->new;
 my $uuid = lc($ug->create_str());
-system("mkdir -p $output_dir/$uuid");
+run("mkdir -p $output_dir/$uuid");
 $output_dir = $output_dir."/$uuid/";
 # md5sum
 my $bam_check = `cat $md5_file`;
+my $bai_check = `cat $bam.bai.md5`;
 chomp $bam_check;
 if ($force_copy) {
   # rsync to destination
-  print ("mv `pwd`/$bam $output_dir/$bam_check.bam\n");
-  print ("mv `pwd`/$md5_file $output_dir/$bam_check.bam.md5\n");
-  system("mv `pwd`/$bam $output_dir/$bam_check.bam");
-  system("mv `pwd`/$md5_file $output_dir/$bam_check.bam.md5");
+  run("rsync -rauv `pwd`/$bam $output_dir/$bam_check.bam && rsync -rauv `pwd`/$md5_file $output_dir/$bam_check.bam.md5 && rsync -rauv `pwd`/$bam.bai $output_dir/$bam_check.bam.bai && rsync -rauv `pwd`/$bam.bai.md5 $output_dir/$bam_check.bam.bai.md5");
 } else {
   # symlink for bam and md5sum file
-  print ("ln -s `pwd`/$bam $output_dir/$bam_check.bam\n");
-  print ("ln -s `pwd`/$md5_file $output_dir/$bam_check.bam.md5\n");
-  system("ln -s `pwd`/$bam $output_dir/$bam_check.bam");
-  system("ln -s `pwd`/$md5_file $output_dir/$bam_check.bam.md5");
+  run("ln -s `pwd`/$bam $output_dir/$bam_check.bam && ln -s `pwd`/$md5_file $output_dir/$bam_check.bam.md5 && ln -s `pwd`/$bam.bai $output_dir/$bam_check.bam.bai && ln -s `pwd`/$bam.bai.md5 $output_dir/$bam_check.bam.bai.md5");
 }
 
 
@@ -91,25 +110,25 @@ if (upload_submission($sub_path)) { die "The upload of files did not work!  File
 
 sub validate_submission {
   my ($sub_path) = @_;
-  my $cmd = "cgsubmit --validate-only -s $upload_url -o validation.log -u $sub_path -vv";
+  my $cmd = "cgsubmit --validate-only -s $upload_url -o validation.$bam_check.log -u $sub_path -vv";
   print "VALIDATING: $cmd\n";
   if (!$skip_validate) {
-    return(system($cmd));
+    return(run($cmd));
   }
 }
 
 sub upload_submission {
   my ($sub_path) = @_;
-  my $cmd = "cgsubmit -s $upload_url -o metadata_upload.log -u $sub_path -vv -c $key";
+  my $cmd = "cgsubmit -s $upload_url -o metadata_upload.$bam_check.log -u $sub_path -vv -c $key";
   print "UPLOADING METADATA: $cmd\n";
   if (!$test) {
-    if (system($cmd)) { return(1); }
+    if (run($cmd)) { return(1); }
   }
 
   $cmd = "cd $sub_path; gtupload -v -c $key -u ./manifest.xml; cd -";
   if (!$test) {
     print "UPLOADING DATA: $cmd\n";
-    if (system($cmd)) { return(1); }
+    if (run($cmd)) { return(1); }
   }
 
 }
@@ -364,7 +383,7 @@ END
                 <STEP_INDEX>$rgl</STEP_INDEX>
                 <PREV_STEP_INDEX>NIL</PREV_STEP_INDEX>
                 <PROGRAM>bwa</PROGRAM>
-                <VERSION>0.7.7-r441</VERSION>
+                <VERSION>$bwa_version</VERSION>
                 <NOTES>bwa mem -t 8 -p -T 0 genome.fa.gz $fname</NOTES>
               </PIPE_SECTION>
 END
@@ -396,20 +415,7 @@ END
 END
 
        $analysis_xml .= "          <FILE filename=\"$bam_check.bam\" filetype=\"bam\" checksum_method=\"MD5\" checksum=\"$bam_check\" />\n";
-
-       # incorrect, there's only one bam!
-       $i=0;
-       foreach my $url (keys %{$m}) {
-       foreach my $run (@{$m->{$url}{'run'}}) {
-       if (defined($run->{'read_group_label'})) {
-          my $fname = $m->{$url}{'file'}[$i]{'filename'};
-          my $ftype= $m->{$url}{'file'}[$i]{'filetype'};
-          my $check = $m->{$url}{'file'}[$i]{'checksum'};
-          #$analysis_xml .= "<FILE filename=\"$fname\" filetype=\"$ftype\" checksum_method=\"MD5\" checksum=\"$check\" />\n";
-       }
-       $i++;
-       }
-       }
+       $analysis_xml .= "          <FILE filename=\"$bam_check.bam.bai\" filetype=\"bai\" checksum_method=\"MD5\" checksum=\"$bai_check\" />\n";
 
   $analysis_xml .= <<END;
         </FILES>
@@ -427,6 +433,36 @@ END
 ";
       }
     }
+
+  # some metadata about this workflow
+  # TODO: add runtime info in here too, possibly other info
+  # see https://jira.oicr.on.ca/browse/PANCANCER-43
+  # see https://jira.oicr.on.ca/browse/PANCANCER-6
+  $analysis_xml .= "<ANALYSIS_ATTRIBUTE>
+    <TAG>workflow_name</TAG>
+    <VALUE>$workflow_name</VALUE>
+  </ANALYSIS_ATTRIBUTE>
+  <ANALYSIS_ATTRIBUTE>
+    <TAG>workflow_version</TAG>
+    <VALUE>$workflow_version</VALUE>
+  </ANALYSIS_ATTRIBUTE>
+  <ANALYSIS_ATTRIBUTE>
+    <TAG>workflow_source_url</TAG>
+    <VALUE>$workflow_src_url</VALUE>
+  </ANALYSIS_ATTRIBUTE>
+  <ANALYSIS_ATTRIBUTE>
+    <TAG>workflow_bundle_url</TAG>
+    <VALUE>$workflow_url</VALUE>
+  </ANALYSIS_ATTRIBUTE>
+<ANALYSIS_ATTRIBUTE>
+  <TAG>bwa_version</TAG>
+  <VALUE>$bwa_version</VALUE>
+</ANALYSIS_ATTRIBUTE>
+<ANALYSIS_ATTRIBUTE>
+  <TAG>PCAP-core_version</TAG>
+  <VALUE>$pcap_version</VALUE>
+</ANALYSIS_ATTRIBUTE>
+  ";
 
   # QC
   $analysis_xml .= "        <ANALYSIS_ATTRIBUTE>
@@ -522,7 +558,7 @@ sub read_header {
 sub download_metadata {
   my ($urls_str) = @_;
   my $metad = {};
-  system("mkdir -p xml2");
+  run("mkdir -p xml2");
   my @urls = split /,/, $urls_str;
   my $i = 0;
   foreach my $url (@urls) {
@@ -568,10 +604,10 @@ sub getBlock {
 
 sub download_url {
   my ($url, $path) = @_;
-  my $r = system("wget -q -O $path $url");
+  my $r = run("wget -q -O $path $url");
   if ($r) {
           $ENV{PERL_LWP_SSL_VERIFY_HOSTNAME}=0;
-    $r = system("lwp-download $url $path");
+    $r = run("lwp-download $url $path");
     if ($r) {
             print "ERROR DOWNLOADING: $url\n";
             exit(1);
@@ -691,6 +727,14 @@ sub getQcResult {
   }
 
   return to_json $ret;
+}
+
+sub run {
+  my ($cmd, $do_die) = @_;
+  print "CMD: $cmd\n";
+  my $result = system($cmd);
+  if ($do_die && $result) { die "ERROR: CMD '$cmd' returned non-zero status"; }
+  return($result);
 }
 
 0;

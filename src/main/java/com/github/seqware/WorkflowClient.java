@@ -25,6 +25,7 @@ public class WorkflowClient extends OicrWorkflow {
   String gnosInputMetadataURLs = null;
   String gnosUploadFileURL = null;
   String gnosKey = null;
+  int gnosMaxChildren = 3;
   boolean useGtDownload = true;
   boolean useGtUpload = true;
   boolean useGtValidation = true;
@@ -85,6 +86,7 @@ public class WorkflowClient extends OicrWorkflow {
       resultsDir = outputPrefix + outputDir;
       gnosUploadFileURL = getProperty("gnos_output_file_url");
       gnosKey = getProperty("gnos_key");
+      gnosMaxChildren = getProperty("gnos_max_children") == null ? 3 : Integer.parseInt(getProperty("gnos_max_children"));
       reference_path = getProperty("input_reference");
       bwaChoice = getProperty("bwa_choice") == null ? "aln" : getProperty("bwa_choice");
       bwaAlignMemG = getProperty("bwaAlignMemG") == null ? "8" : getProperty("bwaAlignMemG");
@@ -457,7 +459,7 @@ public class WorkflowClient extends OicrWorkflow {
     String analysisId = pathElements[0];
 
     job.getCommand().addArgument("perl " + this.getWorkflowBaseDir() + "/scripts/launch_and_monitor_gnos.pl")
-    .addArgument("--command 'gtdownload -c "+gnosKey+" -v -d "+fileURL+"'")
+    .addArgument("--command 'gtdownload --max-children "+gnosMaxChildren+" -c "+gnosKey+" -v -d "+fileURL+"'")
     .addArgument("--file-grep "+analysisId)
     .addArgument("--search-path .")
     .addArgument("--retries "+gtdownloadRetries)
