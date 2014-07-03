@@ -151,7 +151,7 @@ public class WorkflowClient extends OicrWorkflow {
 
       // in the future this should use the read group if provided otherwise use read group from bam file
       Job headerJob = this.getWorkflow().createBashJob("headerJob" + i);
-      headerJob.getCommand().addArgument(this.getWorkflowBaseDir() + "/bin/samtools-0.1.19/samtools view -H " + file + " | grep @RG | sed 's/\\t/\\\\t/g' > bam_header." + i + ".txt");
+      headerJob.getCommand().addArgument("set -e; set -o pipefail; " + this.getWorkflowBaseDir() + "/bin/samtools-0.1.19/samtools view -H " + file + " | grep @RG | sed 's/\\t/\\\\t/g' > bam_header." + i + ".txt");
       if (useGtDownload) { headerJob.addParent(downloadJob); }
       headerJob.setMaxMemory(smallJobMemM);
 
@@ -190,7 +190,9 @@ public class WorkflowClient extends OicrWorkflow {
         // BWA SAMPE + CONVERT TO BAM
         //bwa sampe reference/genome.fa.gz aligned_1.sai aligned_2.sai HG00096.chrom20.ILLUMINA.bwa.GBR.low_coverage.20120522.bam_000000.bam HG00096.chrom20.ILLUMINA.bwa.GBR.low_coverage.20120522.bam_000000.bam > aligned.sam
         Job job03 = this.getWorkflow().createBashJob("bwa_sam_bam_" + i);
-        job03.getCommand().addArgument(this.getWorkflowBaseDir() + "/bin/bwa-0.6.2/bwa sampe ")
+        job03.getCommand()
+                .addArgument("set -e; set -o pipefail;")
+                .addArgument(this.getWorkflowBaseDir() + "/bin/bwa-0.6.2/bwa sampe ")
                 .addArgument("-r \"`cat bam_header." + i + ".txt`\"")
                 .addArgument(this.parameters("sampe").isEmpty() ? " " : this.parameters("sampe"))
                 .addArgument(reference_path)
@@ -228,7 +230,9 @@ public class WorkflowClient extends OicrWorkflow {
         // BWA MEM
         Job job01 = this.getWorkflow().createBashJob("bwa_mem_" + i);
         job01.addParent(headerJob);
-        job01.getCommand().addArgument("LD_LIBRARY_PATH=" + this.getWorkflowBaseDir() + pcapPath + "/lib")
+        job01.getCommand()
+                .addArgument("set -e; set -o pipefail;")
+                .addArgument("LD_LIBRARY_PATH=" + this.getWorkflowBaseDir() + pcapPath + "/lib")
                 .addArgument(this.getWorkflowBaseDir() + pcapPath + "/bin/bamtofastq")
                 .addArgument("exclude=QCFAIL,SECONDARY,SUPPLEMENTARY")
                 .addArgument("T=out_" + i + ".t")
