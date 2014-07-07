@@ -326,6 +326,11 @@ public class WorkflowClient extends OicrWorkflow {
       /* if (!getProperty("numOfThreads").isEmpty()) {
         job04.setThreads(Integer.parseInt(getProperty("numOfThreads")));
       }*/
+
+      // now compute md5sum for the bai file
+      job04.getCommand().addArgument(" && md5sum " + this.dataDir + outputFileName + ".bai | awk '{printf $1}'"
+          + " > " + this.dataDir + outputFileName + ".bai.md5");
+
       job04.setMaxMemory(picardSortJobMem + "900");
 
     }
