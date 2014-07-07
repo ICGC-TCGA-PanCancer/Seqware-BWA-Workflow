@@ -57,7 +57,7 @@ public class WorkflowClient extends OicrWorkflow {
   String gtdownloadRetries = "30";
   String gtdownloadMd5Time = "120";
   String gtdownloadMem = "8";
-  String smallJobMemM = "3000";
+  String smallJobMemM = "4000";
 
   @Override
   public Map<String, SqwFile> setupFiles() {

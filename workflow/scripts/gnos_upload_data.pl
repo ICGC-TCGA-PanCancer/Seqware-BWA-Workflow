@@ -2,6 +2,8 @@ use strict;
 use Data::Dumper;
 use Getopt::Long;
 use XML::DOM;
+use XML::XPath;
+use XML::XPath::XMLParser;
 use JSON;
 use Data::UUID;
 use XML::LibXML;
@@ -580,25 +582,23 @@ sub parse_metadata {
   push @{$m->{'target'}}, getValsMulti($doc, 'TARGET', "refcenter,refname");
   push @{$m->{'file'}}, getValsMulti($doc, 'FILE', "checksum,filename,filetype");
   $m->{'analysis_attr'} = getAttrs($doc);
-  $m->{'experiment'} = getBlock($xml_path, "EXPERIMENT ", "EXPERIMENT");
-  $m->{'run_block'} = getBlock($xml_path, "RUN center_name", "RUN");
+  $m->{'experiment'} = getBlock($xml_path, "/ResultSet/Result/experiment_xml/EXPERIMENT_SET/EXPERIMENT");
+  $m->{'run_block'} = getBlock($xml_path, "/ResultSet/Result/run_xml/RUN_SET/RUN");
   return($m);
 }
 
 sub getBlock {
-  my ($xml_file, $key, $end) = @_;
+  my ($xml_file, $xpath) = @_;
+  
   my $block = "";
-  open IN, "<$xml_file" or die "Can't open file $xml_file\n";
-  my $reading = 0;
-  while (<IN>) {
-    chomp;
-    if (/<$key/) { $reading = 1; }
-    if ($reading) {
-      $block .= "$_\n";
-    }
-    if (/<\/$end>/) { $reading = 0; }
+  ## use XPath parser instead of using REGEX to extract desired XML fragment, to fix issue: https://jira.oicr.on.ca/browse/PANCANCER-42
+  my $xp = XML::XPath->new(filename => $xml_file) or die "Can't open file $xml_file\n";
+  
+  my $nodeset = $xp->find($xpath);
+  foreach my $node ($nodeset->get_nodelist) {
+    $block .= XML::XPath::XMLParser::as_string($node) . "\n";
   }
-  close IN;
+  
   return $block;
 }
 
