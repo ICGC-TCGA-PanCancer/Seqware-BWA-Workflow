@@ -241,7 +241,9 @@ public class WorkflowClient extends OicrWorkflow {
                 .addArgument("O2=out_" + i + ".o2")
                 .addArgument("collate=1")
                 .addArgument("tryoq=1")
-                .addArgument("filename=" + file + " | LD_LIBRARY_PATH=" + this.getWorkflowBaseDir() + pcapPath + "/lib")
+                .addArgument("filename=" + file)
+                .addArgument(" |perl -ne '$_ =~ s|@[01](/[12])$|\1| if($. % 4 == 1); print $_;'")
+                .addArgument(" | LD_LIBRARY_PATH=" + this.getWorkflowBaseDir() + pcapPath + "/lib")
                 .addArgument(this.getWorkflowBaseDir() + pcapPath + "/bin/bwa mem")
                 // this pulls in threads and extra params
                 .addArgument(this.parameters("mem") == null ? " " : this.parameters("mem"))
