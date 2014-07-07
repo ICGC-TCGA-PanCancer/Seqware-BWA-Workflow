@@ -240,6 +240,7 @@ public class WorkflowClient extends OicrWorkflow {
                 .addArgument("O=out_" + i + ".o")
                 .addArgument("O2=out_" + i + ".o2")
                 .addArgument("collate=1")
+                .addArgument("tryoq=1")
                 .addArgument("filename=" + file + " | LD_LIBRARY_PATH=" + this.getWorkflowBaseDir() + pcapPath + "/lib")
                 .addArgument(this.getWorkflowBaseDir() + pcapPath + "/bin/bwa mem")
                 // this pulls in threads and extra params
