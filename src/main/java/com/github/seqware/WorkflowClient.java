@@ -51,7 +51,7 @@ public class WorkflowClient extends OicrWorkflow {
   String bwa_aln_params;
   String bwa_sampe_params;
   String skipUpload = null;
-  String pcapPath = "/bin/PCAP-core-1.0.2";
+  String pcapPath = "/bin/PCAP-core-1.1.1";
   // GTDownload
   // each retry is 1 minute
   String gtdownloadRetries = "30";

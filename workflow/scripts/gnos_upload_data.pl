@@ -45,8 +45,8 @@ my $workflow_name = "Workflow_Bundle_BWA";
 my $workflow_src_url = "https://github.com/SeqWare/public-workflows";
 my $workflow_url = "https://s3.amazonaws.com/oicr.workflow.bundles/released-bundles/Workflow_Bundle_BWA_".$workflow_version."_SeqWare_1.0.13.zip";
 my $bwa_version = "0.7.8-r455";
-my $biobambam_version = "0.0.138";
-my $pcap_version = "1.0.2";
+my $biobambam_version = "0.0.148";
+my $pcap_version = "1.1.1";
 my $force_copy = 0;
 
 if (scalar(@ARGV) < 12 || scalar(@ARGV) > 15) {
