@@ -26,7 +26,7 @@ public class WorkflowClient extends OicrWorkflow {
   String gnosUploadFileURL = null;
   String gnosKey = null;
   int gnosMaxChildren = 3;
-  int gnosRateLimit = 50; // unit: MB/s
+  int gnosRateLimit = 200; // unit: MB/s
   int gnosTimeout = 40; // unit: minute
   boolean useGtDownload = true;
   boolean useGtUpload = true;
