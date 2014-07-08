@@ -26,6 +26,8 @@ public class WorkflowClient extends OicrWorkflow {
   String gnosUploadFileURL = null;
   String gnosKey = null;
   int gnosMaxChildren = 3;
+  int gnosRateLimit = 50; // unit: MB/s
+  int gnosTimeout = 40; // unit: minute
   boolean useGtDownload = true;
   boolean useGtUpload = true;
   boolean useGtValidation = true;
@@ -87,6 +89,8 @@ public class WorkflowClient extends OicrWorkflow {
       gnosUploadFileURL = getProperty("gnos_output_file_url");
       gnosKey = getProperty("gnos_key");
       gnosMaxChildren = getProperty("gnos_max_children") == null ? 3 : Integer.parseInt(getProperty("gnos_max_children"));
+      gnosRateLimit = getProperty("gnos_rate_limit") == null ? 50 : Integer.parseInt(getProperty("gnos_rate_limit"));
+      gnosTimeout = getProperty("gnos_timeout") == null ? 40 : Integer.parseInt(getProperty("gnos_timeout"));
       reference_path = getProperty("input_reference");
       bwaChoice = getProperty("bwa_choice") == null ? "aln" : getProperty("bwa_choice");
       bwaAlignMemG = getProperty("bwaAlignMemG") == null ? "8" : getProperty("bwaAlignMemG");
@@ -471,7 +475,12 @@ public class WorkflowClient extends OicrWorkflow {
     String analysisId = pathElements[0];
 
     job.getCommand().addArgument("perl " + this.getWorkflowBaseDir() + "/scripts/launch_and_monitor_gnos.pl")
-    .addArgument("--command 'gtdownload --max-children "+gnosMaxChildren+" -c "+gnosKey+" -v -d "+fileURL+"'")
+    .addArgument("--command 'gtdownload "
+               + " --max-children " + gnosMaxChildren
+               + " --rate-limit " + gnosRateLimit
+               + " --inactivity-timeout " + gnosTimeout
+               + " -c " + gnosKey
+               + " -v -d "+fileURL+"'")
     .addArgument("--file-grep "+analysisId)
     .addArgument("--search-path .")
     .addArgument("--retries "+gtdownloadRetries)
