@@ -44,7 +44,8 @@ my $workflow_name = "Workflow_Bundle_BWA";
 # hardcoded
 my $workflow_src_url = "https://github.com/SeqWare/public-workflows";
 my $workflow_url = "https://s3.amazonaws.com/oicr.workflow.bundles/released-bundles/Workflow_Bundle_BWA_".$workflow_version."_SeqWare_1.0.13.zip";
-my $bwa_version = "0.7.7-r441";
+my $bwa_version = "0.7.8-r455";
+my $biobambam_version = "0.0.138";
 my $pcap_version = "1.0.2";
 my $force_copy = 0;
 
@@ -80,6 +81,7 @@ $output_dir = $output_dir."/$uuid/";
 my $bam_check = `cat $md5_file`;
 my $bai_check = `cat $bam.bai.md5`;
 chomp $bam_check;
+chomp $bai_check;
 if ($force_copy) {
   # rsync to destination
   run("rsync -rauv `pwd`/$bam $output_dir/$bam_check.bam && rsync -rauv `pwd`/$md5_file $output_dir/$bam_check.bam.md5 && rsync -rauv `pwd`/$bam.bai $output_dir/$bam_check.bam.bai && rsync -rauv `pwd`/$bam.bai.md5 $output_dir/$bam_check.bam.bai.md5");
@@ -394,6 +396,13 @@ END
                }
             }
   $analysis_xml .= <<END;
+              <PIPE_SECTION section_name="Markduplicates">
+                <STEP_INDEX>markduplicates</STEP_INDEX>
+                <PREV_STEP_INDEX>bwa</PREV_STEP_INDEX>
+                <PROGRAM>bammarkduplicates</PROGRAM>
+                <VERSION>$biobambam_version</VERSION>
+                <NOTES>bammarkduplicates is one of the programs in the biobambam BAM processing package</NOTES>
+              </PIPE_SECTION>
             </PIPELINE>
             <DIRECTIVES>
               <alignment_includes_unaligned_reads>true</alignment_includes_unaligned_reads>
