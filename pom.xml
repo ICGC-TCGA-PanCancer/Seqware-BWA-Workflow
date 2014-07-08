@@ -9,7 +9,7 @@
 
     <groupId>com.github.seqware</groupId>
     <artifactId>BWA</artifactId>
-    <version>2.5.0</version>
+    <version>2.6.0</version>
     <packaging>jar</packaging>
 
     <name>workflow-bwa-pancancer</name>
@@ -75,7 +75,7 @@
         <dependency>
             <groupId>PCAP-core</groupId>
             <artifactId>PCAP-core</artifactId>
-            <version>1.0.2</version>
+            <version>1.1.1</version>
             <type>tar.gz</type>
         </dependency>
     </dependencies>
