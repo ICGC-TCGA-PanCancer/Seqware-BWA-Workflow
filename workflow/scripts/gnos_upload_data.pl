@@ -449,31 +449,35 @@ END
   # TODO: add runtime info in here too, possibly other info
   # see https://jira.oicr.on.ca/browse/PANCANCER-43
   # see https://jira.oicr.on.ca/browse/PANCANCER-6
-  $analysis_xml .= "<ANALYSIS_ATTRIBUTE>
-    <TAG>workflow_name</TAG>
-    <VALUE>$workflow_name</VALUE>
-  </ANALYSIS_ATTRIBUTE>
-  <ANALYSIS_ATTRIBUTE>
-    <TAG>workflow_version</TAG>
-    <VALUE>$workflow_version</VALUE>
-  </ANALYSIS_ATTRIBUTE>
-  <ANALYSIS_ATTRIBUTE>
-    <TAG>workflow_source_url</TAG>
-    <VALUE>$workflow_src_url</VALUE>
-  </ANALYSIS_ATTRIBUTE>
-  <ANALYSIS_ATTRIBUTE>
-    <TAG>workflow_bundle_url</TAG>
-    <VALUE>$workflow_url</VALUE>
-  </ANALYSIS_ATTRIBUTE>
-<ANALYSIS_ATTRIBUTE>
-  <TAG>bwa_version</TAG>
-  <VALUE>$bwa_version</VALUE>
-</ANALYSIS_ATTRIBUTE>
-<ANALYSIS_ATTRIBUTE>
-  <TAG>PCAP-core_version</TAG>
-  <VALUE>$pcap_version</VALUE>
-</ANALYSIS_ATTRIBUTE>
-  ";
+  $analysis_xml .= "        <ANALYSIS_ATTRIBUTE>
+          <TAG>workflow_name</TAG>
+          <VALUE>$workflow_name</VALUE>
+        </ANALYSIS_ATTRIBUTE>
+        <ANALYSIS_ATTRIBUTE>
+          <TAG>workflow_version</TAG>
+          <VALUE>$workflow_version</VALUE>
+        </ANALYSIS_ATTRIBUTE>
+        <ANALYSIS_ATTRIBUTE>
+          <TAG>workflow_source_url</TAG>
+          <VALUE>$workflow_src_url</VALUE>
+        </ANALYSIS_ATTRIBUTE>
+        <ANALYSIS_ATTRIBUTE>
+          <TAG>workflow_bundle_url</TAG>
+          <VALUE>$workflow_url</VALUE>
+        </ANALYSIS_ATTRIBUTE>
+        <ANALYSIS_ATTRIBUTE>
+          <TAG>bwa_version</TAG>
+          <VALUE>$bwa_version</VALUE>
+        </ANALYSIS_ATTRIBUTE>
+        <ANALYSIS_ATTRIBUTE>
+          <TAG>biobambam_version</TAG>
+          <VALUE>$biobambam_version</VALUE>
+        </ANALYSIS_ATTRIBUTE>
+        <ANALYSIS_ATTRIBUTE>
+          <TAG>PCAP-core_version</TAG>
+          <VALUE>$pcap_version</VALUE>
+        </ANALYSIS_ATTRIBUTE>
+";
 
   # QC
   $analysis_xml .= "        <ANALYSIS_ATTRIBUTE>
