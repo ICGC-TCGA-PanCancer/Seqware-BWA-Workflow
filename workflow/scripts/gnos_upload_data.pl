@@ -493,6 +493,13 @@ $analysis_xml .= "        <ANALYSIS_ATTRIBUTE>
       </ANALYSIS_ATTRIBUTE>
 ";
 
+  # Markduplicates metrics
+  $analysis_xml .= "        <ANALYSIS_ATTRIBUTE>
+          <TAG>markduplicates_metrics</TAG>
+          <VALUE>" . &getMarkduplicatesMetrics() . "</VALUE>
+        </ANALYSIS_ATTRIBUTE>
+";
+
   $analysis_xml .= <<END;
       </ANALYSIS_ATTRIBUTES>
     </ANALYSIS>
@@ -803,6 +810,36 @@ sub getQcResult {
     $qc_metrics->{$_} = shift @data for (@header);
 
     push @{ $ret->{qc_metrics} }, {"read_group_id" => $qc_metrics->{readgroup}, "metrics" => $qc_metrics};
+  }
+
+  return to_json $ret;
+}
+
+sub getMarkduplicatesMetrics {
+  my $dup_metrics = `cat $bam.metrics`;
+  my @rows = split /\n/, $dup_metrics;
+  
+  my @header = ();
+  my @data = ();  
+  my $data_row = 0;
+  foreach (@rows) {
+    next if (/^#/ || /^\s*$/);
+    
+    $data_row++;
+    do {@header = split /\t/; next} if ($data_row == 1); # header line
+
+    push @data, $_;
+  }
+
+  my $ret = {"markduplicates_metrics" => [], "note" => "The metrics are produced by bammarkduplicates tool of the Biobambam package"};
+  foreach (@data) {
+    my $metrics = {};
+    my @fields = split /\t/;
+    
+    $metrics->{lc($_)} = shift @fields for (@header);
+    delete $metrics->{'estimated_library_size'}; # this is irrelevant
+    
+    push @{ $ret->{"markduplicates_metrics"} }, {"library" => $metrics->{'library'}, "metrics" => $metrics};
   }
 
   return to_json $ret;
