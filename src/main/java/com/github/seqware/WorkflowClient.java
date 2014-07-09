@@ -155,7 +155,10 @@ public class WorkflowClient extends OicrWorkflow {
 
       // in the future this should use the read group if provided otherwise use read group from bam file
       Job headerJob = this.getWorkflow().createBashJob("headerJob" + i);
-      headerJob.getCommand().addArgument("set -e; set -o pipefail; " + this.getWorkflowBaseDir() + "/bin/samtools-0.1.19/samtools view -H " + file + " | grep @RG | sed 's/\\t/\\\\t/g' > bam_header." + i + ".txt");
+      
+      // Empty PI in @RG causes downstream analysis fail at BI, see https://jira.oicr.on.ca/browse/PANCANCER-32
+      // The quick fix is to detect that and drop the empty PI in the header, one liner Perl is used (replacing previous sed)
+      headerJob.getCommand().addArgument("set -e; set -o pipefail; " + this.getWorkflowBaseDir() + "/bin/samtools-0.1.19/samtools view -H " + file + " | perl -nae 'next unless /^\\@RG/; s/\\tPI:\\s*\\t/\\t/; s/\\tPI:\\s*\\z/\\n/; print' > bam_header." + i + ".txt");
       if (useGtDownload) { headerJob.addParent(downloadJob); }
       headerJob.setMaxMemory(smallJobMemM);
 
