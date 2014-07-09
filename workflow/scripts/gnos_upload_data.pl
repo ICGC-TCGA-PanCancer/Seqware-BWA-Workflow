@@ -479,11 +479,18 @@ END
         </ANALYSIS_ATTRIBUTE>
 ";
 
-  # QC
-  $analysis_xml .= "        <ANALYSIS_ATTRIBUTE>
-          <TAG>qc_metrics</TAG>
-          <VALUE>" . &getQcResult() . "</VALUE>
-        </ANALYSIS_ATTRIBUTE>
+# QC
+$analysis_xml .= "        <ANALYSIS_ATTRIBUTE>
+        <TAG>qc_metrics</TAG>
+        <VALUE>" . &getQcResult() . "</VALUE>
+      </ANALYSIS_ATTRIBUTE>
+";
+
+# Runtime
+$analysis_xml .= "        <ANALYSIS_ATTRIBUTE>
+        <TAG>timing_metrics</TAG>
+        <VALUE>" . &getRuntimeInfo() . "</VALUE>
+      </ANALYSIS_ATTRIBUTE>
 ";
 
   $analysis_xml .= <<END;
@@ -602,16 +609,16 @@ sub parse_metadata {
 
 sub getBlock {
   my ($xml_file, $xpath) = @_;
-  
+
   my $block = "";
   ## use XPath parser instead of using REGEX to extract desired XML fragment, to fix issue: https://jira.oicr.on.ca/browse/PANCANCER-42
   my $xp = XML::XPath->new(filename => $xml_file) or die "Can't open file $xml_file\n";
-  
+
   my $nodeset = $xp->find($xpath);
   foreach my $node ($nodeset->get_nodelist) {
     $block .= XML::XPath::XMLParser::as_string($node) . "\n";
   }
-  
+
   return $block;
 }
 
@@ -710,6 +717,65 @@ sub getVals {
     }
   }
   return(@r);
+}
+
+sub getRuntimeInfo {
+  # detect all the timing files by checking file name pattern, read QC data
+  # to pull back the read group and associate with timing
+
+  opendir(DIR, ".");
+
+  my @qc_result_files = grep { /^out_\d+\.bam\.stats\.txt/ } readdir(DIR);
+
+  close(DIR);
+
+  my $ret = { "timing_metrics" => [] };
+
+  foreach (@qc_result_files) {
+
+    # find the index number so we can match with timing info
+    $_ =~ /out_(\d+)\.bam\.stats\.txt/;
+    my $i = $1;
+
+    open (QC, "< $_");
+
+    my @header = split /\t/, <QC>;
+    my @data = split /\t/, <QC>;
+    chomp ((@header, @data));
+
+    close (QC);
+
+    my $qc_metrics = {};
+    $qc_metrics->{$_} = shift @data for (@header);
+
+    my $read_group = $qc_metrics->{readgroup};
+
+    # now go ahead and read that index file for timing
+    my $download_timing = read_timing("download_timing_$i.txt");
+    my $bwa_timing = read_timing("bwa_timing_$i.txt");
+    my $qc_timing = read_timing("qc_timing_$i.txt");
+    my $merge_timing = read_timing("merge_timing.txt");
+
+    # fill in the data structure
+    push @{ $ret->{timing_metrics} }, { "read_group_id" => $read_group, "metrics" => { "download_timing_seconds" => $download_timing, "bwa_timing_seconds" => $bwa_timing, "qc_timing_seconds" => $qc_timing, "merge_timing_seconds" => $merge_timing } };
+
+  }
+
+  # and return hash
+  return to_json $ret;
+
+}
+
+sub read_timing {
+  my ($file) = @_;
+  open IN, "<$file" or die "Can't open timing file $file\n";
+  my $start = <IN>;
+  my $stop = <IN>;
+  chomp $start;
+  chomp $stop;
+  my $delta = $stop - $start;
+  close IN;
+  return($delta);
 }
 
 sub getQcResult {
