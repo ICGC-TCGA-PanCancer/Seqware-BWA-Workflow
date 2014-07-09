@@ -751,7 +751,7 @@ sub getQcResult {
 
 sub getMarkduplicatesMetrics {
   my $dup_metrics = `cat $bam.metrics`;
-  my @rows = split /\n/; $dup_metrics;
+  my @rows = split /\n/, $dup_metrics;
   
   my @header = ();
   my @data = ();  
@@ -760,7 +760,7 @@ sub getMarkduplicatesMetrics {
     next if (/^#/ || /^\s*$/);
     
     $data_row++;
-    @header = split /\t/ if ($data_row == 1);
+    do {@header = split /\t/; next} if ($data_row == 1); # header line
 
     push @data, $_;
   }
