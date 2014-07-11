@@ -158,7 +158,8 @@ public class WorkflowClient extends OicrWorkflow {
       
       // Empty PI in @RG causes downstream analysis fail at BI, see https://jira.oicr.on.ca/browse/PANCANCER-32
       // The quick fix is to detect that and drop the empty PI in the header, one liner Perl is used (replacing previous sed)
-      headerJob.getCommand().addArgument("set -e; set -o pipefail; " + this.getWorkflowBaseDir() + pcapPath +  "/bin/samtools view -H " + file + " | perl -nae 'next unless /^\\@RG/; s/\\tPI:\\s*\\t/\\t/; s/\\tPI:\\s*\\z/\\n/; s/\\t/\\\\t/g; print' > bam_header." + i + ".txt");
+      headerJob.getCommand().addArgument("set -e; set -o pipefail; " + this.getWorkflowBaseDir() + pcapPath +  "/bin/samtools view -H " + file 
+    		  + " | perl -nae 'next unless /^\\@RG/; s/\\tPI:\\s*\\t/\\t/; s/\\tPI:\\s*\\z/\\n/; s/\\t/\\\\t/g; print' > bam_header." + i + ".txt");
       if (useGtDownload) { headerJob.addParent(downloadJob); }
       headerJob.setMaxMemory(smallJobMemM);
 
@@ -249,7 +250,7 @@ public class WorkflowClient extends OicrWorkflow {
                 .addArgument("collate=1")
                 .addArgument("tryoq=1")
                 .addArgument("filename=" + file)
-                .addArgument(" |perl -ne '$_ =~ s|@[01](/[12])$|\1| if($. % 4 == 1); print $_;'")
+                .addArgument(" |perl -ne '$_ =~ s|@[01](/[12])$|\\1| if($. % 4 == 1); print $_;'")
                 .addArgument(" | LD_LIBRARY_PATH=" + this.getWorkflowBaseDir() + pcapPath + "/lib")
                 .addArgument(this.getWorkflowBaseDir() + pcapPath + "/bin/bwa mem")
                 // this pulls in threads and extra params
@@ -498,7 +499,10 @@ public class WorkflowClient extends OicrWorkflow {
                     .addArgument("-I " + this.getWorkflowBaseDir() + pcapPath + "/lib/perl5/x86_64-linux-gnu-thread-multi/")
                     .addArgument(this.getWorkflowBaseDir() + pcapPath + "/bin/bam_stats.pl")
                     .addArgument("-i " + "out_" + i + ".bam")
-                    .addArgument("-o " + "out_" + i + ".bam.stats.txt");
+                    .addArgument("-o " + "out_" + i + ".bam.stats.txt")
+                    .addArgument("&& perl " + this.getWorkflowBaseDir() + "/scripts/verify_read_groups.pl --header-file bam_header." + i + ".txt" 
+                    + " --bas-file out_" + i + ".bam.stats.txt")
+                    ;
 
 	return job;
   }
