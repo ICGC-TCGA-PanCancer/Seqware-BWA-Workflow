@@ -775,7 +775,7 @@ sub getRuntimeInfo {
 
 sub read_timing {
   my ($file) = @_;
-  open IN, "<$file" or die "Can't open timing file $file\n";
+  open IN, "<$file" or return "not_collected"; # very quick workaround to deal with no download_timing file generated due to skip gtdownload option. Brian, please handle it as you see it appropriate
   my $start = <IN>;
   my $stop = <IN>;
   chomp $start;
