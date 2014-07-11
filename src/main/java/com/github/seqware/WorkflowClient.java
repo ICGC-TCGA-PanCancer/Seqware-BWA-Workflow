@@ -149,7 +149,7 @@ public class WorkflowClient extends OicrWorkflow {
       Job downloadJob = null;
       if (useGtDownload) {
         downloadJob = this.getWorkflow().createBashJob("gtdownload");
-        addDownloadJobArgs(downloadJob, file, fileURL);
+        addDownloadJobArgs(downloadJob, file, fileURL, i);
         downloadJob.setMaxMemory( gtdownloadMem + "000");
       }
 
@@ -173,7 +173,9 @@ public class WorkflowClient extends OicrWorkflow {
         //bwa aln   -t 8 -b2 ./reference/genome.fa.gz ./HG00096.chrom20.ILLUMINA.bwa.GBR.low_coverage.20120522.bam_000000.bam > aligned_2.sai 2> aligned_2.err
         Job job01 = this.getWorkflow().createBashJob("bwa_align1_" + i);
         job01.addParent(headerJob);
-        job01.getCommand().addArgument(this.getWorkflowBaseDir() + "/bin/bwa-0.6.2/bwa aln ")
+        job01.getCommand()
+                .addArgument("set -e; set -o pipefail; date +%s > bwa_timing_" + i + ".txt ;")
+                .addArgument(this.getWorkflowBaseDir() + "/bin/bwa-0.6.2/bwa aln ")
                 .addArgument(this.parameters("aln") == null ? " " : this.parameters("aln"))
                 .addArgument(reference_path + " -b1 ")
                 .addArgument(file)
@@ -212,7 +214,9 @@ public class WorkflowClient extends OicrWorkflow {
                 .addArgument(this.getWorkflowBaseDir() + "/bin/picard-tools-1.89/SortSam.jar")
                 .addArgument("I=/dev/stdin TMP_DIR=./ VALIDATION_STRINGENCY=SILENT")
                 .addArgument("SORT_ORDER=coordinate CREATE_INDEX=true")
-                .addArgument("O=out_" + i + ".bam");
+                .addArgument("O=out_" + i + ".bam ;")
+                .addArgument("date +%s >> bwa_timing_" + i + ".txt");
+
         job03.addParent(job01);
         job03.addParent(job02);
         job03.setMaxMemory(bwaSampeMemG + "900");
@@ -239,7 +243,7 @@ public class WorkflowClient extends OicrWorkflow {
         Job job01 = this.getWorkflow().createBashJob("bwa_mem_" + i);
         job01.addParent(headerJob);
         job01.getCommand()
-                .addArgument("set -e; set -o pipefail;")
+                .addArgument("set -e; set -o pipefail; date +%s > bwa_timing_" + i + ".txt ;")
                 .addArgument("LD_LIBRARY_PATH=" + this.getWorkflowBaseDir() + pcapPath + "/lib")
                 .addArgument(this.getWorkflowBaseDir() + pcapPath + "/bin/bamtofastq")
                 .addArgument("exclude=QCFAIL,SECONDARY,SUPPLEMENTARY")
@@ -264,7 +268,9 @@ public class WorkflowClient extends OicrWorkflow {
                 .addArgument("inputformat=sam level=1 inputthreads=2 outputthreads=2")
                 .addArgument("calmdnm=1 calmdnmrecompindetonly=1 calmdnmreference=" + reference_path)
                 .addArgument("tmpfile=out_" + i + ".sorttmp")
-                .addArgument("O=out_" + i + ".bam");
+                .addArgument("O=out_" + i + ".bam ;")
+                .addArgument("date +%s >> bwa_timing_" + i + ".txt");
+
         job01.setMaxMemory(bwaAlignMemG + "900");
         /*if (!getProperty("numOfThreads").isEmpty()) {
           job01.setThreads(Integer.parseInt(getProperty("numOfThreads")));
@@ -298,15 +304,17 @@ public class WorkflowClient extends OicrWorkflow {
 
     if ("aln".equals(bwaChoice)) {
 
-      job04.getCommand().addArgument("java -Xmx" + picardSortMem + "g -jar "
+      job04.getCommand()
+              .addArgument("set -e; set -o pipefail; date +%s > merge_timing.txt ;")
+              .addArgument("java -Xmx" + picardSortMem + "g -jar "
               + this.getWorkflowBaseDir() + "/bin/picard-tools-1.89/MergeSamFiles.jar "
               + " " + (additionalPicardParams.isEmpty() ? "" : additionalPicardParams));
       for (int i = 0; i < numBamFiles; i++) {
         job04.getCommand().addArgument(" I=out_" + i + ".bam");
       }
       job04.getCommand().addArgument(" O=" + this.dataDir + outputFileName)
-              .addArgument("SORT_ORDER=coordinate VALIDATION_STRINGENCY=SILENT CREATE_INDEX=true CREATE_MD5_FILE=true");
-      //" >> "+this.dataDir+outputFileName + ".out 2>> "+this.dataDir+outputFileName +".err");
+              .addArgument("SORT_ORDER=coordinate VALIDATION_STRINGENCY=SILENT CREATE_INDEX=true CREATE_MD5_FILE=true ;")
+              .addArgument("date +%s >> merge_timing.txt ;");
       for (Job pJob : bamJobs) {
         job04.addParent(pJob);
       }
@@ -318,7 +326,9 @@ public class WorkflowClient extends OicrWorkflow {
       if (!getProperty("numOfThreads").isEmpty()) {
         numThreads = Integer.parseInt(getProperty("numOfThreads"));
       }
-      job04.getCommand().addArgument("LD_LIBRARY_PATH=" + this.getWorkflowBaseDir() + pcapPath + "/lib")
+      job04.getCommand()
+              .addArgument("set -e; set -o pipefail; date +%s > merge_timing.txt ;")
+              .addArgument("LD_LIBRARY_PATH=" + this.getWorkflowBaseDir() + pcapPath + "/lib")
               .addArgument(this.getWorkflowBaseDir() + pcapPath + "/bin/bammarkduplicates")
               .addArgument("O=" + this.dataDir + outputFileName)
               .addArgument("M=" + this.dataDir + outputFileName + ".metrics")
@@ -328,6 +338,7 @@ public class WorkflowClient extends OicrWorkflow {
       for (int i = 0; i < numBamFiles; i++) {
         job04.getCommand().addArgument(" I=out_" + i + ".bam");
       }
+      job04.getCommand().addArgument("; date +%s >> merge_timing.txt ;");
       for (Job pJob : bamJobs) {
         job04.addParent(pJob);
       }
@@ -472,13 +483,14 @@ public class WorkflowClient extends OicrWorkflow {
     return paramCommand;
   }
 
-  private Job addDownloadJobArgs (Job job, String file, String fileURL) {
+  private Job addDownloadJobArgs (Job job, String file, String fileURL, int jobId) {
 
     // a little unsafe
     String[] pathElements = file.split("/");
     String analysisId = pathElements[0];
 
-    job.getCommand().addArgument("perl " + this.getWorkflowBaseDir() + "/scripts/launch_and_monitor_gnos.pl")
+    job.getCommand().addArgument("set -e; set -o pipefail; date +%s > download_timing_" + jobId + ".txt;")
+    .addArgument("perl " + this.getWorkflowBaseDir() + "/scripts/launch_and_monitor_gnos.pl")
     .addArgument("--command 'gtdownload "
                + " --max-children " + gnosMaxChildren
                + " --rate-limit " + gnosRateLimit
@@ -488,20 +500,23 @@ public class WorkflowClient extends OicrWorkflow {
     .addArgument("--file-grep "+analysisId)
     .addArgument("--search-path .")
     .addArgument("--retries "+gtdownloadRetries)
-    .addArgument("--md5-retries "+gtdownloadMd5Time);
+    .addArgument("--md5-retries "+gtdownloadMd5Time + " ;")
+    .addArgument("date +%s >> download_timing_" + jobId + ".txt");
 
     return(job);
   }
 
   private Job addBamStatsQcJobArgument (final int i, Job job) {
 
-	job.getCommand().addArgument("perl -I " + this.getWorkflowBaseDir() + pcapPath + "/lib/perl5/")
+	job.getCommand().addArgument("set -e; set -o pipefail; date +%s > qc_timing_" + i + ".txt;")
+                    .addArgument("perl -I " + this.getWorkflowBaseDir() + pcapPath + "/lib/perl5/")
                     .addArgument("-I " + this.getWorkflowBaseDir() + pcapPath + "/lib/perl5/x86_64-linux-gnu-thread-multi/")
                     .addArgument(this.getWorkflowBaseDir() + pcapPath + "/bin/bam_stats.pl")
                     .addArgument("-i " + "out_" + i + ".bam")
                     .addArgument("-o " + "out_" + i + ".bam.stats.txt")
                     .addArgument("&& perl " + this.getWorkflowBaseDir() + "/scripts/verify_read_groups.pl --header-file bam_header." + i + ".txt" 
                     + " --bas-file out_" + i + ".bam.stats.txt")
+                    .addArgument("&& date +%s >> qc_timing_" + i + ".txt")
                     ;
 
 	return job;
