@@ -16,7 +16,7 @@ my $bas_file;
 
 GetOptions (
   "header-file=s" => \$header_file,
-  "stats-file=s" => \$bas_file,
+  "bas-file=s" => \$bas_file,
 );
 
 my $rg_header = &parse_header_file($header_file);
