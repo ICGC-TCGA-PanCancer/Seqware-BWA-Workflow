@@ -338,7 +338,7 @@ public class WorkflowClient extends OicrWorkflow {
       for (int i = 0; i < numBamFiles; i++) {
         job04.getCommand().addArgument(" I=out_" + i + ".bam");
       }
-      job04.getCommand().addArgument("; date +%s >> merge_timing.txt ;");
+      job04.getCommand().addArgument(" && date +%s >> merge_timing.txt ");
       for (Job pJob : bamJobs) {
         job04.addParent(pJob);
       }
