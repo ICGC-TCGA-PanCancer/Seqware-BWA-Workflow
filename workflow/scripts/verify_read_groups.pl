@@ -1,7 +1,5 @@
 use strict;
 use Getopt::Long;
-use Data::Dumper;
-use JSON;
 
 # PURPOSE:
 # This script checks consistency of read groups information at the BAM header
@@ -31,23 +29,23 @@ unless (scalar keys $rg_header == scalar keys $rg_bas) { # first ensure read gro
 for (keys $rg_header) {
   my $rg_id = $_;
 
-  die "Read group $rg_id exists in header file: $rg_header, but is missing in bas file: $bas_file\n"
+  die "Read group $rg_id exists in header file: $header_file, but is missing in bas file: $bas_file\n"
     unless defined $rg_bas->{$rg_id};
 
   # now let's compare values for the following fields
   #  header file: SM PL PU LB
   #  bas file:    sample platform platform_unit library
 
-  die "Sample IDs for read group $rg_id do not match between $rg_header and $bas_file"
+  die "Sample IDs for read group $rg_id do not match between $header_file and $bas_file"
     unless ($rg_header->{$rg_id}->{SM} eq $rg_bas->{$rg_id}->{sample});
 
-  die "Platform for read group $rg_id do not match between $rg_header and $bas_file"
+  die "Platform for read group $rg_id do not match between $header_file and $bas_file"
     unless ($rg_header->{$rg_id}->{PL} eq $rg_bas->{$rg_id}->{platform});
 
-  die "Platform unit for read group $rg_id do not match between $rg_header and $bas_file"
+  die "Platform unit for read group $rg_id do not match between $header_file and $bas_file"
     unless ($rg_header->{$rg_id}->{PU} eq $rg_bas->{$rg_id}->{platform_unit});
 
-  die "Library name for read group $rg_id do not match between $rg_header and $bas_file"
+  die "Library name for read group $rg_id do not match between $header_file and $bas_file"
     unless ($rg_header->{$rg_id}->{LB} eq $rg_bas->{$rg_id}->{library});
 
 }
@@ -65,7 +63,7 @@ sub parse_header_file {
     next unless /^\@RG/;
     s/[\r\n]//g;
 
-    if (/\tID:(.+?)[\t\z]/) {
+    if (/\\tID:(.+?)\\t/ || /\\tID:(.+?)\z/) {
       $current_rg_id = $1;
 
       die "None unique Read Group ID (or RG ID field appeared more than once in one BAM header line) found in header file: $header_file\n"
@@ -107,7 +105,7 @@ sub parse_bas_file {
   while(<S>) {
     s/[\r\n]//g;
 
-    my @data = split /\t/, <S>;
+    my @data = split /\t/, $_, -1;
   
     my $qc_metrics = {};
     $qc_metrics->{$_} = shift @data for (@header);
