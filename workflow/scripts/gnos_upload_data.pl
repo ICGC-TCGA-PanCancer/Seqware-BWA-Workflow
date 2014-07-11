@@ -479,18 +479,18 @@ END
         </ANALYSIS_ATTRIBUTE>
 ";
 
-# QC
-$analysis_xml .= "        <ANALYSIS_ATTRIBUTE>
-        <TAG>qc_metrics</TAG>
-        <VALUE>" . &getQcResult() . "</VALUE>
-      </ANALYSIS_ATTRIBUTE>
+  # QC
+  $analysis_xml .= "        <ANALYSIS_ATTRIBUTE>
+          <TAG>qc_metrics</TAG>
+          <VALUE>" . &getQcResult() . "</VALUE>
+        </ANALYSIS_ATTRIBUTE>
 ";
 
-# Runtime
-$analysis_xml .= "        <ANALYSIS_ATTRIBUTE>
-        <TAG>timing_metrics</TAG>
-        <VALUE>" . &getRuntimeInfo() . "</VALUE>
-      </ANALYSIS_ATTRIBUTE>
+  # Runtime
+  $analysis_xml .= "        <ANALYSIS_ATTRIBUTE>
+          <TAG>timing_metrics</TAG>
+          <VALUE>" . &getRuntimeInfo() . "</VALUE>
+        </ANALYSIS_ATTRIBUTE>
 ";
 
   # Markduplicates metrics
