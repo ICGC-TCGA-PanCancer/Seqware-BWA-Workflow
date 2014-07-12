@@ -86,7 +86,6 @@ public class WorkflowClient extends OicrWorkflow {
       }
       outputDir = this.getMetadata_output_dir();
       outputPrefix = this.getMetadata_output_file_prefix();
-      resultsDir = outputPrefix + outputDir;
       gnosUploadFileURL = getProperty("gnos_output_file_url");
       gnosKey = getProperty("gnos_key");
       gnosMaxChildren = getProperty("gnos_max_children") == null ? 3 : Integer.parseInt(getProperty("gnos_max_children"));
@@ -365,27 +364,35 @@ public class WorkflowClient extends OicrWorkflow {
   	unmappedReadsJob1.getCommand().addArgument(
       this.getWorkflowBaseDir() + pcapPath + "/bin/samtools view -h -f 4 " // reads unmapped
       + this.dataDir + outputFileName
-      + " | perl " + this.getWorkflowBaseDir() + "/scripts/remove_both_ends_unmapped_reads.pl "  // this is necessary because samtools -f 4 outputs both-ends-unmapped reads
-      + " | "
-      + this.getWorkflowBaseDir() + pcapPath + "/bin/samtools view -S -b - "
-      + " > unmappedReads1.bam");
-  	unmappedReadsJob1.setMaxMemory("4000");
+      + " | perl " + this.getWorkflowBaseDir() + "/scripts/remove_both_ends_unmapped_reads.pl ")  // this is necessary because samtools -f 4 outputs both-ends-unmapped reads
+      .addArgument("| LD_LIBRARY_PATH=" + this.getWorkflowBaseDir() + pcapPath + "/lib ")
+      .addArgument(this.getWorkflowBaseDir() + pcapPath + "/bin/bamsort")
+      .addArgument("inputformat=sam level=1 inputthreads=2 outputthreads=2")
+      .addArgument("calmdnm=1 calmdnmrecompindetonly=1 calmdnmreference=" + reference_path)
+      .addArgument("tmpfile=unmapped1.sorttmp")
+      .addArgument("O=unmappedReads1.bam");
+
+    unmappedReadsJob1.setMaxMemory("4000");
   	unmappedReadsJob1.addParent(job04);
   	  
   	unmappedReadsJob2 = this.getWorkflow().createBashJob("unmappedReads2");
   	unmappedReadsJob2.getCommand().addArgument(
       this.getWorkflowBaseDir() + pcapPath + "/bin/samtools view -h -f 8 " // reads' mate unmapped
       + this.dataDir + outputFileName
-      + " | perl " + this.getWorkflowBaseDir() + "/scripts/remove_both_ends_unmapped_reads.pl "  // this is necessary because samtools -f 8 outputs both-ends-unmapped reads
-      + " | "
-      + this.getWorkflowBaseDir() + pcapPath + "/bin/samtools view -S -b - "
-      + " > unmappedReads2.bam");
+      + " | perl " + this.getWorkflowBaseDir() + "/scripts/remove_both_ends_unmapped_reads.pl ")  // this is necessary because samtools -f 8 outputs both-ends-unmapped reads
+      .addArgument("| LD_LIBRARY_PATH=" + this.getWorkflowBaseDir() + pcapPath + "/lib ")
+      .addArgument(this.getWorkflowBaseDir() + pcapPath + "/bin/bamsort")
+      .addArgument("inputformat=sam level=1 inputthreads=2 outputthreads=2")
+      .addArgument("calmdnm=1 calmdnmrecompindetonly=1 calmdnmreference=" + reference_path)
+      .addArgument("tmpfile=unmapped2.sorttmp")
+      .addArgument("O=unmappedReads2.bam");
+
   	unmappedReadsJob2.setMaxMemory("4000");
   	unmappedReadsJob2.addParent(job04);
   	  
   	unmappedReadsJob3 = this.getWorkflow().createBashJob("unmappedReads3");
   	unmappedReadsJob3.getCommand().addArgument(
-      this.getWorkflowBaseDir() + pcapPath + "/bin/samtools view -h -b -f 12 " // reads with both ends unmapped
+      this.getWorkflowBaseDir() + pcapPath + "/bin/samtools view -h -b -f 12 " // reads with both ends unmapped, no need to sort at all
       + this.dataDir + outputFileName
       + " > unmappedReads3.bam");
   	unmappedReadsJob3.setMaxMemory("4000");
@@ -397,16 +404,16 @@ public class WorkflowClient extends OicrWorkflow {
 
     mergeUnmappedJob.getCommand().addArgument("LD_LIBRARY_PATH=" + this.getWorkflowBaseDir() + pcapPath + "/lib") 
       .addArgument(this.getWorkflowBaseDir() + pcapPath + "/bin/bammarkduplicates")
-      .addArgument("O=" + this.outputPrefix + outputUnmappedFileName)
-      .addArgument("M=" + this.outputPrefix + outputUnmappedFileName + ".metrics")
-      .addArgument("tmpfile=" + this.outputPrefix + outputUnmappedFileName + ".biormdup")
+      .addArgument("O=" + this.dataDir + outputUnmappedFileName)
+      .addArgument("M=" + this.dataDir + outputUnmappedFileName + ".metrics")
+      .addArgument("tmpfile=" + this.dataDir + outputUnmappedFileName + ".biormdup")
       .addArgument("markthreads=" + numOfThreads)
       .addArgument("rewritebam=1 rewritebamlevel=1 index=1 md5=1")
       .addArgument("I=unmappedReads1.bam I=unmappedReads2.bam I=unmappedReads3.bam");
     
     // now compute md5sum for the bai file
-    mergeUnmappedJob.getCommand().addArgument(" && md5sum " + this.outputPrefix + outputUnmappedFileName + ".bai | awk '{printf $1}'"
-      + " > " + this.outputPrefix + outputUnmappedFileName + ".bai.md5");
+    mergeUnmappedJob.getCommand().addArgument(" && md5sum " + this.dataDir + outputUnmappedFileName + ".bai | awk '{printf $1}'"
+      + " > " + this.dataDir + outputUnmappedFileName + ".bai.md5");
 
     mergeUnmappedJob.addParent(unmappedReadsJob1);
     mergeUnmappedJob.addParent(unmappedReadsJob2);
@@ -459,7 +466,7 @@ public class WorkflowClient extends OicrWorkflow {
 
     // CLEANUP FINAL BAM
     Job cleanup3 = this.getWorkflow().createBashJob("cleanup4");
-    cleanup3.getCommand().addArgument("rm -f " + this.dataDir + outputFileName);
+    cleanup3.getCommand().addArgument("rm -f *.bam " + this.dataDir + outputFileName); 
     cleanup3.addParent(job05);
     cleanup3.setMaxMemory(smallJobMemM);
     for (Job qcJob : qcJobs) {
