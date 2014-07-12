@@ -254,7 +254,7 @@ public class WorkflowClient extends OicrWorkflow {
                 .addArgument("collate=1")
                 .addArgument("tryoq=1")
                 .addArgument("filename=" + file)
-                .addArgument(" |perl -ne '$_ =~ s|@[01](/[12])$|\\1| if($. % 4 == 1); print $_;'")
+                .addArgument(" | perl -e 'while(<>){$i++; $_ =~ s|@[01](/[12])$|\\1| if($i % 4 == 1); print $_;} $c = $i/4; warn \"$c\\n\";' 2> input_bam_" + i + ".count.txt")
                 .addArgument(" | LD_LIBRARY_PATH=" + this.getWorkflowBaseDir() + pcapPath + "/lib")
                 .addArgument(this.getWorkflowBaseDir() + pcapPath + "/bin/bwa mem")
                 // this pulls in threads and extra params
@@ -268,8 +268,8 @@ public class WorkflowClient extends OicrWorkflow {
                 .addArgument("inputformat=sam level=1 inputthreads=2 outputthreads=2")
                 .addArgument("calmdnm=1 calmdnmrecompindetonly=1 calmdnmreference=" + reference_path)
                 .addArgument("tmpfile=out_" + i + ".sorttmp")
-                .addArgument("O=out_" + i + ".bam ;")
-                .addArgument("date +%s >> bwa_timing_" + i + ".txt");
+                .addArgument("O=out_" + i + ".bam 2> bamsort_info_" + i + ".txt")
+                .addArgument("&& date +%s >> bwa_timing_" + i + ".txt");
 
         job01.setMaxMemory(bwaAlignMemG + "900");
         /*if (!getProperty("numOfThreads").isEmpty()) {
