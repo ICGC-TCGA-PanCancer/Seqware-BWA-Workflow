@@ -11,14 +11,18 @@ use Getopt::Long;
 
 my $header_file;
 my $bas_file;
+my $input_read_count_file;
 
 GetOptions (
   "header-file=s" => \$header_file,
   "bas-file=s" => \$bas_file,
+  "input-read-count-file=s" => \$input_read_count_file,
 );
 
 my $rg_header = &parse_header_file($header_file);
 my $rg_bas = &parse_bas_file($bas_file);
+my $input_read_count = `cat $input_read_count_file`;
+chomp $input_read_count;
 
 # now let's compare read group information from these two files
 
@@ -26,6 +30,7 @@ unless (scalar keys $rg_header == scalar keys $rg_bas) { # first ensure read gro
   die "Read group counts unmatch between files: $rg_header and $rg_bas\n";
 }
 
+my $read_count_after_bwa = 0;
 for (keys $rg_header) {
   my $rg_id = $_;
 
@@ -48,7 +53,11 @@ for (keys $rg_header) {
   die "Library name for read group $rg_id do not match between $header_file and $bas_file"
     unless ($rg_header->{$rg_id}->{LB} eq $rg_bas->{$rg_id}->{library});
 
+  $read_count_after_bwa += $rg_bas->{$rg_id}->{'#_total_reads'};
 }
+
+die "Read count reported by QC step in $bas_file file does not match read count recorded in $input_read_count_file.\n"
+  unless $input_read_count == $read_count_after_bwa;
 
 
 sub parse_header_file {

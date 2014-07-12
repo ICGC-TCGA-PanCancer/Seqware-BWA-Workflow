@@ -515,7 +515,7 @@ public class WorkflowClient extends OicrWorkflow {
                     .addArgument("-i " + "out_" + i + ".bam")
                     .addArgument("-o " + "out_" + i + ".bam.stats.txt")
                     .addArgument("&& perl " + this.getWorkflowBaseDir() + "/scripts/verify_read_groups.pl --header-file bam_header." + i + ".txt" 
-                    + " --bas-file out_" + i + ".bam.stats.txt")
+                    + " --bas-file out_" + i + ".bam.stats.txt" + " --input-read-count-file input_bam_" + i + ".count.txt")
                     .addArgument("&& date +%s >> qc_timing_" + i + ".txt")
                     ;
 
