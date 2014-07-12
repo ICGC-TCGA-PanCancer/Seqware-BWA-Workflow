@@ -39,6 +39,7 @@ public class WorkflowClient extends OicrWorkflow {
   String outputPrefix = "./";
   String resultsDir = outputPrefix + outputDir;
   String outputFileName = "merged_output.bam";
+  String outputUnmappedFileName = "merged_output.unmapped.bam";
   //BWA
   String bwaAlignMemG = "8";
   String bwaSampeMemG = "8";
@@ -47,7 +48,7 @@ public class WorkflowClient extends OicrWorkflow {
   String picardSortMem = "6";
   String picardSortJobMem = "8";
   String uploadScriptJobMem = "2";
-  int numOfThreads; //aln
+  int numOfThreads = 1; //aln
   int maxInsertSize; //sampe
   String readGroup;//sampe
   String bwa_aln_params;
@@ -109,6 +110,11 @@ public class WorkflowClient extends OicrWorkflow {
       if (getProperty("use_gtupload") != null) { if("false".equals(getProperty("use_gtupload"))) { useGtUpload = false; } }
       if (getProperty("use_gtvalidation") != null) { if("false".equals(getProperty("use_gtvalidation"))) { useGtValidation = false; } }
 
+      if (!getProperty("numOfThreads").isEmpty()) {
+        numOfThreads = Integer.parseInt(getProperty("numOfThreads"));
+      }
+
+      
     } catch (Exception e) {
       Logger.getLogger(WorkflowClient.class.getName()).log(Level.SEVERE, null, e);
       throw new RuntimeException("Problem parsing variable values: "+e.getMessage());
@@ -322,10 +328,6 @@ public class WorkflowClient extends OicrWorkflow {
 
     } else if ("mem".equals(bwaChoice)) {
 
-      int numThreads = 1;
-      if (!getProperty("numOfThreads").isEmpty()) {
-        numThreads = Integer.parseInt(getProperty("numOfThreads"));
-      }
       job04.getCommand()
               .addArgument("set -e; set -o pipefail; date +%s > merge_timing.txt ;")
               .addArgument("LD_LIBRARY_PATH=" + this.getWorkflowBaseDir() + pcapPath + "/lib")
@@ -333,7 +335,7 @@ public class WorkflowClient extends OicrWorkflow {
               .addArgument("O=" + this.dataDir + outputFileName)
               .addArgument("M=" + this.dataDir + outputFileName + ".metrics")
               .addArgument("tmpfile=" + this.dataDir + outputFileName + ".biormdup")
-              .addArgument("markthreads=" + numThreads)
+              .addArgument("markthreads=" + numOfThreads)
               .addArgument("rewritebam=1 rewritebamlevel=1 index=1 md5=1");
       for (int i = 0; i < numBamFiles; i++) {
         job04.getCommand().addArgument(" I=out_" + i + ".bam");
@@ -354,6 +356,65 @@ public class WorkflowClient extends OicrWorkflow {
 
     }
 
+    
+    // extract unmapped reads (both ends or either end unmapped)
+    Job unmappedReadsJob1;
+    Job unmappedReadsJob2;
+    Job unmappedReadsJob3;
+  	unmappedReadsJob1 = this.getWorkflow().createBashJob("unmappedReads1");
+  	unmappedReadsJob1.getCommand().addArgument(
+      this.getWorkflowBaseDir() + pcapPath + "/bin/samtools view -h -f 4 " // reads unmapped
+      + this.dataDir + outputFileName
+      + " | perl " + this.getWorkflowBaseDir() + "/scripts/remove_both_ends_unmapped_reads.pl "  // this is necessary because samtools -f 4 outputs both-ends-unmapped reads
+      + " | "
+      + this.getWorkflowBaseDir() + pcapPath + "/bin/samtools view -S -b - "
+      + " > unmappedReads1.bam");
+  	unmappedReadsJob1.setMaxMemory("4000");
+  	unmappedReadsJob1.addParent(job04);
+  	  
+  	unmappedReadsJob2 = this.getWorkflow().createBashJob("unmappedReads2");
+  	unmappedReadsJob2.getCommand().addArgument(
+      this.getWorkflowBaseDir() + pcapPath + "/bin/samtools view -h -f 8 " // reads' mate unmapped
+      + this.dataDir + outputFileName
+      + " | perl " + this.getWorkflowBaseDir() + "/scripts/remove_both_ends_unmapped_reads.pl "  // this is necessary because samtools -f 8 outputs both-ends-unmapped reads
+      + " | "
+      + this.getWorkflowBaseDir() + pcapPath + "/bin/samtools view -S -b - "
+      + " > unmappedReads2.bam");
+  	unmappedReadsJob2.setMaxMemory("4000");
+  	unmappedReadsJob2.addParent(job04);
+  	  
+  	unmappedReadsJob3 = this.getWorkflow().createBashJob("unmappedReads3");
+  	unmappedReadsJob3.getCommand().addArgument(
+      this.getWorkflowBaseDir() + pcapPath + "/bin/samtools view -h -b -f 12 " // reads with both ends unmapped
+      + this.dataDir + outputFileName
+      + " > unmappedReads3.bam");
+  	unmappedReadsJob3.setMaxMemory("4000");
+  	unmappedReadsJob3.addParent(job04);
+
+
+    // MERGE unmapped reads
+    Job mergeUnmappedJob = this.getWorkflow().createBashJob("mergeUnmappedBAM");
+
+    mergeUnmappedJob.getCommand().addArgument("LD_LIBRARY_PATH=" + this.getWorkflowBaseDir() + pcapPath + "/lib") 
+      .addArgument(this.getWorkflowBaseDir() + pcapPath + "/bin/bammarkduplicates")
+      .addArgument("O=" + this.outputPrefix + outputUnmappedFileName)
+      .addArgument("M=" + this.outputPrefix + outputUnmappedFileName + ".metrics")
+      .addArgument("tmpfile=" + this.outputPrefix + outputUnmappedFileName + ".biormdup")
+      .addArgument("markthreads=" + numOfThreads)
+      .addArgument("rewritebam=1 rewritebamlevel=1 index=1 md5=1")
+      .addArgument("I=unmappedReads1.bam I=unmappedReads2.bam I=unmappedReads3.bam");
+    
+    // now compute md5sum for the bai file
+    mergeUnmappedJob.getCommand().addArgument(" && md5sum " + this.outputPrefix + outputUnmappedFileName + ".bai | awk '{printf $1}'"
+      + " > " + this.outputPrefix + outputUnmappedFileName + ".bai.md5");
+
+    mergeUnmappedJob.addParent(unmappedReadsJob1);
+    mergeUnmappedJob.addParent(unmappedReadsJob2);
+    mergeUnmappedJob.addParent(unmappedReadsJob3);
+        
+    mergeUnmappedJob.setMaxMemory("4000");
+    
+    
     // CLEANUP LANE LEVEL BAM FILES
     for (int i = 0; i < numBamFiles; i++) {
       Job cleanup2 = this.getWorkflow().createBashJob("cleanup3_" + i);
