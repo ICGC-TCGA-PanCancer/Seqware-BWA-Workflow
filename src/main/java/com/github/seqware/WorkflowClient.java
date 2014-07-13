@@ -457,21 +457,39 @@ public class WorkflowClient extends OicrWorkflow {
       job05.addParent(qcJob);
     }
 
-    /* Job job05 = this.getWorkflow().createBashJob("upload");
-    job05.getCommand().addArgument(""
-     for (int i = 0; i < numBamFiles; i++) {
-        job04.getCommand().addArgument(" I=out_" + i + ".bam");
-      }
-     */
+    // upload BAM with unmapped reads
+    if (!useGtUpload) { finalOutDir = this.resultsDir; }
+    Job job06 = this.getWorkflow().createBashJob("upload2");
+    job06.getCommand().addArgument("perl " + this.getWorkflowBaseDir() + "/scripts/gnos_upload_data.pl")
+            .addArgument("--bam " + this.dataDir + outputUnmappedFileName)
+            .addArgument("--key " + gnosKey)
+            .addArgument("--outdir " + finalOutDir)
+            .addArgument("--metadata-urls " + gnosInputMetadataURLs)
+            .addArgument("--upload-url " + gnosUploadFileURL)
+            .addArgument("--bam-md5sum-file " + this.dataDir + outputUnmappedFileName + ".md5");
+    if (!useGtUpload) {
+      job06.getCommand().addArgument("--force-copy");
+    }
+    if ("true".equals(skipUpload) || !useGtUpload) {
+      job06.getCommand().addArgument("--test");
+    }
+    if (!useGtValidation) {
+      job06.getCommand().addArgument("--skip-validate");
+    }
+    job06.setMaxMemory(uploadScriptJobMem + "900");
+    job06.addParent(mergeUnmappedJob);
 
     // CLEANUP FINAL BAM
-    Job cleanup3 = this.getWorkflow().createBashJob("cleanup4");
-    cleanup3.getCommand().addArgument("rm -f *.bam " + this.dataDir + outputFileName); 
+    Job cleanup3 = this.getWorkflow().createBashJob("cleanup3");
+    cleanup3.getCommand().addArgument("rm -f *.bam "
+                                       + this.dataDir + outputFileName
+                                       + " " + this.dataDir + outputUnmappedFileName); 
     cleanup3.addParent(job05);
-    cleanup3.setMaxMemory(smallJobMemM);
+    cleanup3.addParent(job06);
     for (Job qcJob : qcJobs) {
       cleanup3.addParent(qcJob);
     }
+    cleanup3.setMaxMemory(smallJobMemM);
 
   }
 
