@@ -460,7 +460,7 @@ public class WorkflowClient extends OicrWorkflow {
     // upload BAM with unmapped reads
     if (!useGtUpload) { finalOutDir = this.resultsDir; }
     Job job06 = this.getWorkflow().createBashJob("upload2");
-    job06.getCommand().addArgument("perl " + this.getWorkflowBaseDir() + "/scripts/gnos_upload_data.pl")
+    job06.getCommand().addArgument("perl " + this.getWorkflowBaseDir() + "/scripts/gnos_upload_data.pl --unmapped-reads-upload ")
             .addArgument("--bam " + this.dataDir + outputUnmappedFileName)
             .addArgument("--key " + gnosKey)
             .addArgument("--outdir " + finalOutDir)
