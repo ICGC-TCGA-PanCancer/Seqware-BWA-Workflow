@@ -50,7 +50,7 @@ my $pcap_version = "1.1.1";
 my $force_copy = 0;
 my $unmapped_reads_upload = 0;
 
-if (scalar(@ARGV) < 12 || scalar(@ARGV) > 15) {
+if (scalar(@ARGV) < 12 || scalar(@ARGV) > 16) {
   die "USAGE: 'perl gnos_upload_data.pl
        --metadata-urls <URLs_comma_separated>
        --bam <sample-level_bam_file_path>
