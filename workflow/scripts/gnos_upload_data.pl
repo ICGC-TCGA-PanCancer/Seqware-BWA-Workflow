@@ -48,6 +48,7 @@ my $bwa_version = "0.7.8-r455";
 my $biobambam_version = "0.0.148";
 my $pcap_version = "1.1.1";
 my $force_copy = 0;
+my $unmapped_reads_upload = 0;
 
 if (scalar(@ARGV) < 12 || scalar(@ARGV) > 15) {
   die "USAGE: 'perl gnos_upload_data.pl
@@ -57,6 +58,7 @@ if (scalar(@ARGV) < 12 || scalar(@ARGV) > 15) {
        --outdir <output_dir>
        --key <gnos.pem>
        --upload-url <gnos_server_url>
+       [--unmapped-reads-upload]
        [--skip-validate]
        [--test]\n"; }
 
@@ -70,6 +72,7 @@ GetOptions(
      "test" => \$test,
      "force-copy" => \$force_copy,
      "skip-validate" => \$skip_validate,
+     "unmapped-reads-upload" => \$unmapped_reads_upload,
      );
 
 # setup output dir
@@ -244,12 +247,18 @@ sub generate_submission {
   # FIXME: either custom needs to work or the reference needs to be listed in GNOS
   #<!--CUSTOM DESCRIPTION="hs37d" REFERENCE_SOURCE="ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/phase2_reference_assembly_sequence/README_human_reference_20110707"/-->
 
+  my $description = "Specimen-level BAM from the reference alignment of specimen $sample_id from donor $participant_id. This uses the SeqWare BWA-MEM PanCancer Workflow version $workflow_version available at $workflow_url. This workflow can be created from source, see https://github.com/SeqWare/public-workflows. Input BAMs are prepared and submitted to GNOS server according to the submission SOP documented at: https://wiki.oicr.on.ca/display/PANCANCER/PCAP+%28a.k.a.+PAWG%29+Sequence+Submission+SOP+-+v1.0";
+
+  if ($unmapped_reads_upload) {
+    $description = "The BAM file includes unmapped reads extracted from specimen-level BAM with the reference alignment of specimen $sample_id from donor $participant_id. This uses the SeqWare BWA-MEM PanCancer Workflow version $workflow_version available at $workflow_url. This workflow can be created from source, see https://github.com/SeqWare/public-workflows. Input BAMs are prepared and submitted to GNOS server according to the submission SOP documented at: https://wiki.oicr.on.ca/display/PANCANCER/PCAP+%28a.k.a.+PAWG%29+Sequence+Submission+SOP+-+v1.0";
+  }
+
   my $analysis_xml = <<END;
   <ANALYSIS_SET xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.ncbi.nlm.nih.gov/viewvc/v1/trunk/sra/doc/SRA_1-5/SRA.analysis.xsd?view=co">
     <ANALYSIS center_name="$analysis_center" analysis_date="$datetime">
       <TITLE>TCGA/ICGC PanCancer Specimen-Level Alignment for Specimen $sample_id from Participant $participant_id</TITLE>
       <STUDY_REF refcenter="$refcenter" refname="icgc_pancancer" />
-      <DESCRIPTION>Specimen-level BAM from the reference alignment of specimen $sample_id from donor $participant_id. This uses the SeqWare BWA-Mem PanCancer Workflow version $workflow_version available at $workflow_url. This workflow can be created from source, see https://github.com/SeqWare/public-workflows. Input BAMs are prepared and submitted to GNOS server according to the submission SOP documented at: https://wiki.oicr.on.ca/display/PANCANCER/PCAP+%28a.k.a.+PAWG%29+Sequence+Submission+SOP+-+v1.0</DESCRIPTION>
+      <DESCRIPTION>$description</DESCRIPTION>
       <ANALYSIS_TYPE>
         <REFERENCE_ALIGNMENT>
           <ASSEMBLY>
@@ -372,6 +381,8 @@ END
           <PROCESSING>
             <PIPELINE>
 END
+
+  unless ($unmapped_reads_upload) {
             my $i=0;
             foreach my $url (keys %{$m}) {
               foreach my $run (@{$m->{$url}{'run'}}) {
@@ -382,7 +393,8 @@ END
                    my $rgl = $run->{'read_group_label'};
                    my $rn = $run->{'refname'};
                    my $fname = $m->{$url}{'file'}[$i]{'filename'};
-  $analysis_xml .= <<END;
+
+    $analysis_xml .= <<END;
               <PIPE_SECTION section_name="Mapping">
                 <STEP_INDEX>$rgl</STEP_INDEX>
                 <PREV_STEP_INDEX>NIL</PREV_STEP_INDEX>
@@ -391,11 +403,12 @@ END
                 <NOTES>bwa mem -t 8 -p -T 0 genome.fa.gz $fname</NOTES>
               </PIPE_SECTION>
 END
-                 }
-                 $i++;
-               }
+                }
+                $i++;
+              }
             }
-  $analysis_xml .= <<END;
+            
+    $analysis_xml .= <<END;
               <PIPE_SECTION section_name="Markduplicates">
                 <STEP_INDEX>markduplicates</STEP_INDEX>
                 <PREV_STEP_INDEX>bwa</PREV_STEP_INDEX>
@@ -403,6 +416,20 @@ END
                 <VERSION>$biobambam_version</VERSION>
                 <NOTES>bammarkduplicates is one of the programs in the biobambam BAM processing package</NOTES>
               </PIPE_SECTION>
+END
+  }else{
+    $analysis_xml .= <<END;
+              <PIPE_SECTION section_name="UnmappedReadsExtraction">
+                <STEP_INDEX>unmapped_reads</STEP_INDEX>
+                <PREV_STEP_INDEX>bammarkduplicates</PREV_STEP_INDEX>
+                <PROGRAM>samtools</PROGRAM>
+                <VERSION>0.1.19</VERSION>
+                <NOTES></NOTES>
+              </PIPE_SECTION>
+END
+  }
+
+  $analysis_xml .= <<END;
             </PIPELINE>
             <DIRECTIVES>
               <alignment_includes_unaligned_reads>true</alignment_includes_unaligned_reads>
@@ -437,6 +464,10 @@ END
     # this is a merge of the key-values from input XML
     foreach my $key (keys %{$global_attr}) {
       foreach my $val (keys %{$global_attr->{$key}}) {
+      	if ($unmapped_reads_upload){
+      	  next if ($key eq "pipeline_input_info");
+      	  next if ($key eq "pipeline_input_info");
+      	}
         $analysis_xml .= "        <ANALYSIS_ATTRIBUTE>
           <TAG>$key</TAG>
           <VALUE>$val</VALUE>
@@ -465,7 +496,10 @@ END
           <TAG>workflow_bundle_url</TAG>
           <VALUE>$workflow_url</VALUE>
         </ANALYSIS_ATTRIBUTE>
-        <ANALYSIS_ATTRIBUTE>
+";
+
+unless ($unmapped_reads_upload) {
+  $analysis_xml .= "        <ANALYSIS_ATTRIBUTE>
           <TAG>bwa_version</TAG>
           <VALUE>$bwa_version</VALUE>
         </ANALYSIS_ATTRIBUTE>
@@ -499,7 +533,7 @@ END
           <VALUE>" . &getMarkduplicatesMetrics() . "</VALUE>
         </ANALYSIS_ATTRIBUTE>
 ";
-
+}
   $analysis_xml .= <<END;
       </ANALYSIS_ATTRIBUTES>
     </ANALYSIS>
