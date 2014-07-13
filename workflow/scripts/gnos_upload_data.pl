@@ -424,7 +424,7 @@ END
                 <PREV_STEP_INDEX>bammarkduplicates</PREV_STEP_INDEX>
                 <PROGRAM>samtools</PROGRAM>
                 <VERSION>0.1.19</VERSION>
-                <NOTES></NOTES>
+                <NOTES>This extracts the unmapped reads out from BWA MEM aligned BAM. Note that mapped reads with unmapped mate are also extracted.</NOTES>
               </PIPE_SECTION>
 END
   }
