@@ -858,6 +858,7 @@ sub getMarkduplicatesMetrics {
   my $data_row = 0;
   foreach (@rows) {
     next if (/^#/ || /^\s*$/);
+    last if (/^## HISTOGRAM/); # ignore everything with this and after
     
     $data_row++;
     do {@header = split /\t/; next} if ($data_row == 1); # header line
