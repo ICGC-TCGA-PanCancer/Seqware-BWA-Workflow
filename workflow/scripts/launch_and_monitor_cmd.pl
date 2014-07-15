@@ -46,7 +46,7 @@ while(1) {
         $thr = threads->create(\&launch_and_monitor, $command);
       }
     } else {
-      $thr->join();
+      if ($thr->is_running()) { $thr->join(); }
       # then we're done so just exit
       exit(0);
     }
@@ -60,7 +60,6 @@ sub launch_and_monitor {
 
   local $SIG{KILL} = sub { print "GOT KILL FOR THREAD: $mytid\n"; threads->exit };
   # system doesn't work, can't kill it but the open below does allow the sub-process to be killed
-  #system($cmd);
   my $pid = open my $in, '-|', "$cmd 2>&1" or die "Can't open command\n";
   while(<$in>) { print $_; }
 }
