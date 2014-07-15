@@ -576,17 +576,14 @@ public class WorkflowClient extends OicrWorkflow {
     String analysisId = pathElements[0];
 
     job.getCommand().addArgument("set -e; set -o pipefail; date +%s > download_timing_" + jobId + ".txt;")
-    .addArgument("perl " + this.getWorkflowBaseDir() + "/scripts/launch_and_monitor_gnos.pl")
-    .addArgument("--command 'gtdownload "
+    .addArgument("perl " + this.getWorkflowBaseDir() + "/scripts/launch_and_monitor_cmd.pl")
+    .addArgument(" --command 'gtdownload "
                + " --max-children " + gnosMaxChildren
                + " --rate-limit " + gnosRateLimit
                + " --inactivity-timeout " + gnosTimeout
                + " -c " + gnosKey
                + " -v -d "+fileURL+"'")
-    .addArgument("--file-grep "+analysisId)
-    .addArgument("--search-path .")
-    .addArgument("--retries "+gtdownloadRetries)
-    .addArgument("--md5-retries "+gtdownloadMd5Time + " ;")
+    .addArgument("--retries "+gtdownloadRetries + " ;")
     .addArgument("date +%s >> download_timing_" + jobId + ".txt");
 
     return(job);
