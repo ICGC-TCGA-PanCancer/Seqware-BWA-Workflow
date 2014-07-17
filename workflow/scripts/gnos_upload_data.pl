@@ -43,12 +43,13 @@ my $workflow_version = "2.6.0";
 my $workflow_name = "Workflow_Bundle_BWA";
 # hardcoded
 my $workflow_src_url = "https://github.com/SeqWare/public-workflows";
-my $workflow_url = "https://s3.amazonaws.com/oicr.workflow.bundles/released-bundles/Workflow_Bundle_BWA_".$workflow_version."_SeqWare_1.0.13.zip";
+my $workflow_url = "https://s3.amazonaws.com/oicr.workflow.bundles/released-bundles/Workflow_Bundle_BWA_".$workflow_version."_SeqWare_1.0.15.zip";
 my $bwa_version = "0.7.8-r455";
 my $biobambam_version = "0.0.148";
 my $pcap_version = "1.1.1";
 my $force_copy = 0;
 my $unmapped_reads_upload = 0;
+my $study_ref_name = "icgc_pancancer";
 
 if (scalar(@ARGV) < 12 || scalar(@ARGV) > 16) {
   die "USAGE: 'perl gnos_upload_data.pl
@@ -58,6 +59,7 @@ if (scalar(@ARGV) < 12 || scalar(@ARGV) > 16) {
        --outdir <output_dir>
        --key <gnos.pem>
        --upload-url <gnos_server_url>
+       [--study-refname-override <study_refname_override>] 
        [--unmapped-reads-upload]
        [--skip-validate]
        [--test]\n"; }
@@ -73,6 +75,7 @@ GetOptions(
      "force-copy" => \$force_copy,
      "skip-validate" => \$skip_validate,
      "unmapped-reads-upload" => \$unmapped_reads_upload,
+     "study-refname-override=s" => \$study_ref_name,
      );
 
 # setup output dir
@@ -257,7 +260,7 @@ sub generate_submission {
   <ANALYSIS_SET xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.ncbi.nlm.nih.gov/viewvc/v1/trunk/sra/doc/SRA_1-5/SRA.analysis.xsd?view=co">
     <ANALYSIS center_name="$analysis_center" analysis_date="$datetime">
       <TITLE>TCGA/ICGC PanCancer Specimen-Level Alignment for Specimen $sample_id from Participant $participant_id</TITLE>
-      <STUDY_REF refcenter="$refcenter" refname="icgc_pancancer" />
+      <STUDY_REF refcenter="$refcenter" refname="$study_ref_name" />
       <DESCRIPTION>$description</DESCRIPTION>
       <ANALYSIS_TYPE>
         <REFERENCE_ALIGNMENT>

@@ -60,7 +60,9 @@ public class WorkflowClient extends OicrWorkflow {
   String gtdownloadRetries = "30";
   String gtdownloadMd5Time = "120";
   String gtdownloadMem = "8";
+  String gtdownloadWrapperType = "timer_based";
   String smallJobMemM = "4000";
+  String studyRefnameOverride = "icgc_pancancer";
 
   @Override
   public Map<String, SqwFile> setupFiles() {
@@ -104,6 +106,8 @@ public class WorkflowClient extends OicrWorkflow {
       gtdownloadRetries = getProperty("gtdownloadRetries") == null ? "30" : getProperty("gtdownloadRetries");
       gtdownloadMd5Time = getProperty("gtdownloadMd5time") == null ? "120" : getProperty("gtdownloadMd5time");
       gtdownloadMem = getProperty("gtdownloadMemG") == null ? "8" : getProperty("gtdownloadMemG");
+      gtdownloadWrapperType = getProperty("gtdownloadWrapperType") == null ? "timer_based" : getProperty("gtdownloadWrapperType");
+      studyRefnameOverride = getProperty("study-refname-override") == null ? "icgc_pancancer" : getProperty("study-refname-override");
       smallJobMemM = getProperty("smallJobMemM") == null ? "3000" : getProperty("smallJobMemM");
       if (getProperty("use_gtdownload") != null) { if("false".equals(getProperty("use_gtdownload"))) { useGtDownload = false; } }
       if (getProperty("use_gtupload") != null) { if("false".equals(getProperty("use_gtupload"))) { useGtUpload = false; } }
@@ -154,7 +158,7 @@ public class WorkflowClient extends OicrWorkflow {
       Job downloadJob = null;
       if (useGtDownload) {
         downloadJob = this.getWorkflow().createBashJob("gtdownload");
-        addDownloadJobArgs(downloadJob, file, fileURL, i);
+        addDownloadJobArgs(downloadJob, file, fileURL, i, gtdownloadWrapperType);
         downloadJob.setMaxMemory( gtdownloadMem + "000");
       }
 
@@ -441,6 +445,7 @@ public class WorkflowClient extends OicrWorkflow {
             .addArgument("--outdir " + finalOutDir)
             .addArgument("--metadata-urls " + gnosInputMetadataURLs)
             .addArgument("--upload-url " + gnosUploadFileURL)
+            .addArgument("--study-refname-override " + studyRefnameOverride)
             .addArgument("--bam-md5sum-file " + this.dataDir + outputFileName + ".md5");
     if (!useGtUpload) {
       job05.getCommand().addArgument("--force-copy");
@@ -466,6 +471,7 @@ public class WorkflowClient extends OicrWorkflow {
             .addArgument("--outdir " + finalOutDir)
             .addArgument("--metadata-urls " + gnosInputMetadataURLs)
             .addArgument("--upload-url " + gnosUploadFileURL)
+            .addArgument("--study-refname-override " + studyRefnameOverride)
             .addArgument("--bam-md5sum-file " + this.dataDir + outputUnmappedFileName + ".md5");
     if (!useGtUpload) {
       job06.getCommand().addArgument("--force-copy");
@@ -569,23 +575,38 @@ public class WorkflowClient extends OicrWorkflow {
     return paramCommand;
   }
 
-  private Job addDownloadJobArgs (Job job, String file, String fileURL, int jobId) {
+  private Job addDownloadJobArgs (Job job, String file, String fileURL, int jobId, String wrapperType) {
 
     // a little unsafe
     String[] pathElements = file.split("/");
     String analysisId = pathElements[0];
 
-    job.getCommand().addArgument("set -e; set -o pipefail; date +%s > download_timing_" + jobId + ".txt;")
-    .addArgument("perl " + this.getWorkflowBaseDir() + "/scripts/launch_and_monitor_cmd.pl")
-    .addArgument(" --command 'gtdownload "
-               + " --max-children " + gnosMaxChildren
-               + " --rate-limit " + gnosRateLimit
-               + " --inactivity-timeout " + gnosTimeout
-               + " -c " + gnosKey
-               + " -v -d "+fileURL+"'")
-    .addArgument("--retries "+gtdownloadRetries + " ;")
-    .addArgument("date +%s >> download_timing_" + jobId + ".txt");
-
+    if ("file_based".equals(wrapperType)) {
+      job.getCommand().addArgument("set -e; set -o pipefail; date +%s > download_timing_" + jobId + ".txt;")
+      .addArgument("perl " + this.getWorkflowBaseDir() + "/scripts/launch_and_monitor_gnos.pl")
+      .addArgument("--command 'gtdownload "
+                + " --max-children " + gnosMaxChildren
+                + " --rate-limit " + gnosRateLimit
+                + " -c " + gnosKey
+                + " -v -d "+fileURL+"'")
+      .addArgument("--file-grep " + analysisId)
+      .addArgument("--search-path .")
+      .addArgument("--md5-retries " + gtdownloadMd5Time)
+      .addArgument("--retries "+gtdownloadRetries + " ;")
+      .addArgument("date +%s >> download_timing_" + jobId + ".txt");
+    } else {
+      job.getCommand().addArgument("set -e; set -o pipefail; date +%s > download_timing_" + jobId + ".txt;")
+      .addArgument("perl " + this.getWorkflowBaseDir() + "/scripts/launch_and_monitor_cmd.pl")
+      .addArgument(" --command 'gtdownload "
+                 + " --max-children " + gnosMaxChildren
+                 + " --rate-limit " + gnosRateLimit
+                 + " --inactivity-timeout " + gnosTimeout
+                 + " -c " + gnosKey
+                 + " -v -d "+fileURL+"'")
+      .addArgument("--retries "+gtdownloadRetries + " ;")
+      .addArgument("date +%s >> download_timing_" + jobId + ".txt");
+    }
+    
     return(job);
   }
 
