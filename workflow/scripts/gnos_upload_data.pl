@@ -51,7 +51,7 @@ my $force_copy = 0;
 my $unmapped_reads_upload = 0;
 my $study_ref_name = "icgc_pancancer";
 
-if (scalar(@ARGV) < 12 || scalar(@ARGV) > 16) {
+if (scalar(@ARGV) < 12 || scalar(@ARGV) > 17) {
   die "USAGE: 'perl gnos_upload_data.pl
        --metadata-urls <URLs_comma_separated>
        --bam <sample-level_bam_file_path>
@@ -59,7 +59,7 @@ if (scalar(@ARGV) < 12 || scalar(@ARGV) > 16) {
        --outdir <output_dir>
        --key <gnos.pem>
        --upload-url <gnos_server_url>
-       [--study-refname-override <study_refname_override>] 
+       [--study-refname-override <study_refname_override>]
        [--unmapped-reads-upload]
        [--skip-validate]
        [--test]\n"; }
@@ -410,7 +410,7 @@ END
                 $i++;
               }
             }
-            
+
     $analysis_xml .= <<END;
               <PIPE_SECTION section_name="Markduplicates">
                 <STEP_INDEX>markduplicates</STEP_INDEX>
@@ -855,14 +855,14 @@ sub getQcResult {
 sub getMarkduplicatesMetrics {
   my $dup_metrics = `cat $bam.metrics`;
   my @rows = split /\n/, $dup_metrics;
-  
+
   my @header = ();
-  my @data = ();  
+  my @data = ();
   my $data_row = 0;
   foreach (@rows) {
     last if (/^## HISTOGRAM/); # ignore everything with this and after
     next if (/^#/ || /^\s*$/);
-    
+
     $data_row++;
     do {@header = split /\t/; next} if ($data_row == 1); # header line
 
@@ -873,10 +873,10 @@ sub getMarkduplicatesMetrics {
   foreach (@data) {
     my $metrics = {};
     my @fields = split /\t/;
-    
+
     $metrics->{lc($_)} = shift @fields for (@header);
     delete $metrics->{'estimated_library_size'}; # this is irrelevant
-    
+
     push @{ $ret->{"markduplicates_metrics"} }, {"library" => $metrics->{'library'}, "metrics" => $metrics};
   }
 
