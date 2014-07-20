@@ -392,7 +392,7 @@ public class WorkflowClient extends OicrWorkflow {
       .addArgument("tmpfile=unmapped2.sorttmp")
       .addArgument("O=unmappedReads2.bam");
 
-  	unmappedReadsJob2.setMaxMemory("4000");
+  	unmappedReadsJob2.setMaxMemory("8000");
   	unmappedReadsJob2.addParent(job04);
   	  
   	unmappedReadsJob3 = this.getWorkflow().createBashJob("unmappedReads3");

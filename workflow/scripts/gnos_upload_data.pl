@@ -51,7 +51,7 @@ my $force_copy = 0;
 my $unmapped_reads_upload = 0;
 my $study_ref_name = "icgc_pancancer";
 
-if (scalar(@ARGV) < 12 || scalar(@ARGV) > 17) {
+if (scalar(@ARGV) < 12 || scalar(@ARGV) > 18) {
   die "USAGE: 'perl gnos_upload_data.pl
        --metadata-urls <URLs_comma_separated>
        --bam <sample-level_bam_file_path>
@@ -59,6 +59,7 @@ if (scalar(@ARGV) < 12 || scalar(@ARGV) > 17) {
        --outdir <output_dir>
        --key <gnos.pem>
        --upload-url <gnos_server_url>
+       [--force-copy]
        [--study-refname-override <study_refname_override>]
        [--unmapped-reads-upload]
        [--skip-validate]
