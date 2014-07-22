@@ -47,6 +47,7 @@ my $workflow_url = "https://s3.amazonaws.com/oicr.workflow.bundles/released-bund
 my $bwa_version = "0.7.8-r455";
 my $biobambam_version = "0.0.148";
 my $pcap_version = "1.1.1";
+my $samtools_version = "0.1.19";
 my $force_copy = 0;
 my $unmapped_reads_upload = 0;
 my $study_ref_name = "icgc_pancancer";
@@ -191,7 +192,7 @@ sub generate_submission {
     # populate refcenter from original BAM submission
     # @RG CN:(.*)
     # FIXME: GNOS currently only allows: ^UCSC$|^NHGRI$|^CGHUB$|^The Cancer Genome Atlas Research Network$|^OICR$
-    ############$refcenter = $m->{$file}{'target'}[0]{'refcenter'};
+    $refcenter = $m->{$file}{'target'}[0]{'refcenter'};
     $sample_uuid = $m->{$file}{'target'}[0]{'refname'};
     $sample_uuids->{$m->{$file}{'target'}[0]{'refname'}} = 1;
     # @CO sample_id
@@ -259,7 +260,7 @@ sub generate_submission {
 
   my $analysis_xml = <<END;
   <ANALYSIS_SET xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.ncbi.nlm.nih.gov/viewvc/v1/trunk/sra/doc/SRA_1-5/SRA.analysis.xsd?view=co">
-    <ANALYSIS center_name="$analysis_center" analysis_date="$datetime">
+    <ANALYSIS center_name="$analysis_center" analysis_center="$analysis_center" analysis_date="$datetime">
       <TITLE>TCGA/ICGC PanCancer Specimen-Level Alignment for Specimen $sample_id from Participant $participant_id</TITLE>
       <STUDY_REF refcenter="$refcenter" refname="$study_ref_name" />
       <DESCRIPTION>$description</DESCRIPTION>
@@ -387,47 +388,54 @@ END
 END
 
   unless ($unmapped_reads_upload) {
-            my $i=0;
-            foreach my $url (keys %{$m}) {
-              foreach my $run (@{$m->{$url}{'run'}}) {
-              #print Dumper($run);
-                if (defined($run->{'read_group_label'})) {
-                   #print "READ GROUP LABREL: ".$run->{'read_group_label'}."\n";
-                   my $dbn = $run->{'data_block_name'};
-                   my $rgl = $run->{'read_group_label'};
-                   my $rn = $run->{'refname'};
-                   my $fname = $m->{$url}{'file'}[$i]{'filename'};
 
     $analysis_xml .= <<END;
-              <PIPE_SECTION section_name="Mapping">
-                <STEP_INDEX>$rgl</STEP_INDEX>
-                <PREV_STEP_INDEX>NIL</PREV_STEP_INDEX>
-                <PROGRAM>bwa</PROGRAM>
-                <VERSION>$bwa_version</VERSION>
-                <NOTES>bwa mem -t 8 -p -T 0 genome.fa.gz $fname</NOTES>
-              </PIPE_SECTION>
+                  <PIPE_SECTION section_name="FASTQEXTRACT">
+                    <STEP_INDEX>1</STEP_INDEX>
+                    <PREV_STEP_INDEX>NIL</PREV_STEP_INDEX>
+                    <PROGRAM>bamtofastq</PROGRAM>
+                    <VERSION>$biobambam_version</VERSION>
+                    <NOTES>bamtofastq exclude=QCFAIL,SECONDARY,SUPPLEMENTARY T=out.t S=out.s O=out.o O2=out.o2 collate=1 tryoq=1 filename=input.bam</NOTES>
+                  </PIPE_SECTION>
 END
-                }
-                $i++;
-              }
-            }
+
+    $analysis_xml .= <<END;
+                  <PIPE_SECTION section_name="Mapping">
+                    <STEP_INDEX>2</STEP_INDEX>
+                    <PREV_STEP_INDEX>1</PREV_STEP_INDEX>
+                    <PROGRAM>bwa</PROGRAM>
+                    <VERSION>$bwa_version</VERSION>
+                    <NOTES>bwa mem -t 8 -p -T 0 -R header.txt genome.fa.gz</NOTES>
+                  </PIPE_SECTION>
+END
+
+    $analysis_xml .= <<END;
+                  <PIPE_SECTION section_name="SORT">
+                    <STEP_INDEX>3</STEP_INDEX>
+                    <PREV_STEP_INDEX>2</PREV_STEP_INDEX>
+                    <PROGRAM>bamsort</PROGRAM>
+                    <VERSION>$biobambam_version</VERSION>
+                    <NOTES>bamsort inputformat=sam level=1 inputthreads=2 outputthreads=2 inputformat=sam level=1 inputthreads=2 outputthreads=2 genome.fa.gz tmpfile=out.sorttmp O=out.bam</NOTES>
+                  </PIPE_SECTION>
+END
 
     $analysis_xml .= <<END;
               <PIPE_SECTION section_name="Markduplicates">
-                <STEP_INDEX>markduplicates</STEP_INDEX>
-                <PREV_STEP_INDEX>bwa</PREV_STEP_INDEX>
+                <STEP_INDEX>4</STEP_INDEX>
+                <PREV_STEP_INDEX>3</PREV_STEP_INDEX>
                 <PROGRAM>bammarkduplicates</PROGRAM>
                 <VERSION>$biobambam_version</VERSION>
-                <NOTES>bammarkduplicates is one of the programs in the biobambam BAM processing package</NOTES>
+                <NOTES>bammarkduplicates O=out.merged.sorted.markdup.bam M=output.metrics tmpfile=tmp.biormdup rewritebam=1 rewritebamlevel=1 index=1 md5=1 I=out.bam</NOTES>
               </PIPE_SECTION>
 END
+
   }else{
     $analysis_xml .= <<END;
               <PIPE_SECTION section_name="UnmappedReadsExtraction">
-                <STEP_INDEX>unmapped_reads</STEP_INDEX>
-                <PREV_STEP_INDEX>bammarkduplicates</PREV_STEP_INDEX>
+                <STEP_INDEX>1</STEP_INDEX>
+                <PREV_STEP_INDEX>NIL</PREV_STEP_INDEX>
                 <PROGRAM>samtools</PROGRAM>
-                <VERSION>0.1.19</VERSION>
+                <VERSION>$samtools_version</VERSION>
                 <NOTES>This extracts the unmapped reads out from BWA MEM aligned BAM. Note that mapped reads with unmapped mate are also extracted.</NOTES>
               </PIPE_SECTION>
 END
@@ -574,11 +582,10 @@ END
   my $uniq_run_xml = {};
   foreach my $url (keys %{$m}) {
     my $run_block = $m->{$url}{'run_block'};
-    # replace the file
-    # FIXME: this is risky
-    $run_block =~ s/filename="\S+"/filename="$bam_check.bam"/g;
-    $run_block =~ s/checksum="\S+"/checksum="$bam_check"/g;
-    $run_block =~ s/center_name="[^"]+"/center_name="$refcenter"/g;
+    # no longer modifying the run block, this is the original input reads *not* the aligned BAM result!
+    #$run_block =~ s/filename="\S+"/filename="$bam_check.bam"/g;
+    #$run_block =~ s/checksum="\S+"/checksum="$bam_check"/g;
+    #$run_block =~ s/center_name="[^"]+"/center_name="$refcenter"/g;
     $uniq_run_xml->{$run_block} = 1;
   }
 
