@@ -51,8 +51,9 @@ my $samtools_version = "0.1.19";
 my $force_copy = 0;
 my $unmapped_reads_upload = 0;
 my $study_ref_name = "icgc_pancancer";
+my $analysis_center = "OICR";
 
-if (scalar(@ARGV) < 12 || scalar(@ARGV) > 18) {
+if (scalar(@ARGV) < 12 || scalar(@ARGV) > 20) {
   die "USAGE: 'perl gnos_upload_data.pl
        --metadata-urls <URLs_comma_separated>
        --bam <sample-level_bam_file_path>
@@ -62,6 +63,7 @@ if (scalar(@ARGV) < 12 || scalar(@ARGV) > 18) {
        --upload-url <gnos_server_url>
        [--force-copy]
        [--study-refname-override <study_refname_override>]
+       [--analysis-center-override <analysis_center_override>]
        [--unmapped-reads-upload]
        [--skip-validate]
        [--test]\n"; }
@@ -78,6 +80,7 @@ GetOptions(
      "skip-validate" => \$skip_validate,
      "unmapped-reads-upload" => \$unmapped_reads_upload,
      "study-refname-override=s" => \$study_ref_name,
+     "analysis-center-override=s" => \$analysis_center,
      );
 
 # setup output dir
@@ -169,14 +172,14 @@ sub generate_submission {
   my $read_group_id = "";
   # @RG PU:(.*)
   my $platform_unit = "";
-  # hardcoded
-  my $analysis_center = "OICR";
   # @CO participant_id
   my $participant_id = "";
   # hardcoded
   my $bam_file = "";
   # hardcoded
   my $bam_file_checksum = "";
+  # center name
+  my $center_name = "";
 
   # these data are collected from all files
   # aliquot_id|library_id|platform_unit|read_group_id|input_url
@@ -193,6 +196,7 @@ sub generate_submission {
     # @RG CN:(.*)
     # FIXME: GNOS currently only allows: ^UCSC$|^NHGRI$|^CGHUB$|^The Cancer Genome Atlas Research Network$|^OICR$
     $refcenter = $m->{$file}{'target'}[0]{'refcenter'};
+    $center_name = $m->{$file}{'center_name'};
     $sample_uuid = $m->{$file}{'target'}[0]{'refname'};
     $sample_uuids->{$m->{$file}{'target'}[0]{'refname'}} = 1;
     # @CO sample_id
@@ -211,9 +215,6 @@ sub generate_submission {
     $read_group_id = $m->{$file}{'run'}[0]{'read_group_label'};
     # @RG PU:(.*)
     $platform_unit = $m->{$file}{'run'}[0]{'refname'};
-    # FIXME: GNOS limitation
-    # hardcoded
-    ########$analysis_center = $refcenter;
     # @CO participant_id
     my @participant_ids = keys %{$m->{$file}{'analysis_attr'}{'participant_id'}};
     if (scalar(@participant_ids) == 0) { @participant_ids = keys %{$m->{$file}{'analysis_attr'}{'submitter_donor_id'}}; }
@@ -260,7 +261,7 @@ sub generate_submission {
 
   my $analysis_xml = <<END;
   <ANALYSIS_SET xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.ncbi.nlm.nih.gov/viewvc/v1/trunk/sra/doc/SRA_1-5/SRA.analysis.xsd?view=co">
-    <ANALYSIS center_name="$analysis_center" analysis_center="$analysis_center" analysis_date="$datetime">
+    <ANALYSIS center_name="$center_name" analysis_center="$analysis_center" analysis_date="$datetime">
       <TITLE>TCGA/ICGC PanCancer Specimen-Level Alignment for Specimen $sample_id from Participant $participant_id</TITLE>
       <STUDY_REF refcenter="$refcenter" refname="$study_ref_name" />
       <DESCRIPTION>$description</DESCRIPTION>
@@ -290,7 +291,8 @@ END
           <SEQ_LABELS>
 END
 
-            foreach my $dbn (keys %{$sample_uuids}) {
+            my $dbn = "";
+            foreach $dbn (keys %{$sample_uuids}) {
   $analysis_xml .= <<END;
             <SEQUENCE data_block_name="$dbn" accession="NC_000001.10" seq_label="1" />
             <SEQUENCE data_block_name="$dbn" accession="NC_000002.11" seq_label="2" />
@@ -460,7 +462,7 @@ END
   }
   $analysis_xml .= <<END;
       </TARGETS>
-      <DATA_BLOCK>
+      <DATA_BLOCK name=\"$dbn\">
         <FILES>
 END
 
