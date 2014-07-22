@@ -280,7 +280,7 @@ END
                    my $dbn = $run->{'data_block_name'};
                    my $rgl = $run->{'read_group_label'};
                    my $rn = $run->{'refname'};
-                 $analysis_xml .= "              <RUN data_block_name=\"$dbn\" read_group_label=\"$rgl\" refname=\"$rn\" refcenter=\"$refcenter\" />\n";
+                 $analysis_xml .= "              <RUN data_block_name=\"$dbn\" read_group_label=\"$rgl\" refname=\"$rn\" refcenter=\"$center_name\" />\n";
                 }
               }
 
