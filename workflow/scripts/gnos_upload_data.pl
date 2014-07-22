@@ -291,8 +291,9 @@ END
           <SEQ_LABELS>
 END
 
-            my $dbn = "";
-            foreach $dbn (keys %{$sample_uuids}) {
+            my $last_dbn ="";
+            foreach my $dbn (keys %{$sample_uuids}) {
+              $last_dbn = $dbn;
   $analysis_xml .= <<END;
             <SEQUENCE data_block_name="$dbn" accession="NC_000001.10" seq_label="1" />
             <SEQUENCE data_block_name="$dbn" accession="NC_000002.11" seq_label="2" />
@@ -392,7 +393,7 @@ END
   unless ($unmapped_reads_upload) {
 
     $analysis_xml .= <<END;
-                  <PIPE_SECTION section_name="FASTQEXTRACT">
+                  <PIPE_SECTION section_name="fastq_extract">
                     <STEP_INDEX>1</STEP_INDEX>
                     <PREV_STEP_INDEX>NIL</PREV_STEP_INDEX>
                     <PROGRAM>bamtofastq</PROGRAM>
@@ -402,7 +403,7 @@ END
 END
 
     $analysis_xml .= <<END;
-                  <PIPE_SECTION section_name="Mapping">
+                  <PIPE_SECTION section_name="mapping">
                     <STEP_INDEX>2</STEP_INDEX>
                     <PREV_STEP_INDEX>1</PREV_STEP_INDEX>
                     <PROGRAM>bwa</PROGRAM>
@@ -412,7 +413,7 @@ END
 END
 
     $analysis_xml .= <<END;
-                  <PIPE_SECTION section_name="SORT">
+                  <PIPE_SECTION section_name="bam_sort">
                     <STEP_INDEX>3</STEP_INDEX>
                     <PREV_STEP_INDEX>2</PREV_STEP_INDEX>
                     <PROGRAM>bamsort</PROGRAM>
@@ -422,7 +423,7 @@ END
 END
 
     $analysis_xml .= <<END;
-              <PIPE_SECTION section_name="Markduplicates">
+              <PIPE_SECTION section_name="mark_duplicates">
                 <STEP_INDEX>4</STEP_INDEX>
                 <PREV_STEP_INDEX>3</PREV_STEP_INDEX>
                 <PROGRAM>bammarkduplicates</PROGRAM>
@@ -433,7 +434,7 @@ END
 
   }else{
     $analysis_xml .= <<END;
-              <PIPE_SECTION section_name="UnmappedReadsExtraction">
+              <PIPE_SECTION section_name="unmapped_reads_extraction">
                 <STEP_INDEX>1</STEP_INDEX>
                 <PREV_STEP_INDEX>NIL</PREV_STEP_INDEX>
                 <PROGRAM>samtools</PROGRAM>
@@ -462,7 +463,7 @@ END
   }
   $analysis_xml .= <<END;
       </TARGETS>
-      <DATA_BLOCK name=\"$dbn\">
+      <DATA_BLOCK name=\"$last_dbn\">
         <FILES>
 END
 
