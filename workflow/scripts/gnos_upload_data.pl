@@ -140,12 +140,34 @@ sub upload_submission {
     if (run($cmd)) { return(1); }
   }
 
+  # we need to hack the manifest.xml to drop any files that are inputs and I won't upload again
+  modify_manifest_file("manifest.xml");
+
   $cmd = "cd $sub_path; gtupload -v -c $key -u ./manifest.xml; cd -";
   if (!$test) {
     print "UPLOADING DATA: $cmd\n";
     if (run($cmd)) { return(1); }
   }
 
+}
+
+sub modify_manifest_file {
+  my ($man) = @_;
+  open OUT, ">$man.new" or die;
+  open IN, "<$man" or die;
+  while(<IN>) {
+    chomp;
+    if (/filename="([^"]+)"/) {
+      if (-e $1) {
+        print OUT "$_\n";
+      }
+    } else {
+      print OUT "$_\n";
+    }
+  }
+  close IN;
+  close OUT;
+  system("mv $man.new $man");
 }
 
 sub generate_submission {
