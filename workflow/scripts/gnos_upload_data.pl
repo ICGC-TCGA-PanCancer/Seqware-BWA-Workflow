@@ -144,7 +144,9 @@ sub upload_submission {
   }
 
   # we need to hack the manifest.xml to drop any files that are inputs and I won't upload again
-  modify_manifest_file("$sub_path/manifest.xml", $sub_path);
+  if (!$test) {
+    modify_manifest_file("$sub_path/manifest.xml", $sub_path);
+  }
 
   $cmd = "cd $sub_path; gtupload -v -c $key -u ./manifest.xml; cd -";
   print "UPLOADING DATA: $cmd\n";
