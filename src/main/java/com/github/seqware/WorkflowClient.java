@@ -89,6 +89,7 @@ public class WorkflowClient extends OicrWorkflow {
       }
       outputDir = this.getMetadata_output_dir();
       outputPrefix = this.getMetadata_output_file_prefix();
+      resultsDir = outputPrefix + outputDir;
       gnosUploadFileURL = getProperty("gnos_output_file_url");
       gnosKey = getProperty("gnos_key");
       gnosMaxChildren = getProperty("gnos_max_children") == null ? 3 : Integer.parseInt(getProperty("gnos_max_children"));
