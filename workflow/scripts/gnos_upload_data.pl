@@ -39,11 +39,12 @@ my $upload_url = "";
 my $test = 0;
 my $skip_validate = 0;
 # hardcoded
+my $seqware_version = "1.0.15";
 my $workflow_version = "2.6.0";
 my $workflow_name = "Workflow_Bundle_BWA";
 # hardcoded
 my $workflow_src_url = "https://github.com/SeqWare/public-workflows";
-my $workflow_url = "https://s3.amazonaws.com/oicr.workflow.bundles/released-bundles/Workflow_Bundle_BWA_".$workflow_version."_SeqWare_1.0.15.zip";
+my $workflow_url = "https://s3.amazonaws.com/oicr.workflow.bundles/released-bundles/Workflow_Bundle_BWA_".$workflow_version."_SeqWare_$seqware_version.zip";
 my $bwa_version = "0.7.8-r455";
 my $biobambam_version = "0.0.148";
 my $pcap_version = "1.1.1";
@@ -538,6 +539,20 @@ END
           <VALUE>$workflow_url</VALUE>
         </ANALYSIS_ATTRIBUTE>
 ";
+
+if ($unmapped_reads_upload) {
+  $analysis_xml .= "        <ANALYSIS_ATTRIBUTE>
+          <TAG>workflow_output_bam_contents</TAG>
+          <VALUE>unaligned</VALUE>
+        </ANALYSIS_ATTRIBUTE>
+";
+} else {
+  $analysis_xml .= "        <ANALYSIS_ATTRIBUTE>
+          <TAG>workflow_output_bam_contents</TAG>
+          <VALUE>aligned+unaligned</VALUE>
+        </ANALYSIS_ATTRIBUTE>
+";
+}
 
 unless ($unmapped_reads_upload) {
   $analysis_xml .= "        <ANALYSIS_ATTRIBUTE>
