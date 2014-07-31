@@ -43,8 +43,9 @@ my $seqware_version = "1.0.15";
 my $workflow_version = "2.6.0";
 my $workflow_name = "Workflow_Bundle_BWA";
 # hardcoded
-my $workflow_src_url = "https://github.com/SeqWare/public-workflows";
+my $workflow_src_url = "https://github.com/SeqWare/public-workflows/tree/$workflow_version/workflow-bwa-pancancer";
 my $workflow_url = "https://s3.amazonaws.com/oicr.workflow.bundles/released-bundles/Workflow_Bundle_BWA_".$workflow_version."_SeqWare_$seqware_version.zip";
+my $changelog_url = "https://github.com/SeqWare/public-workflows/blob/$workflow_version/workflow-bwa-pancancer/CHANGELOG.md";
 my $bwa_version = "0.7.8-r455";
 my $biobambam_version = "0.0.148";
 my $pcap_version = "1.1.1";
@@ -280,10 +281,10 @@ sub generate_submission {
   # FIXME: either custom needs to work or the reference needs to be listed in GNOS
   #<!--CUSTOM DESCRIPTION="hs37d" REFERENCE_SOURCE="ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/phase2_reference_assembly_sequence/README_human_reference_20110707"/-->
 
-  my $description = "Specimen-level BAM from the reference alignment of specimen $sample_id from donor $participant_id. This uses the SeqWare BWA-MEM PanCancer Workflow version $workflow_version available at $workflow_url. This workflow can be created from source, see https://github.com/SeqWare/public-workflows. Input BAMs are prepared and submitted to GNOS server according to the submission SOP documented at: https://wiki.oicr.on.ca/display/PANCANCER/PCAP+%28a.k.a.+PAWG%29+Sequence+Submission+SOP+-+v1.0";
+  my $description = "Specimen-level BAM from the reference alignment of specimen $sample_id from donor $participant_id. This uses the SeqWare BWA-MEM PanCancer Workflow version $workflow_version available at $workflow_url. This workflow can be created from source, see $workflow_src_url. For a complete change log see $changelog_url. Input BAMs are prepared and submitted to GNOS server according to the submission SOP documented at: https://wiki.oicr.on.ca/display/PANCANCER/PCAP+%28a.k.a.+PAWG%29+Sequence+Submission+SOP+-+v1.0. Please note the reference is hs37d, see ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/phase2_reference_assembly_sequence/README_human_reference_20110707 for more information. Briefly this is the integrated reference sequence from the GRCh37 primary assembly (chromosomal plus unlocalized and unplaced contigs), the rCRS mitochondrial sequence (AC:NC_012920), Human herpesvirus 4 type 1 (AC:NC_007605) and the concatenated decoy sequences (hs37d5cs.fa.gz).";
 
   if ($unmapped_reads_upload) {
-    $description = "The BAM file includes unmapped reads extracted from specimen-level BAM with the reference alignment of specimen $sample_id from donor $participant_id. This uses the SeqWare BWA-MEM PanCancer Workflow version $workflow_version available at $workflow_url. This workflow can be created from source, see https://github.com/SeqWare/public-workflows. Input BAMs are prepared and submitted to GNOS server according to the submission SOP documented at: https://wiki.oicr.on.ca/display/PANCANCER/PCAP+%28a.k.a.+PAWG%29+Sequence+Submission+SOP+-+v1.0";
+    $description = "The BAM file includes unmapped reads extracted from specimen-level BAM with the reference alignment of specimen $sample_id from donor $participant_id. This uses the SeqWare BWA-MEM PanCancer Workflow version $workflow_version available at $workflow_url. This workflow can be created from source, see $workflow_src_url. For a complete change log see $changelog_url. Input BAMs are prepared and submitted to GNOS server according to the submission SOP documented at: https://wiki.oicr.on.ca/display/PANCANCER/PCAP+%28a.k.a.+PAWG%29+Sequence+Submission+SOP+-+v1.0.";
   }
 
   my $analysis_xml = <<END;
