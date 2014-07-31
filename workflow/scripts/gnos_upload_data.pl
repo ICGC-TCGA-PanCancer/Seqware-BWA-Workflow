@@ -88,6 +88,7 @@ my $ug = Data::UUID->new;
 my $uuid = lc($ug->create_str());
 run("mkdir -p $output_dir/$uuid");
 $output_dir = $output_dir."/$uuid/";
+my $final_touch_file = "$output_dir/upload_complete.txt";
 # md5sum
 my $bam_check = `cat $md5_file`;
 my $bai_check = `cat $bam.bai.md5`;
@@ -144,10 +145,13 @@ sub upload_submission {
   modify_manifest_file("$sub_path/manifest.xml", $sub_path);
 
   $cmd = "cd $sub_path; gtupload -v -c $key -u ./manifest.xml; cd -";
+  print "UPLOADING DATA: $cmd\n";
   if (!$test) {
-    print "UPLOADING DATA: $cmd\n";
     if (run($cmd)) { return(1); }
   }
+
+  # just touch this file to ensure monitoring tools know upload is complete
+  run("date +\%s > $final_touch_file");
 
 }
 
