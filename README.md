@@ -5,12 +5,14 @@
 This is the SeqWare workflow for the TCGA/ICGC PanCancer project that aligns
 whole genome sequences with BWA-Mem.  It also reads/writes to GNOS, the metadata/data
 repository system used in the project.
-For more information about the workflow see the properties file 
-[workflow.properties](workflow.properties) which includes background information
- and a change log from the previous version.
+For more information about the workflow see the [CHANGELOG](CHANGELOG.md).
 
-For more information about the project overall see the 
+For more information about the project overall see the
 [PanCancer wiki space](https://wiki.oicr.on.ca/display/PANCANCER/PANCANCER+Home).
+
+More detailed documentation about the production use of this workflow can be
+found in the [PanCancer-Info](https://github.com/ICGC-TCGA-PanCancer/pancancer-info)
+project where we maintain our production documentation and SOPs.
 
 ## Building the Workflow
 
@@ -19,7 +21,7 @@ workflow directory (workflow-bwa-pancancer), execute the following:
 
     mvn clean install
 
-This will take a long time on first build since it download dependencies from Maven 
+This will take a long time on first build since it download dependencies from Maven
 and the reference genome which is 5GB+ in size.
 
 ## Installation & Running
@@ -39,7 +41,7 @@ Feel free to email our [mailing list](http://seqware.github.io/community/) if yo
 ## Contributors
 
 * Keiran Raine: PCAP-Core and BWA-Mem workflow design
-* Roshaan Tahir: Original BWA-Align workflow design 
+* Roshaan Tahir: Original BWA-Align workflow design
 
 ## Workflow Authors' Release Checklist
 
@@ -50,9 +52,8 @@ Make sure you:
     * pom.xml
     * gnos_upload_data.pl
     * make sure you grep for any other files
-* update the description of the workflow in workflow.properties and gnos_upload_data.pl, this includes differences with the previous release
-* test the workflow
+* update the description of the workflow in workflow.properties and gnos_upload_data.pl, this includes differences with the previous release. Update the CHANGELOG which should contain the bulk of documentation about changes and links to our Bug system.
+* test the workflow locally (VM) and at clouds
 * do not package your gnostest.pem key!
-* release in Github
-* upload to S3
-* email the technical working group
+* release in Github using HubFlow
+* upload the workflow zip to S3

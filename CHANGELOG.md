@@ -2,12 +2,12 @@
 
 ## Overview
 
-This is the changelog for the 2.6.0 release of the BWA workflow used for the
+This is the changelog for the release of the BWA workflow used for the
 ICGC/TCGA PanCancer project.
 
-## Jira Tickets
+## Release 2.6.0
 
-You can find these tickets at the OICR JIRA: https://jira.oicr.on.ca
+You can find these tickets at the OICR JIRA: https://jira.oicr.on.ca. Here are the items addressed in the 2.6.0 release:
 
 * [PANCANCER-6](https://jira.oicr.on.ca/browse/PANCANCER-6) - Metadata: include workflow version string in XML attr
 * [PANCANCER-8](https://jira.oicr.on.ca/browse/PANCANCER-8) - Workflow: BAI upload added
