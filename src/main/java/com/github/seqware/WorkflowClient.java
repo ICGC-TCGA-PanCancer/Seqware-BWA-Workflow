@@ -64,6 +64,7 @@ public class WorkflowClient extends OicrWorkflow {
   String gtdownloadWrapperType = "timer_based";
   String smallJobMemM = "4000";
   String studyRefnameOverride = "icgc_pancancer";
+  String unmappedReadsJobMemM = "8000";
 
   @Override
   public Map<String, SqwFile> setupFiles() {
@@ -111,6 +112,7 @@ public class WorkflowClient extends OicrWorkflow {
       gtdownloadWrapperType = getProperty("gtdownloadWrapperType") == null ? "timer_based" : getProperty("gtdownloadWrapperType");
       studyRefnameOverride = getProperty("study-refname-override") == null ? "icgc_pancancer" : getProperty("study-refname-override");
       smallJobMemM = getProperty("smallJobMemM") == null ? "3000" : getProperty("smallJobMemM");
+      unmappedReadsJobMemM = getProperty("unmappedReadsJobMemM") == null ? "8000" : getProperty("unmappedReadsJobMemM");
       if (getProperty("use_gtdownload") != null) { if("false".equals(getProperty("use_gtdownload"))) { useGtDownload = false; } }
       if (getProperty("use_gtupload") != null) { if("false".equals(getProperty("use_gtupload"))) { useGtUpload = false; } }
       if (getProperty("use_gtvalidation") != null) { if("false".equals(getProperty("use_gtvalidation"))) { useGtValidation = false; } }
@@ -378,7 +380,7 @@ public class WorkflowClient extends OicrWorkflow {
       .addArgument("tmpfile=unmapped1.sorttmp")
       .addArgument("O=unmappedReads1.bam");
 
-    unmappedReadsJob1.setMaxMemory("4000");
+    unmappedReadsJob1.setMaxMemory(unmappedReadsJobMemM);
   	unmappedReadsJob1.addParent(job04);
   	  
   	unmappedReadsJob2 = this.getWorkflow().createBashJob("unmappedReads2");
@@ -393,7 +395,7 @@ public class WorkflowClient extends OicrWorkflow {
       .addArgument("tmpfile=unmapped2.sorttmp")
       .addArgument("O=unmappedReads2.bam");
 
-  	unmappedReadsJob2.setMaxMemory("8000");
+  	unmappedReadsJob2.setMaxMemory(unmappedReadsJobMemM);
   	unmappedReadsJob2.addParent(job04);
   	  
   	unmappedReadsJob3 = this.getWorkflow().createBashJob("unmappedReads3");
@@ -401,7 +403,7 @@ public class WorkflowClient extends OicrWorkflow {
       this.getWorkflowBaseDir() + pcapPath + "/bin/samtools view -h -b -f 12 " // reads with both ends unmapped, no need to sort at all
       + this.dataDir + outputFileName
       + " > unmappedReads3.bam");
-  	unmappedReadsJob3.setMaxMemory("4000");
+  	unmappedReadsJob3.setMaxMemory(unmappedReadsJobMemM);
   	unmappedReadsJob3.addParent(job04);
 
 
@@ -425,7 +427,7 @@ public class WorkflowClient extends OicrWorkflow {
     mergeUnmappedJob.addParent(unmappedReadsJob2);
     mergeUnmappedJob.addParent(unmappedReadsJob3);
         
-    mergeUnmappedJob.setMaxMemory("4000");
+    mergeUnmappedJob.setMaxMemory(unmappedReadsJobMemM);
     
     
     // CLEANUP LANE LEVEL BAM FILES

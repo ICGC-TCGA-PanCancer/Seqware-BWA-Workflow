@@ -7,7 +7,7 @@ ICGC/TCGA PanCancer project.
 
 ## Release 2.6.1
 
-* [PANCANCER-107](https://jira.oicr.on.ca/browse/PANCANCER-107) - Workflow: ensure we can control the maxmemory setting on the ualigned extraction steps. These are the only steps that did not have memory params in the ini.
+* [PANCANCER-107](https://jira.oicr.on.ca/browse/PANCANCER-107) - Workflow: ensure we can control the maxmemory setting on the unaligned reads extraction steps (new ini param is unmappedReadsJobMemM). These are the only steps that did not have memory params in the ini in the previous version of the workflow.
 
 ## Release 2.6.0
 
