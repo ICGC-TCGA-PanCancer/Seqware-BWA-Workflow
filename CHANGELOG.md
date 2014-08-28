@@ -5,6 +5,10 @@
 This is the changelog for the release of the BWA workflow used for the
 ICGC/TCGA PanCancer project.
 
+## Release 2.6.1
+
+* [PANCANCER-107](https://jira.oicr.on.ca/browse/PANCANCER-107) - Workflow: ensure we can control the maxmemory setting on the ualigned extraction steps. These are the only steps that did not have memory params in the ini.
+
 ## Release 2.6.0
 
 You can find these tickets at the OICR JIRA: https://jira.oicr.on.ca. Here are the items addressed in the 2.6.0 release:
