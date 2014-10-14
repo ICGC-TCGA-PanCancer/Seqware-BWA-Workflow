@@ -148,7 +148,7 @@ sub upload_submission {
     modify_manifest_file("$sub_path/manifest.xml", $sub_path);
   }
 
-  $cmd = "cd $sub_path; gtupload -v -c $key -u ./manifest.xml; cd -";
+  $cmd = "cd $sub_path; gtupload -v -c $key -l ./upload.log -u ./manifest.xml; cd -";
   print "UPLOADING DATA: $cmd\n";
   if (!$test) {
     if (run($cmd)) { return(1); }

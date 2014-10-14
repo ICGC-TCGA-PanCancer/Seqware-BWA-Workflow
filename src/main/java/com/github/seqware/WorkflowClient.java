@@ -596,6 +596,7 @@ public class WorkflowClient extends OicrWorkflow {
                 + " --max-children " + gnosMaxChildren
                 + " --rate-limit " + gnosRateLimit
                 + " -c " + gnosKey
+                + " -l ./download.log"
                 + " -v -d "+fileURL+"'")
       .addArgument("--file-grep " + analysisId)
       .addArgument("--search-path .")
@@ -610,6 +611,7 @@ public class WorkflowClient extends OicrWorkflow {
                  + " --rate-limit " + gnosRateLimit
                  + " --inactivity-timeout " + gnosTimeout
                  + " -c " + gnosKey
+                 + " -l ./download.log"
                  + " -v -d "+fileURL+"'")
       .addArgument("--retries "+gtdownloadRetries + " ;")
       .addArgument("date +%s >> download_timing_" + jobId + ".txt");
