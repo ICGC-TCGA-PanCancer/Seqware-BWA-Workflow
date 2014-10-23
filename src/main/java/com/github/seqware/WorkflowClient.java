@@ -43,12 +43,23 @@ public class WorkflowClient extends OicrWorkflow {
   String outputUnmappedFileName = "merged_output.unmapped.bam";
   //BWA
   String bwaAlignMemG = "8";
+  String bwaAlignSlots = "4";
+
   String bwaSampeMemG = "8";
+  String bwaSampleSlots = "4";
+
   String bwaSampeSortSamMemG = "8";
+
   String additionalPicardParams;
+
   String picardSortMem = "6";
+
   String picardSortJobMem = "8";
+  String picardSortJobSlots = "4";
+
   String uploadScriptJobMem = "2";
+  String uploadScriptJobSlots = "4";
+
   int numOfThreads = 1; //aln
   int maxInsertSize; //sampe
   String readGroup;//sampe
@@ -60,12 +71,19 @@ public class WorkflowClient extends OicrWorkflow {
   // each retry is 1 minute
   String gtdownloadRetries = "30";
   String gtdownloadMd5Time = "120";
-  String gtdownloadMem = "8";
-  String gtdownloadWrapperType = "timer_based";
-  String smallJobMemM = "4000";
-  String studyRefnameOverride = "icgc_pancancer";
-  String unmappedReadsJobMemM = "8000";
 
+  String gtdownloadMem = "8";
+  String gtdownloadSlots = "4";
+
+  String gtdownloadWrapperType = "timer_based";
+
+  String smallJobMemM = "4000";
+  string smallJobSlots = "1";
+
+  String studyRefnameOverride = "icgc_pancancer";
+
+  String unmappedReadsJobMemM = "8000";
+  String unmappedReadsJobSlots = "4";
   @Override
   public Map<String, SqwFile> setupFiles() {
 
@@ -91,6 +109,7 @@ public class WorkflowClient extends OicrWorkflow {
       outputDir = this.getMetadata_output_dir();
       outputPrefix = this.getMetadata_output_file_prefix();
       resultsDir = outputPrefix + outputDir;
+
       gnosUploadFileURL = getProperty("gnos_output_file_url");
       gnosKey = getProperty("gnos_key");
       gnosMaxChildren = getProperty("gnos_max_children") == null ? 3 : Integer.parseInt(getProperty("gnos_max_children"));
@@ -98,21 +117,40 @@ public class WorkflowClient extends OicrWorkflow {
       gnosTimeout = getProperty("gnos_timeout") == null ? 40 : Integer.parseInt(getProperty("gnos_timeout"));
       reference_path = getProperty("input_reference");
       bwaChoice = getProperty("bwa_choice") == null ? "aln" : getProperty("bwa_choice");
+
       bwaAlignMemG = getProperty("bwaAlignMemG") == null ? "8" : getProperty("bwaAlignMemG");
+      bwaAlignSlots = getProperty("bwaAlignSlots") == null ? "4" : getProperty("bwaAlignSlots");
+
       bwaSampeMemG = getProperty("bwaSampeMemG") == null ? "8" : getProperty("bwaSampeMemG");
+      bwaSampleSlots = getProperty("bwaSampleSlots") == null ? "4" : getProperty("bwaSampleSlots");
+
       bwaSampeSortSamMemG = getProperty("bwaSampeSortSamMemG") == null ? "4" : getProperty("bwaSampeSortSamMemG");
+  
       picardSortMem = getProperty("picardSortMem") == null ? "6" : getProperty("picardSortMem");
+ 
       picardSortJobMem = getProperty("picardSortJobMem") == null ? "8" : getProperty("picardSortJobMem");
+      picardSortJobSlots = getProperty("picardSortJobSlots") == null ? "4" : getProperty("picardSortJobSlots");
+
       uploadScriptJobMem = getProperty("uploadScriptJobMem") == null ? "2" : getProperty("uploadScriptJobMem");
+      uploadScriptJobSlots = getProperty("uploadScriptJobSlots") == null ? "4" : getProperty("uploadScriptJobSlots");
+
       additionalPicardParams = getProperty("additionalPicardParams");
       skipUpload = getProperty("skip_upload") == null ? "true" : getProperty("skip_upload");
       gtdownloadRetries = getProperty("gtdownloadRetries") == null ? "30" : getProperty("gtdownloadRetries");
       gtdownloadMd5Time = getProperty("gtdownloadMd5time") == null ? "120" : getProperty("gtdownloadMd5time");
+
       gtdownloadMem = getProperty("gtdownloadMemG") == null ? "8" : getProperty("gtdownloadMemG");
+      gtdownloadSlots = getProperty("gtdownloadSlots") == null ? "4" : getProperty("gtdownloadSlots");
+
       gtdownloadWrapperType = getProperty("gtdownloadWrapperType") == null ? "timer_based" : getProperty("gtdownloadWrapperType");
       studyRefnameOverride = getProperty("study-refname-override") == null ? "icgc_pancancer" : getProperty("study-refname-override");
+
       smallJobMemM = getProperty("smallJobMemM") == null ? "3000" : getProperty("smallJobMemM");
+      smallJobSlots = getProperty("smallJobSlots") == null ? "1" : getProperty("smallJobSlots");
+
       unmappedReadsJobMemM = getProperty("unmappedReadsJobMemM") == null ? "8000" : getProperty("unmappedReadsJobMemM");
+      unmappedReadsJobMemSlots = getProperty("unmappedReadsJobSlots") == null ? "4" : getProperty("unmappedReadsJobSlots");
+
       if (getProperty("use_gtdownload") != null) { if("false".equals(getProperty("use_gtdownload"))) { useGtDownload = false; } }
       if (getProperty("use_gtupload") != null) { if("false".equals(getProperty("use_gtupload"))) { useGtUpload = false; } }
       if (getProperty("use_gtvalidation") != null) { if("false".equals(getProperty("use_gtvalidation"))) { useGtValidation = false; } }
@@ -164,6 +202,7 @@ public class WorkflowClient extends OicrWorkflow {
         downloadJob = this.getWorkflow().createBashJob("gtdownload");
         addDownloadJobArgs(downloadJob, file, fileURL, i, gtdownloadWrapperType);
         downloadJob.setMaxMemory( gtdownloadMem + "000");
+        downloadJob.setThreads(gtdownloadSlots);
       }
 
       // in the future this should use the read group if provided otherwise use read group from bam file
@@ -175,6 +214,7 @@ public class WorkflowClient extends OicrWorkflow {
     		  + " | perl -nae 'next unless /^\\@RG/; s/\\tPI:\\s*\\t/\\t/; s/\\tPI:\\s*\\z/\\n/; s/\\t/\\\\t/g; print' > bam_header." + i + ".txt");
       if (useGtDownload) { headerJob.addParent(downloadJob); }
       headerJob.setMaxMemory(smallJobMemM);
+      headerJob.setThreads(smallJobSlots);
 
       // the QC job used by either path below
       Job qcJob = null;
@@ -194,6 +234,7 @@ public class WorkflowClient extends OicrWorkflow {
                 .addArgument(file)
                 .addArgument(" > aligned_" + i + "_1.sai");
         job01.setMaxMemory(bwaAlignMemG + "900");
+        job01.setThreads(bwaAlignSlots);
         /*if (!getProperty("numOfThreads").isEmpty()) {
           job01.setThreads(Integer.parseInt(getProperty("numOfThreads")));
         }*/
@@ -206,6 +247,7 @@ public class WorkflowClient extends OicrWorkflow {
                 .addArgument(file)
                 .addArgument(" > aligned_" + i + "_2.sai");
         job02.setMaxMemory(bwaAlignMemG + "900");
+        job02.setThreads(bwaAlignSlots);
         /*if (!getProperty("numOfThreads").isEmpty()) {
           job02.setThreads(Integer.parseInt(getProperty("numOfThreads")));
         }*/
@@ -233,6 +275,7 @@ public class WorkflowClient extends OicrWorkflow {
         job03.addParent(job01);
         job03.addParent(job02);
         job03.setMaxMemory(bwaSampeMemG + "900");
+        job03.setThreads(bwaSampleSlots);
         bamJobs.add(job03);
 
         // QC JOB
@@ -240,6 +283,7 @@ public class WorkflowClient extends OicrWorkflow {
         addBamStatsQcJobArgument(i, qcJob);
         qcJob.addParent(job03);
         qcJob.setMaxMemory(smallJobMemM);
+        qcJob.setTreads(smallJobSlots);
         qcJobs.add(qcJob);
 
         // CLEANUP DOWNLOADED INPUT UNALIGNED BAM FILES
@@ -247,6 +291,7 @@ public class WorkflowClient extends OicrWorkflow {
           Job cleanup1 = this.getWorkflow().createBashJob("cleanup_" + i);
           cleanup1.getCommand().addArgument("rm -f " + file);
           cleanup1.setMaxMemory(smallJobMemM);
+          cleanup1.setThreads(smallJobSlots);
           cleanup1.addParent(job03);
         }
 
@@ -285,6 +330,7 @@ public class WorkflowClient extends OicrWorkflow {
                 .addArgument("&& date +%s >> bwa_timing_" + i + ".txt");
 
         job01.setMaxMemory(bwaAlignMemG + "900");
+        job01.setThreads(bwaAlignSlots);
         /*if (!getProperty("numOfThreads").isEmpty()) {
           job01.setThreads(Integer.parseInt(getProperty("numOfThreads")));
         }*/
@@ -295,6 +341,7 @@ public class WorkflowClient extends OicrWorkflow {
         addBamStatsQcJobArgument(i, qcJob);
         qcJob.addParent(job01);
         qcJob.setMaxMemory(smallJobMemM);
+        qcJob.setThreads(smallJobSlots);
         qcJobs.add(qcJob);
 
         // CLEANUP DOWNLOADED INPUT UNALIGNED BAM FILES
@@ -302,6 +349,7 @@ public class WorkflowClient extends OicrWorkflow {
           Job cleanup1 = this.getWorkflow().createBashJob("cleanup2_" + i);
           cleanup1.getCommand().addArgument("rm -f " + file);
           cleanup1.setMaxMemory(smallJobMemM);
+          cleanup1.setTheads(smallJobSlots);
           cleanup1.addParent(job01);
         }
 
@@ -332,6 +380,7 @@ public class WorkflowClient extends OicrWorkflow {
         job04.addParent(pJob);
       }
       job04.setMaxMemory(picardSortJobMem + "900");
+      job04.setThreads(PicardSortJobSlots);
 
     } else if ("mem".equals(bwaChoice)) {
 
@@ -360,6 +409,7 @@ public class WorkflowClient extends OicrWorkflow {
           + " > " + this.dataDir + outputFileName + ".bai.md5");
 
       job04.setMaxMemory(picardSortJobMem + "900");
+      job04.setThreads(PicardSortJobSlots);  
 
     }
 
@@ -381,6 +431,7 @@ public class WorkflowClient extends OicrWorkflow {
       .addArgument("O=unmappedReads1.bam");
 
     unmappedReadsJob1.setMaxMemory(unmappedReadsJobMemM);
+        unmappedReadsJob1.setThreads(unmappedReadsJobSlots);
   	unmappedReadsJob1.addParent(job04);
   	  
   	unmappedReadsJob2 = this.getWorkflow().createBashJob("unmappedReads2");
@@ -396,6 +447,7 @@ public class WorkflowClient extends OicrWorkflow {
       .addArgument("O=unmappedReads2.bam");
 
   	unmappedReadsJob2.setMaxMemory(unmappedReadsJobMemM);
+        unmappedReadsJob2.setThreads(unmappedReadsJobSlots);
   	unmappedReadsJob2.addParent(job04);
   	  
   	unmappedReadsJob3 = this.getWorkflow().createBashJob("unmappedReads3");
@@ -404,6 +456,7 @@ public class WorkflowClient extends OicrWorkflow {
       + this.dataDir + outputFileName
       + " > unmappedReads3.bam");
   	unmappedReadsJob3.setMaxMemory(unmappedReadsJobMemM);
+        unmappedReadsJob3.setThreads(unmappedReadsJobSlots);
   	unmappedReadsJob3.addParent(job04);
 
 
@@ -428,7 +481,7 @@ public class WorkflowClient extends OicrWorkflow {
     mergeUnmappedJob.addParent(unmappedReadsJob3);
         
     mergeUnmappedJob.setMaxMemory(unmappedReadsJobMemM);
-    
+    mergeUnmappedJob.setThreads(unmappedReadsJobSlots);
     
     // CLEANUP LANE LEVEL BAM FILES
     if (cleanup) {
@@ -437,6 +490,7 @@ public class WorkflowClient extends OicrWorkflow {
         cleanup2.getCommand().addArgument("rm -f out_" + i + ".bam");
         cleanup2.addParent(job04);
         cleanup2.setMaxMemory(smallJobMemM);
+        cleanup2.setThreads(smallJobSlots);
         cleanup2.addParent(qcJobs.get(i));
       }
     }
@@ -463,6 +517,7 @@ public class WorkflowClient extends OicrWorkflow {
       job05.getCommand().addArgument("--skip-validate");
     }
     job05.setMaxMemory(uploadScriptJobMem + "900");
+    job05.setThreads(uploadScriptJobSlots);
     job05.addParent(job04);
     for (Job qcJob : qcJobs) {
       job05.addParent(qcJob);
@@ -489,6 +544,8 @@ public class WorkflowClient extends OicrWorkflow {
       job06.getCommand().addArgument("--skip-validate");
     }
     job06.setMaxMemory(uploadScriptJobMem + "900");
+    Job06.setThreades(uploadScriptJobSlots);
+    //carsaddd here
     job06.addParent(mergeUnmappedJob);
 
     // CLEANUP FINAL BAM
@@ -503,6 +560,7 @@ public class WorkflowClient extends OicrWorkflow {
         cleanup3.addParent(qcJob);
       }
       cleanup3.setMaxMemory(smallJobMemM);
+      cleanup3.setThreads(smallJobSlots);
     }
 
   }
