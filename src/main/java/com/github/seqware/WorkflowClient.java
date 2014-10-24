@@ -44,10 +44,10 @@ public class WorkflowClient extends OicrWorkflow {
   String outputUnmappedFileName = "merged_output.unmapped.bam";
   //BWA
   String bwaAlignMemG = "8";
-  String bwaAlignSlots = "4";
+  String bwaAlignSlots = "8";
 
   String bwaSampeMemG = "8";
-  String bwaSampleSlots = "4";
+  String bwaSampleSlots = "8";
 
   String bwaSampeSortSamMemG = "8";
 
@@ -56,7 +56,7 @@ public class WorkflowClient extends OicrWorkflow {
   String picardSortMem = "6";
 
   String picardSortJobMem = "8";
-  String picardSortJobSlots = "4";
+  String picardSortJobSlots = "8";
 
   String uploadScriptJobMem = "2";
   String uploadScriptJobSlots = "4";
@@ -74,7 +74,7 @@ public class WorkflowClient extends OicrWorkflow {
   String gtdownloadMd5Time = "120";
 
   String gtdownloadMem = "8";
-  String gtdownloadSlots = "4";
+  String gtdownloadSlots = "8";
 
   String gtdownloadWrapperType = "timer_based";
 
@@ -114,17 +114,17 @@ public class WorkflowClient extends OicrWorkflow {
       bwaChoice = getProperty("bwa_choice") == null ? "aln" : getProperty("bwa_choice");
 
       bwaAlignMemG = getProperty("bwaAlignMemG") == null ? "8" : getProperty("bwaAlignMemG");
-      bwaAlignSlots = getProperty("bwaAlignSlots") == null ? "4" : getProperty("bwaAlignSlots");
+      bwaAlignSlots = getProperty("bwaAlignSlots") == null ? "8" : getProperty("bwaAlignSlots");
 
       bwaSampeMemG = getProperty("bwaSampeMemG") == null ? "8" : getProperty("bwaSampeMemG");
-      bwaSampleSlots = getProperty("bwaSampleSlots") == null ? "4" : getProperty("bwaSampleSlots");
+      bwaSampleSlots = getProperty("bwaSampleSlots") == null ? "8" : getProperty("bwaSampleSlots");
 
       bwaSampeSortSamMemG = getProperty("bwaSampeSortSamMemG") == null ? "4" : getProperty("bwaSampeSortSamMemG");
   
       picardSortMem = getProperty("picardSortMem") == null ? "6" : getProperty("picardSortMem");
  
       picardSortJobMem = getProperty("picardSortJobMem") == null ? "8" : getProperty("picardSortJobMem");
-      picardSortJobSlots = getProperty("picardSortJobSlots") == null ? "4" : getProperty("picardSortJobSlots");
+      picardSortJobSlots = getProperty("picardSortJobSlots") == null ? "8" : getProperty("picardSortJobSlots");
 
       uploadScriptJobMem = getProperty("uploadScriptJobMem") == null ? "2" : getProperty("uploadScriptJobMem");
       uploadScriptJobSlots = getProperty("uploadScriptJobSlots") == null ? "4" : getProperty("uploadScriptJobSlots");
@@ -135,7 +135,7 @@ public class WorkflowClient extends OicrWorkflow {
       gtdownloadMd5Time = getProperty("gtdownloadMd5time") == null ? "120" : getProperty("gtdownloadMd5time");
 
       gtdownloadMem = getProperty("gtdownloadMemG") == null ? "8" : getProperty("gtdownloadMemG");
-      gtdownloadSlots = getProperty("gtdownloadSlots") == null ? "4" : getProperty("gtdownloadSlots");
+      gtdownloadSlots = getProperty("gtdownloadSlots") == null ? "8" : getProperty("gtdownloadSlots");
 
       gtdownloadWrapperType = getProperty("gtdownloadWrapperType") == null ? "timer_based" : getProperty("gtdownloadWrapperType");
       studyRefnameOverride = getProperty("study-refname-override") == null ? "icgc_pancancer" : getProperty("study-refname-override");
