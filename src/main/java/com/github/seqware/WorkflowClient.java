@@ -144,7 +144,7 @@ public class WorkflowClient extends OicrWorkflow {
       smallJobSlots = getProperty("smallJobSlots") == null ? "1" : getProperty("smallJobSlots");
 
       unmappedReadsJobMemM = getProperty("unmappedReadsJobMemM") == null ? "8000" : getProperty("unmappedReadsJobMemM");
-      unmappedReadsJobMemSlots = getProperty("unmappedReadsJobSlots") == null ? "4" : getProperty("unmappedReadsJobSlots");
+      unmappedReadsJobMemSlots = getProperty("unmappedReadsJobMemSlots") == null ? "4" : getProperty("unmappedReadsJobMemSlots");
 
       if (getProperty("use_gtdownload") != null) { if("false".equals(getProperty("use_gtdownload"))) { useGtDownload = false; } }
       if (getProperty("use_gtupload") != null) { if("false".equals(getProperty("use_gtupload"))) { useGtUpload = false; } }
