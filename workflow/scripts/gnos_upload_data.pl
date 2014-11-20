@@ -989,7 +989,7 @@ sub run_upload {
     while(1) {
         sleep $cooldown;
         if (not $thr->is_running()) {
-            if ((-e $metadata_file) and (`cat $metadata_file` eq 'OK')) {
+            if ((-e $metadata_file) and (`cat $metadata_file` =~ /OK/)) {
                 say 'DONE';
                 $thr->join() if ($thr->is_running());
                 exit;
