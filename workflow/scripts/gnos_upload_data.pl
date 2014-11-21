@@ -116,16 +116,16 @@ GetOptions(
 # setup output dir
 
 my @bam_path = split '/', $bam;
-my $filename = $bam_path[-1];
+my $file_name = $bam_path[-1];
 my @file = split '.', $file_name;
 my $file_prefix = $file[1];
 
-$output_dir = "$output_dir/$file_prefix";
+$output_dir .= "/$file_prefix";
 
 my $uuid;
 
 if(-d "$output_dir") {
-    opendir my $dh, $output_dir;
+    opendir( my $dh, $output_dir);
     my @dirs = grep {-d "$output_dir/$_" && ! /^\.{1,2}$/} readdir($dh);
     if (scalar @dirs == 1) {
         $uuid = $dirs[1];
