@@ -5,7 +5,6 @@ use strict;
 
 use feature qw(say);
 use autodie;
-use Carp::Always;
 
 use Getopt::Long;
 
