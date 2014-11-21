@@ -111,13 +111,16 @@ GetOptions(
      "analysis-center-override=s" => \$analysis_center,
      );
 
-my @bam_path = split '/', $bam;
-my $filename = $bam_path[-1];
-my $file_prefix = split '.', $file_name;
 
-$output_dir = "$output_dir/$file_prefix";
 
 # setup output dir
+
+my @bam_path = split '/', $bam;
+my $filename = $bam_path[-1];
+my @file = split '.', $file_name;
+my $file_prefix = $file[1];
+
+$output_dir = "$output_dir/$file_prefix";
 
 my $uuid;
 
