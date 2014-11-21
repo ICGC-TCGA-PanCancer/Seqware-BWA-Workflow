@@ -5,6 +5,7 @@ use strict;
 
 use feature qw(say);
 use autodie;
+use Carp::Always;
 
 use Getopt::Long;
 
@@ -117,27 +118,27 @@ GetOptions(
 
 my @bam_path = split '/', $bam;
 my $file_name = $bam_path[-1];
-my @file = split '.', $file_name;
-my $file_prefix = $file[1];
-
-$output_dir .= "/$file_prefix";
-
-my $uuid;
+my @file = split /\./, $file_name;
+my $file_prefix = $file[0];
+$output_dir .= "$file_prefix";
+my $uuid = '';
+my $ug = Data::UUID->new;
 
 if(-d "$output_dir") {
     opendir( my $dh, $output_dir);
     my @dirs = grep {-d "$output_dir/$_" && ! /^\.{1,2}$/} readdir($dh);
     if (scalar @dirs == 1) {
-        $uuid = $dirs[1];
+        $uuid = $dirs[0];
+    } 
+    else {   
+        $uuid = lc($ug->create_str());
     }
 }
 else {
-    my $ug = Data::UUID->new;
     $uuid = lc($ug->create_str());
 }
-
 run("mkdir -p $output_dir/$uuid");
-$output_dir = "$output_dir/$uuid/";
+$output_dir = "$output_dir/$uuid";
 
 my $final_touch_file = "$output_dir/upload_complete.txt";
 
@@ -148,15 +149,24 @@ chomp $bam_check;
 my $bai_check = `cat $bam.bai.md5`;
 chomp $bai_check;
 
-if ($force_copy) {
-    # rsync to destination
-    run("rsync -rauv `pwd`/$bam $output_dir/$bam_check.bam && rsync -rauv `pwd`/$md5_file $output_dir/$bam_check.bam.md5 && rsync -rauv `pwd`/$bam.bai $output_dir/$bam_check.bam.bai && rsync -rauv `pwd`/$bam.bai.md5 $output_dir/$bam_check.bam.bai.md5");
-} 
-else {
-    # symlink for bam and md5sum file
-    run("ln -s `pwd`/$bam $output_dir/$bam_check.bam && ln -s `pwd`/$md5_file $output_dir/$bam_check.bam.md5 && ln -s `pwd`/$bam.bai $output_dir/$bam_check.bam.bai && ln -s `pwd`/$bam.bai.md5 $output_dir/$bam_check.bam.bai.md5");
-}
 
+# link / sync for bam and md5sum filea
+my $pwd = `pwd`;
+chomp $pwd;
+
+my %files = ($bam => "$bam_check.bam",
+             $md5_file => "$bam_check.bam.md5",
+             "$bam.bai" => "$bam_check.bam_bai",
+             "$bam.bai.md5" => "$bam_check.bam.bai.md5"
+            );
+
+my $link_method = ($force_copy)? 'rsync -rauv': 'ln -s';
+    
+foreach my $from (keys %files) {
+    my $to = $files{$from};
+    my $command = "$link_method $pwd/$from $output_dir/$to";
+    run($command) if (not (-e "$pwd/$output_dir/$to"));
+}
 
 ##############
 # MAIN STEPS #
@@ -265,8 +275,6 @@ sub generate_submission {
     # aliquot_id|library_id|platform_unit|read_group_id|input_url
     my $global_attr = {};
   
-    #print Dumper($m);
-  
     # input info
     my $pi2 = {};
   
@@ -301,8 +309,7 @@ sub generate_submission {
         $participant_id = $participant_ids[0];
         my $index = 0;
         foreach my $bam_info (@{$m->{$file}{'run'}}) {
-            if ($bam_info->{data_block_name} ne '') {
-                #print Dumper($bam_info);
+            if ((eval {exists $bam_info->{data_block_name}}) and $bam_info->{data_block_name} ne '') {
                 #print Dumper($m->{$file}{'file'}[$index]);
                 my $pi = {};
                 $pi->{'input_info'}{'donor_id'} = $participant_id;
@@ -326,9 +333,9 @@ sub generate_submission {
             }
         }
     }
+
     my $str = to_json($pi2);
     $global_attr->{"pipeline_input_info"}{$str} = 1;
-    #print Dumper($global_attr);
   
     # FIXME: either custom needs to work or the reference needs to be listed in GNOS
     #<!--CUSTOM DESCRIPTION="hs37d" REFERENCE_SOURCE="ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/phase2_reference_assembly_sequence/README_human_reference_20110707"/-->
@@ -354,7 +361,6 @@ sub generate_submission {
 END
             foreach my $url (keys %{$m}) {
               foreach my $run (@{$m->{$url}{'run'}}) {
-              #print Dumper($run);
                 if (defined($run->{'read_group_label'})) {
                    #print "READ GROUP LABREL: ".$run->{'read_group_label'}."\n";
                    my $dbn = $run->{'data_block_name'};
@@ -570,7 +576,6 @@ END
 ";
       }
     }
-
   # some metadata about this workflow
   # TODO: add runtime info in here too, possibly other info
   # see https://jira.oicr.on.ca/browse/PANCANCER-43
@@ -621,21 +626,18 @@ unless ($unmapped_reads_upload) {
           <VALUE>$pcap_version</VALUE>
         </ANALYSIS_ATTRIBUTE>
 ";
-
   # QC
   $analysis_xml .= "        <ANALYSIS_ATTRIBUTE>
           <TAG>qc_metrics</TAG>
           <VALUE>" . &getQcResult() . "</VALUE>
         </ANALYSIS_ATTRIBUTE>
 ";
-
   # Runtime
   $analysis_xml .= "        <ANALYSIS_ATTRIBUTE>
           <TAG>timing_metrics</TAG>
           <VALUE>" . &getRuntimeInfo() . "</VALUE>
         </ANALYSIS_ATTRIBUTE>
 ";
-
   # Markduplicates metrics
   $analysis_xml .= "        <ANALYSIS_ATTRIBUTE>
           <TAG>markduplicates_metrics</TAG>
@@ -648,8 +650,7 @@ unless ($unmapped_reads_upload) {
     </ANALYSIS>
   </ANALYSIS_SET>
 END
-
-  open OUT, ">$output_dir/analysis.xml" or die;
+  open OUT, '>', "$output_dir/analysis.xml";
   print OUT $analysis_xml;
   close OUT;
 
@@ -671,8 +672,8 @@ END
   </EXPERIMENT_SET>
 END
 
-  open OUT, ">$output_dir/experiment.xml" or die;
-  print OUT "$exp_xml\n";
+  open OUT, '>', "$output_dir/experiment.xml";
+  say OUT $exp_xml;
   close OUT;
 
   # make a uniq list of blocks
@@ -707,68 +708,73 @@ END
 }
 
 sub read_header {
-  my ($header) = @_;
-  my $hd = {};
-  open HEADER, "<$header" or die "Can't open header file $header\n";
-  while(<HEADER>) {
-    chomp;
-    my @a = split /\t+/;
-    my $type = $a[0];
-    if ($type =~ /^@/) {
-      $type =~ s/@//;
-      for(my $i=1; $i<scalar(@a); $i++) {
-        $a[$i] =~ /^([^:]+):(.+)$/;
-        $hd->{$type}{$1} = $2;
-      }
+    my ($header) = @_;
+  
+    my $hd = {};
+    open HEADER, '<', $header;
+    while(<HEADER>) {
+        chomp;
+        my @a = split /\t+/;
+        my $type = $a[0];
+        if ($type =~ /^@/) {
+            $type =~ s/@//;
+            for (my $i=1; $i<scalar(@a); $i++) {
+                $a[$i] =~ /^([^:]+):(.+)$/;
+                $hd->{$type}{$1} = $2;
+            }
+        }
     }
-  }
-  close HEADER;
-  return($hd);
+    close HEADER;
+
+    return $hd;
 }
 
 sub download_metadata {
-  my ($urls_str) = @_;
-  my $metad = {};
-  run("mkdir -p xml2");
-  my @urls = split /,/, $urls_str;
-  my $i = 0;
-  foreach my $url (@urls) {
-    $i++;
-    my $xml_path = download_url($url, "xml2/data_$i.xml");
-    $metad->{$url} = parse_metadata($xml_path);
-  }
-  return($metad);
+    my ($urls_str) = @_;
+  
+    my $metad = {};
+    run("mkdir -p xml2");
+    my @urls = split /,/, $urls_str;
+    my $i = 0;
+    foreach my $url (@urls) {
+      $i++;
+      my $xml_path = download_url($url, "xml2/data_$i.xml");
+      $metad->{$url} = parse_metadata($xml_path);
+    }
+    return $metad;
 }
 
 sub parse_metadata {
-  my ($xml_path) = @_;
-  my $doc = $parser->parsefile($xml_path);
-  my $m = {};
-  $m->{'analysis_id'} = getVal($doc, 'analysis_id');
-  $m->{'center_name'} = getVal($doc, 'center_name');
-  push @{$m->{'study_ref'}}, getValsMulti($doc, 'STUDY_REF', "refcenter,refname");
-  push @{$m->{'run'}}, getValsMulti($doc, 'RUN', "data_block_name,read_group_label,refname");
-  push @{$m->{'target'}}, getValsMulti($doc, 'TARGET', "refcenter,refname");
-  push @{$m->{'file'}}, getValsMulti($doc, 'FILE', "checksum,filename,filetype");
-  $m->{'analysis_attr'} = getAttrs($doc);
-  $m->{'experiment'} = getBlock($xml_path, "/ResultSet/Result/experiment_xml/EXPERIMENT_SET/EXPERIMENT");
-  $m->{'run_block'} = getBlock($xml_path, "/ResultSet/Result/run_xml/RUN_SET/RUN");
-  return($m);
+    my ($xml_path) = @_;
+
+    my $doc = $parser->parsefile($xml_path);
+    my $m = {};
+    $m->{'analysis_id'} = getVal($doc, 'analysis_id');
+    $m->{'center_name'} = getVal($doc, 'center_name');
+    push @{$m->{'study_ref'}}, getValsMulti($doc, 'STUDY_REF', "refcenter,refname");
+    push @{$m->{'run'}}, getValsMulti($doc, 'RUN', "data_block_name,read_group_label,refname");
+    push @{$m->{'target'}}, getValsMulti($doc, 'TARGET', "refcenter,refname");
+    push @{$m->{'file'}}, getValsMulti($doc, 'FILE', "checksum,filename,filetype");
+    $m->{'analysis_attr'} = getAttrs($doc);
+    $m->{'experiment'} = getBlock($xml_path, "/ResultSet/Result/experiment_xml/EXPERIMENT_SET/EXPERIMENT");
+    $m->{'run_block'} = getBlock($xml_path, "/ResultSet/Result/run_xml/RUN_SET/RUN");
+  
+    return $m;
 }
 
 sub getBlock {
-  my ($xml_file, $xpath) = @_;
-
-  my $block = "";
-  ## use XPath parser instead of using REGEX to extract desired XML fragment, to fix issue: https://jira.oicr.on.ca/browse/PANCANCER-42
-  my $xp = XML::XPath->new(filename => $xml_file) or die "Can't open file $xml_file\n";
-
-  my $nodeset = $xp->find($xpath);
-  foreach my $node ($nodeset->get_nodelist) {
-    $block .= XML::XPath::XMLParser::as_string($node) . "\n";
-  }
-
-  return $block;
+    my ($xml_file, $xpath) = @_;
+  
+    my $block = "";
+    ## use XPath parser instead of using REGEX to extract desired XML fragment, to fix issue: https://jira.oicr.on.ca/browse/PANCANCER-42
+    my $xp = XML::XPath->new(filename => $xml_file) or die "Can't open file $xml_file\n";
+  
+    my $nodeset = $xp->find($xpath);
+    foreach my $node ($nodeset->get_nodelist) {
+        $block .= XML::XPath::XMLParser::as_string($node) . "\n";
+    }
+  
+    return $block;
 }
 
 sub download_url {
@@ -788,133 +794,146 @@ sub download_url {
 }
 
 sub getVal {
-  my ($node, $key) = @_;
-  #print "NODE: $node KEY: $key\n";
-  if ($node != undef) {
-    if (defined($node->getElementsByTagName($key))) {
-      if (defined($node->getElementsByTagName($key)->item(0))) {
-        if (defined($node->getElementsByTagName($key)->item(0)->getFirstChild)) {
-          if (defined($node->getElementsByTagName($key)->item(0)->getFirstChild->getNodeValue)) {
-           return($node->getElementsByTagName($key)->item(0)->getFirstChild->getNodeValue);
-          }
-        }
-      }
-    }
-  }
-  return(undef);
-}
-
-
-sub getAttrs {
-  my ($node) = @_;
-  my $r = {};
-  my $nodes = $node->getElementsByTagName('ANALYSIS_ATTRIBUTE');
-  for(my $i=0; $i<$nodes->getLength; $i++) {
-	  my $anode = $nodes->item($i);
-	  my $tag = getVal($anode, 'TAG');
-	  my $val = getVal($anode, 'VALUE');
-	  $r->{$tag}{$val}=1;
-  }
-  return($r);
-}
-
-sub getValsWorking {
-  my ($node, $key, $tag) = @_;
-  my @result;
-  my $nodes = $node->getElementsByTagName($key);
-  for(my $i=0; $i<$nodes->getLength; $i++) {
-	  my $anode = $nodes->item($i);
-	  my $tag = $anode->getAttribute($tag);
-          push @result, $tag;
-  }
-  return(@result);
-}
-
-sub getValsMulti {
-  my ($node, $key, $tags_str) = @_;
-  my @result;
-  my @tags = split /,/, $tags_str;
-  my $nodes = $node->getElementsByTagName($key);
-  for(my $i=0; $i<$nodes->getLength; $i++) {
-       my $data = {};
-       foreach my $tag (@tags) {
-         	  my $anode = $nodes->item($i);
-	          my $value = $anode->getAttribute($tag);
-		  if (defined($value) && $value ne '') { $data->{$tag} = $value; }
-       }
-       push @result, $data;
-  }
-  return(@result);
-}
-
-# doesn't work
-sub getVals {
-  my ($node, $key, $tag) = @_;
-  #print "NODE: $node KEY: $key\n";
-  my @r;
-  if ($node != undef) {
-    if (defined($node->getElementsByTagName($key))) {
-      if (defined($node->getElementsByTagName($key)->item(0))) {
-        if (defined($node->getElementsByTagName($key)->item(0)->getFirstChild)) {
-          if (defined($node->getElementsByTagName($key)->item(0)->getFirstChild->getNodeValue)) {
-            #return($node->getElementsByTagName($key)->item(0)->getFirstChild->getNodeValue);
-            foreach my $aNode ($node->getElementsByTagName($key)) {
-              # left off here
-              if (defined($tag)) {   } else { push @r, $aNode->getFirstChild->getNodeValue; }
+    my ($node, $key) = @_;
+  
+    #print "NODE: $node KEY: $key\n";
+    if (defined $node ) {
+      if (defined($node->getElementsByTagName($key))) {
+        if (defined($node->getElementsByTagName($key)->item(0))) {
+          if (defined($node->getElementsByTagName($key)->item(0)->getFirstChild)) {
+            if (defined($node->getElementsByTagName($key)->item(0)->getFirstChild->getNodeValue)) {
+             return($node->getElementsByTagName($key)->item(0)->getFirstChild->getNodeValue);
             }
           }
         }
       }
     }
-  }
-  return(@r);
+
+    return undef;
+}
+
+
+sub getAttrs {
+    my ($node) = @_;
+  
+    my $r = {};
+    my $nodes = $node->getElementsByTagName('ANALYSIS_ATTRIBUTE');
+    for(my $i=0; $i<$nodes->getLength; $i++) {
+  	  my $anode = $nodes->item($i);
+  	  my $tag = getVal($anode, 'TAG');
+  	  my $val = getVal($anode, 'VALUE');
+  	  $r->{$tag}{$val}=1;
+    }
+
+    return($r);
+}
+
+sub getValsWorking {
+    my ($node, $key, $tag) = @_;
+  
+    my @result;
+    my $nodes = $node->getElementsByTagName($key);
+    for(my $i=0; $i<$nodes->getLength; $i++) {
+  	  my $anode = $nodes->item($i);
+  	  my $tag = $anode->getAttribute($tag);
+            push @result, $tag;
+    }
+
+    return(@result);
+}
+
+sub getValsMulti {
+    my ($node, $key, $tags_str) = @_;
+  
+    my @result;
+    my @tags = split /,/, $tags_str;
+    my $nodes = $node->getElementsByTagName($key);
+    for(my $i=0; $i<$nodes->getLength; $i++) {
+         my $data = {};
+         foreach my $tag (@tags) {
+           	  my $anode = $nodes->item($i);
+  	          my $value = $anode->getAttribute($tag);
+  		  if (defined($value) && $value ne '') { $data->{$tag} = $value; }
+         }
+         push @result, $data;
+    }
+
+    return(@result);
+}
+
+# doesn't work
+sub getVals {
+    my ($node, $key, $tag) = @_;
+    #print "NODE: $node KEY: $key\n";
+    my @r;
+    if ($node != undef) {
+      if (defined($node->getElementsByTagName($key))) {
+        if (defined($node->getElementsByTagName($key)->item(0))) {
+          if (defined($node->getElementsByTagName($key)->item(0)->getFirstChild)) {
+            if (defined($node->getElementsByTagName($key)->item(0)->getFirstChild->getNodeValue)) {
+              #return($node->getElementsByTagName($key)->item(0)->getFirstChild->getNodeValue);
+              foreach my $aNode ($node->getElementsByTagName($key)) {
+                # left off here
+                if (defined($tag)) {   } else { push @r, $aNode->getFirstChild->getNodeValue; }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    return(@r);
 }
 
 sub getRuntimeInfo {
-  # detect all the timing files by checking file name pattern, read QC data
-  # to pull back the read group and associate with timing
-
-  opendir(DIR, ".");
-
-  my @qc_result_files = grep { /^out_\d+\.bam\.stats\.txt/ } readdir(DIR);
-
-  close(DIR);
-
-  my $ret = { "timing_metrics" => [] };
-
-  foreach (@qc_result_files) {
-
-    # find the index number so we can match with timing info
-    $_ =~ /out_(\d+)\.bam\.stats\.txt/;
-    my $i = $1;
-
-    open (QC, "< $_");
-
-    my @header = split /\t/, <QC>;
-    my @data = split /\t/, <QC>;
-    chomp ((@header, @data));
-
-    close (QC);
-
-    my $qc_metrics = {};
-    $qc_metrics->{$_} = shift @data for (@header);
-
-    my $read_group = $qc_metrics->{readgroup};
-
-    # now go ahead and read that index file for timing
-    my $download_timing = read_timing("download_timing_$i.txt");
-    my $bwa_timing = read_timing("bwa_timing_$i.txt");
-    my $qc_timing = read_timing("qc_timing_$i.txt");
-    my $merge_timing = read_timing("merge_timing.txt");
-
-    # fill in the data structure
-    push @{ $ret->{timing_metrics} }, { "read_group_id" => $read_group, "metrics" => { "download_timing_seconds" => $download_timing, "bwa_timing_seconds" => $bwa_timing, "qc_timing_seconds" => $qc_timing, "merge_timing_seconds" => $merge_timing } };
-
-  }
-
-  # and return hash
-  return to_json $ret;
-
+    # detect all the timing files by checking file name pattern, read QC data
+    # to pull back the read group and associate with timing
+  
+    opendir DIR, ".";
+  
+    my @qc_result_files = grep { /^out_\d+\.bam\.stats\.txt/ } readdir(DIR);
+  
+    closedir(DIR);
+  
+    my $ret = { "timing_metrics" => [] };
+  
+    foreach (@qc_result_files) {
+    
+        # find the index number so we can match with timing info
+        $_ =~ /out_(\d+)\.bam\.stats\.txt/;
+        my $i = $1;
+    
+        open (QC, "< $_");
+    
+        my @header = split /\t/, <QC>;
+        my @data = split /\t/, <QC>;
+        chomp ((@header, @data));
+    
+        close (QC);
+    
+        my $qc_metrics = {};
+        $qc_metrics->{$_} = shift @data for (@header);
+    
+        my $read_group = $qc_metrics->{readgroup};
+    
+        # now go ahead and read that index file for timing
+        my $download_timing = read_timing("download_timing_$i.txt");
+        my $bwa_timing = read_timing("bwa_timing_$i.txt");
+        my $qc_timing = read_timing("qc_timing_$i.txt");
+        my $merge_timing = read_timing("merge_timing.txt");
+    
+        # fill in the data structure
+        push @{ $ret->{timing_metrics} }, { "read_group_id" => $read_group, 
+                                            "metrics" => { "download_timing_seconds" => $download_timing, 
+                                                           "bwa_timing_seconds" => $bwa_timing, 
+                                                           "qc_timing_seconds" => $qc_timing, 
+                                                            "merge_timing_seconds" => $merge_timing 
+                                                         } 
+                                          };
+    
+    }
+  
+    return to_json $ret;
 }
 
 sub read_timing {
@@ -934,17 +953,17 @@ sub read_timing {
 sub getQcResult {
     # detect all the QC report files by checking file name pattern
 
-    opendir(DIR, ".");
+    
+    opendir DIR, ".";
 
     my @qc_result_files = grep { /^out_\d+\.bam\.stats\.txt/ } readdir(DIR);
 
-    close(DIR);
+    closedir(DIR);
 
     my $ret = { "qc_metrics" => [] };
 
     foreach (@qc_result_files) {
-  
-        open (QC, "< $_");
+        open QC, '<', $_;
 
         my @header = split /\t/, <QC>;
         my @data = split /\t/, <QC>;
