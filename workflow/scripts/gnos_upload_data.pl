@@ -111,9 +111,27 @@ GetOptions(
      "analysis-center-override=s" => \$analysis_center,
      );
 
+my @bam_path = split '/', $bam;
+my $filename = $bam_path[-1];
+my $file_prefix = split '.', $file_name;
+
+$output_dir = "$output_dir/$file_prefix";
+
 # setup output dir
-my $ug = Data::UUID->new;
-my $uuid = lc($ug->create_str());
+
+my $uuid;
+
+if(-d "$output_dir") {
+    opendir my $dh, $output_dir;
+    my @dirs = grep {-d "$output_dir/$_" && ! /^\.{1,2}$/} readdir($dh);
+    if (scalar @dirs == 1) {
+        $uuid = $dirs[1];
+    }
+}
+else {
+    my $ug = Data::UUID->new;
+    $uuid = lc($ug->create_str());
+}
 
 run("mkdir -p $output_dir/$uuid");
 $output_dir = "$output_dir/$uuid/";
@@ -751,17 +769,19 @@ sub getBlock {
 }
 
 sub download_url {
-  my ($url, $path) = @_;
-  my $r = run("wget -q -O $path $url");
-  if ($r) {
-          $ENV{PERL_LWP_SSL_VERIFY_HOSTNAME}=0;
-    $r = run("lwp-download $url $path");
+    my ($url, $path) = @_;
+
+    my $r = run("wget --no-clobber -q -O $path $url");
     if ($r) {
+        $ENV{PERL_LWP_SSL_VERIFY_HOSTNAME}=0;
+        $r = run("lwp-download $url $path");
+        if ($r) {
             print "ERROR DOWNLOADING: $url\n";
             exit(1);
+        }
     }
-  }
-  return($path);
+
+    return $path;
 }
 
 sub getVal {
