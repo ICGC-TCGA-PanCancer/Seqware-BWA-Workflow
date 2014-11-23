@@ -120,6 +120,7 @@ my $file_name = $bam_path[-1];
 my @file = split /\./, $file_name;
 my $file_prefix = $file[0];
 $output_dir .= "$file_prefix";
+$output_dir .= '-unmapped' if ($unmapped_reads_upload);
 my $uuid = '';
 my $ug = Data::UUID->new;
 
