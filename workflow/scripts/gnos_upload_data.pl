@@ -29,7 +29,7 @@ use Data::Dumper;
 # seconds to wait for a retry
 my $cooldown = 60;
 # 30 retries at 60 seconds each is 30 hours
-my $orig_retries = 30;
+my $retries = 30;
 # retries for md5sum, 4 hours
 my $md5_retries = 240;
 #example command
@@ -1027,18 +1027,19 @@ sub run_upload {
     say "CMD: $command";
 
     my $thr = threads->create(\&launch_and_monitor, $command);
-    my $retries = $orig_retries;
+    my $count = 1;
     while(1) {
         sleep $cooldown;
         if (not $thr->is_running()) {
             if ((-e $metadata_file) and (`cat $metadata_file` =~ /OK/)) {
+                say "Total number of attempts: $count";
                 say 'DONE';
                 $thr->join() if ($thr->is_running());
                 exit;
             }
             else {
-                $retries--;
-                if ($retries > 0) {
+                $count++;
+                if ($count <= $retries ) {
                     say 'KILLING THE THREAD!!';
                     # kill and wait to exit
                     $thr->kill('KILL')->join();
@@ -1076,6 +1077,7 @@ sub launch_and_monitor {
             $time_last_uploading = time;
         }
         elsif ( (time - $time_last_uploading) > $milliseconds_in_an_hour) {
+            say 'Killing Thread - Timed Out';
             exit;
         }
         $last_reported_uploaded = $uploaded;

@@ -62,17 +62,20 @@ say "FILE GREPS: $files";
 
 my $thr = threads->create(\&launch_and_monitor, $command);
 
+
+my $count = 1;
 while(1) {
     sleep $cooldown;
     if ((-e "$file.vcf") or (-e "$file.bam")) {
+        say "Total number of tries: $count";
         say 'DONE';
         $thr->join() if ($thr->is_running());
         exit;
     }
     elseif( not $thr->is_running()) { 
         say "PREVIOUS SIZE UNCHANGED!!! $previous_size";
-        $retries--;
-        if ($retries == 0) {
+        $count++;
+        if ($count <= $retries ) {
             say 'KILLING THE THREAD!!';
             # kill and wait to exit
             $thr->kill('KILL')->join();
@@ -81,8 +84,6 @@ while(1) {
             sleep $md5_retries;
         }
     }
-
-    
 }
 
 sub launch_and_monitor {
@@ -106,6 +107,7 @@ sub launch_and_monitor {
             $time_last_downloading = time;
         }
         elsif (($time_last_downloading != 0) and ( (time - $time_last_downloading) > $milliseconds_in_an_hour) ) {
+            say 'Killing Thread - Timed out';
             exit;
         }
         $last_reported_size = $size;
