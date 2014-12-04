@@ -44,4 +44,4 @@ GetOptions (
 
 say "FILE: $file";
 
-GNOS::Download->run_download($command, $file, $retries, $cooldown, $md5_sleep);
+GNOS::Download->run_download($command, "$file.bam", $retries, $cooldown, $md5_sleep);
