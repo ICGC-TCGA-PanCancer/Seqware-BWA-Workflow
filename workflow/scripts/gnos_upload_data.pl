@@ -156,7 +156,7 @@ chomp $pwd;
 
 my %files = ($bam => "$bam_check.bam",
              $md5_file => "$bam_check.bam.md5",
-             "$bam.bai" => "$bam_check.bam_bai",
+             "$bam.bai" => "$bam_check.bam.bai",
              "$bam.bai.md5" => "$bam_check.bam.bai.md5"
             );
 
