@@ -15,10 +15,7 @@ use XML::XPath::XMLParser;
 
 use JSON;
 
-use Config;
-$Config{useithreads} or die('Recompile Perl with threads to run this program.');
-use threads 'exit' => 'threads_only';
-use Storable 'dclone';
+use GNOS::Upload;
 
 use Data::UUID;
 
@@ -31,7 +28,7 @@ my $cooldown = 60;
 # 30 retries at 60 seconds each is 30 hours
 my $retries = 30;
 # retries for md5sum, 4 hours
-my $md5_retries = 240;
+my $md5_sleep = 240;
 #example command
 
 
@@ -111,10 +108,7 @@ GetOptions(
      "analysis-center-override=s" => \$analysis_center,
      );
 
-
-
 # setup output dir
-
 my @bam_path = split '/', $bam;
 my $file_name = $bam_path[-1];
 my @file = split /\./, $file_name;
@@ -200,20 +194,23 @@ sub validate_submission {
 
 sub upload_submission {
     my ($sub_path) = @_;
+    
+    my $metadata_file = "metadata_upload.$bam_check.log";
+    my $cmd = "cgsubmit -s $upload_url -o $metadata_file -u $sub_path -vv -c $key";
 
-    my $cmd = "cgsubmit -s $upload_url -o metadata_upload.$bam_check.log -u $sub_path -vv -c $key";
     say "UPLOADING METADATA: $cmd";
     return 1 if ((not $test) and (run($cmd)));
 
     # we need to hack the manifest.xml to drop any files that are inputs and I won't upload again
     modify_manifest_file("$sub_path/manifest.xml", $sub_path) if( not $test);
-
-    $cmd = "cd $sub_path; gtupload -v -c $key -l ./upload.log -u ./manifest.xml; cd -";
+    my $log_file = 'upload.log';
+    my $gt_upload_command = "cd $sub_path; gtupload -v -c $key -l ./$log_file -u ./manifest.xml; cd -";
     say "UPLOADING DATA: $cmd";
-    return 1 if ( (not $test) and (run($cmd)) );
+
+    return 1 if ( (not $test) and (GNOS::Upload->upload($gt_upload_command, "$sub_path/$log_file", $retries, $cooldown, $md5_sleep) ) );
 
     # just touch this file to ensure monitoring tools know upload is complete
-    run_upload("date +\%s > $final_touch_file", "metadata_upload.$bam_check.log");
+    run_("date +\%s > $final_touch_file", $metadata_file);
 
 }
 
@@ -518,7 +515,8 @@ END
               </PIPE_SECTION>
 END
 
-  }else{
+  }
+  else {
     $analysis_xml .= <<END;
               <PIPE_SECTION section_name="unmapped_reads_extraction">
                 <STEP_INDEX>1</STEP_INDEX>
@@ -604,7 +602,8 @@ if ($unmapped_reads_upload) {
           <VALUE>unaligned</VALUE>
         </ANALYSIS_ATTRIBUTE>
 ";
-} else {
+} 
+else {
   $analysis_xml .= "        <ANALYSIS_ATTRIBUTE>
           <TAG>workflow_output_bam_contents</TAG>
           <VALUE>aligned+unaligned</VALUE>
@@ -1020,70 +1019,5 @@ sub run {
 
     return $result;
 }
-
-sub run_upload {
-    my ($command, $metadata_file) = @_;
-
-    say "CMD: $command";
-
-    my $thr = threads->create(\&launch_and_monitor, $command);
-    my $count = 1;
-    while(1) {
-        sleep $cooldown;
-        if (not $thr->is_running()) {
-            if ((-e $metadata_file) and (`cat $metadata_file` =~ /OK/)) {
-                say "Total number of attempts: $count";
-                say 'DONE';
-                $thr->join() if ($thr->is_running());
-                exit;
-            }
-            else {
-                $count++;
-                if ($count <= $retries ) {
-                    say 'KILLING THE THREAD!!';
-                    # kill and wait to exit
-                    $thr->kill('KILL')->join();
-                    $thr = threads->create(\&launch_and_monitor, $command);
-                    sleep $md5_retries;
-                }
-                else {
-                   exit 1;
-                }
-            }
-        }
-    }
-}
-
-sub launch_and_monitor {
-    my ($cmd) = @_;
-
-    my $my_object = threads->self;
-    my $my_tid = $my_object->tid;
-
-    local $SIG{KILL} = sub { say "GOT KILL FOR THREAD: $my_tid";
-                             threads->exit;
-                           };
-    # system doesn't work, can't kill it but the open below does allow the sub-process to be killed
-    #system($cmd);
-    my $pid = open my $in, '-|', "$cmd 2>&1" or die "Can't open command\n";
-    
-    my $milliseconds_in_an_hour = 3600000;
-    my $time_last_uploading = time;
-    my $last_reported_uploaded = 0;
-    my $count = 0;
-    while(<$in>) {
-        my ($uploaded, $percent, $rate) = $_ =~ m/^Status:\s+(\d+.\d+|\d+| )\s+[M|G]B\suploaded\s*\((\d+.\d+|\d+| )%\s*complete\)\s*current\s*rate:\s*(\d+.\d+|\d+| )\s*[M|k]B\/s/g;
-        if ($uploaded > $last_reported_uploaded) {
-            $time_last_uploading = time;
-        }
-        elsif ( (time - $time_last_uploading) > $milliseconds_in_an_hour) {
-            say 'Killing Thread - Timed Out';
-            exit;
-        }
-        $last_reported_uploaded = $uploaded;
-    }
-}
-
-
 
 0;
