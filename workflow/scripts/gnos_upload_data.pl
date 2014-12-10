@@ -104,7 +104,7 @@ GetOptions(
      "force-copy" => \$force_copy,
      "skip-validate" => \$skip_validate,
      "unmapped-reads-upload" => \$unmapped_reads_upload,
-     "study-refname-override=s" => \$study_ref_name,
+     "study-refname-override=s" => \$study_ref_name,     
      "analysis-center-override=s" => \$analysis_center,
      );
 

@@ -88,7 +88,11 @@ public class WorkflowClient extends OicrWorkflow {
   String unmappedReadsJobMemM = "8000";
   String unmappedReadsJobMemSlots = "4";
 
+<<<<<<< HEAD
   String analysisCenter = "unknown";
+=======
+  String analysisCenter = 'unknown';
+>>>>>>> origin/feature/ajw-add-wrapper
 
   String gtUploadDownloadModulePath = '';
 
@@ -512,7 +516,6 @@ public class WorkflowClient extends OicrWorkflow {
             .addArgument("--upload-url " + gnosUploadFileURL)
             .addArgument("--study-refname-override " + studyRefnameOverride)
             .addArgument("--bam-md5sum-file " + this.dataDir + outputFileName + ".md5")
-            .addArgument("--gt-upload-download-wrapper-lib" + gtUploadDownloadWrapperLib)
             .addArgument("--analysis-center-override " + analysisCenter);
     if (!useGtUpload) {
       job05.getCommand().addArgument("--force-copy");
