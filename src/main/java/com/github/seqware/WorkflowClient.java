@@ -68,6 +68,8 @@ public class WorkflowClient extends OicrWorkflow {
   String bwa_sampe_params;
   String skipUpload = null;
   String pcapPath = "/bin/PCAP-core-1.1.1";
+  String gtUploadDownloadWrapperLib = this.getWorkflowBaseDir() + "/bin/gt-upload-download-wrapper-1.0.0/lib";
+
   // GTDownload
   // each retry is 1 minute
   String gtdownloadRetries = "30";
@@ -85,6 +87,11 @@ public class WorkflowClient extends OicrWorkflow {
 
   String unmappedReadsJobMemM = "8000";
   String unmappedReadsJobMemSlots = "4";
+
+  String analysisCenter = "unknown";
+
+  String gtUploadDownloadModulePath = '';
+
   @Override
   public Map<String, SqwFile> setupFiles() {
 
@@ -145,6 +152,9 @@ public class WorkflowClient extends OicrWorkflow {
 
       unmappedReadsJobMemM = getProperty("unmappedReadsJobMemM") == null ? "8000" : getProperty("unmappedReadsJobMemM");
       unmappedReadsJobMemSlots = getProperty("unmappedReadsJobMemSlots") == null ? "4" : getProperty("unmappedReadsJobMemSlots");
+
+
+      unmappedReadsJobMemSlots = getProperty("analysisCenter") == null ? "unknown" : getProperty("analysisCenter");
 
       if (getProperty("use_gtdownload") != null) { if("false".equals(getProperty("use_gtdownload"))) { useGtDownload = false; } }
       if (getProperty("use_gtupload") != null) { if("false".equals(getProperty("use_gtupload"))) { useGtUpload = false; } }
@@ -494,14 +504,16 @@ public class WorkflowClient extends OicrWorkflow {
     String finalOutDir = this.dataDir;
     if (!useGtUpload) { finalOutDir = this.resultsDir; }
     Job job05 = this.getWorkflow().createBashJob("upload");
-    job05.getCommand().addArgument("perl " + this.getWorkflowBaseDir() + "/scripts/gnos_upload_data.pl")
+    job05.getCommand().addArgument("perl -I" + gtUploadDownloadWrapperLib + " " + this.getWorkflowBaseDir() + "/scripts/gnos_upload_data.pl")
             .addArgument("--bam " + this.dataDir + outputFileName)
             .addArgument("--key " + gnosKey)
             .addArgument("--outdir " + finalOutDir)
             .addArgument("--metadata-urls " + gnosInputMetadataURLs)
             .addArgument("--upload-url " + gnosUploadFileURL)
             .addArgument("--study-refname-override " + studyRefnameOverride)
-            .addArgument("--bam-md5sum-file " + this.dataDir + outputFileName + ".md5");
+            .addArgument("--bam-md5sum-file " + this.dataDir + outputFileName + ".md5")
+            .addArgument("--gt-upload-download-wrapper-lib" + gtUploadDownloadWrapperLib)
+            .addArgument("--analysis-center-override " + analysisCenter);
     if (!useGtUpload) {
       job05.getCommand().addArgument("--force-copy");
     }
@@ -521,14 +533,15 @@ public class WorkflowClient extends OicrWorkflow {
     // upload BAM with unmapped reads
     if (!useGtUpload) { finalOutDir = this.resultsDir; }
     Job job06 = this.getWorkflow().createBashJob("upload2");
-    job06.getCommand().addArgument("perl " + this.getWorkflowBaseDir() + "/scripts/gnos_upload_data.pl --unmapped-reads-upload ")
+    job06.getCommand().addArgument("perl -I" + gtUploadDownloadWrapperLib + " " +  this.getWorkflowBaseDir() + "/scripts/gnos_upload_data.pl --unmapped-reads-upload ")
             .addArgument("--bam " + this.dataDir + outputUnmappedFileName)
             .addArgument("--key " + gnosKey)
             .addArgument("--outdir " + finalOutDir)
             .addArgument("--metadata-urls " + gnosInputMetadataURLs)
             .addArgument("--upload-url " + gnosUploadFileURL)
             .addArgument("--study-refname-override " + studyRefnameOverride)
-            .addArgument("--bam-md5sum-file " + this.dataDir + outputUnmappedFileName + ".md5");
+            .addArgument("--bam-md5sum-file " + this.dataDir + outputUnmappedFileName + ".md5")
+            .addArgument("--analysis-center-override" + analysisCenter);
     if (!useGtUpload) {
       job06.getCommand().addArgument("--force-copy");
     }

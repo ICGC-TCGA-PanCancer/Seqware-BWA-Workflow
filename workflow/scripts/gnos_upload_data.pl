@@ -64,7 +64,7 @@ my $test = 0;
 my $skip_validate = 0;
 # hardcoded
 my $seqware_version = "1.0.15";
-my $workflow_version = "2.6.1";
+my $workflow_version = "2.6.3";
 my $workflow_name = "Workflow_Bundle_BWA";
 my $workflow_src_url = "https://github.com/SeqWare/public-workflows/tree/$workflow_version/workflow-bwa-pancancer";
 my $workflow_url = "https://s3.amazonaws.com/oicr.workflow.bundles/released-bundles/Workflow_Bundle_BWA_".$workflow_version."_SeqWare_$seqware_version.zip";
