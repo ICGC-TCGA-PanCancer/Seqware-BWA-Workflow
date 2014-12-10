@@ -63,8 +63,9 @@ my $upload_url = "";
 my $test = 0;
 my $skip_validate = 0;
 # hardcoded
-my $seqware_version = "1.0.15";
-my $workflow_version = "2.6.3";
+my $seqware_version = "";
+my $workflow_version = "";
+my $workflow_bundle_dir = "";
 my $workflow_name = "Workflow_Bundle_BWA";
 my $workflow_src_url = "https://github.com/SeqWare/public-workflows/tree/$workflow_version/workflow-bwa-pancancer";
 my $workflow_url = "https://s3.amazonaws.com/oicr.workflow.bundles/released-bundles/Workflow_Bundle_BWA_".$workflow_version."_SeqWare_$seqware_version.zip";
@@ -78,7 +79,7 @@ my $unmapped_reads_upload = 0;
 my $study_ref_name = "icgc_pancancer";
 my $analysis_center = "OICR";
 
-if (scalar(@ARGV) < 12 || scalar(@ARGV) > 20) {
+if (scalar(@ARGV) < 18 || scalar(@ARGV) > 30) {
   die "USAGE: 'perl gnos_upload_data.pl
        --metadata-urls <URLs_comma_separated>
        --bam <sample-level_bam_file_path>
@@ -86,6 +87,9 @@ if (scalar(@ARGV) < 12 || scalar(@ARGV) > 20) {
        --outdir <output_dir>
        --key <gnos.pem>
        --upload-url <gnos_server_url>
+       --workflow-bundle-dir <workflow_bundle_dir>
+       --workflow-version <workflow_version>
+       --seqware-version <seqware-version>
        [--force-copy]
        [--study-refname-override <study_refname_override>]
        [--analysis-center-override <analysis_center_override>]
@@ -106,6 +110,9 @@ GetOptions(
      "unmapped-reads-upload" => \$unmapped_reads_upload,
      "study-refname-override=s" => \$study_ref_name,     
      "analysis-center-override=s" => \$analysis_center,
+     "workflow-bundle-dir=s" => \$workflow_bundle_dir,
+     "workflow-version=s" => \$workflow_version,
+     "seqware-version=s" => \$seqware_version,
      );
 
 # setup output dir
