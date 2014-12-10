@@ -85,6 +85,11 @@ public class WorkflowClient extends OicrWorkflow {
 
   String unmappedReadsJobMemM = "8000";
   String unmappedReadsJobMemSlots = "4";
+
+  String analysisCenter = 'unknown';
+
+  String gtUploadDownloadModulePath = '';
+
   @Override
   public Map<String, SqwFile> setupFiles() {
 
@@ -145,6 +150,9 @@ public class WorkflowClient extends OicrWorkflow {
 
       unmappedReadsJobMemM = getProperty("unmappedReadsJobMemM") == null ? "8000" : getProperty("unmappedReadsJobMemM");
       unmappedReadsJobMemSlots = getProperty("unmappedReadsJobMemSlots") == null ? "4" : getProperty("unmappedReadsJobMemSlots");
+
+
+      unmappedReadsJobMemSlots = getProperty("analysisCenter") == null ? "unknown" : getProperty("analysisCenter");
 
       if (getProperty("use_gtdownload") != null) { if("false".equals(getProperty("use_gtdownload"))) { useGtDownload = false; } }
       if (getProperty("use_gtupload") != null) { if("false".equals(getProperty("use_gtupload"))) { useGtUpload = false; } }
@@ -501,7 +509,8 @@ public class WorkflowClient extends OicrWorkflow {
             .addArgument("--metadata-urls " + gnosInputMetadataURLs)
             .addArgument("--upload-url " + gnosUploadFileURL)
             .addArgument("--study-refname-override " + studyRefnameOverride)
-            .addArgument("--bam-md5sum-file " + this.dataDir + outputFileName + ".md5");
+            .addArgument("--bam-md5sum-file " + this.dataDir + outputFileName + ".md5")
+            .addArgument("--analysis-center-override " + analysisCenter);
     if (!useGtUpload) {
       job05.getCommand().addArgument("--force-copy");
     }
@@ -528,7 +537,8 @@ public class WorkflowClient extends OicrWorkflow {
             .addArgument("--metadata-urls " + gnosInputMetadataURLs)
             .addArgument("--upload-url " + gnosUploadFileURL)
             .addArgument("--study-refname-override " + studyRefnameOverride)
-            .addArgument("--bam-md5sum-file " + this.dataDir + outputUnmappedFileName + ".md5");
+            .addArgument("--bam-md5sum-file " + this.dataDir + outputUnmappedFileName + ".md5")
+            .addArgument("--analysis-center-override" + analysisCenter);
     if (!useGtUpload) {
       job06.getCommand().addArgument("--force-copy");
     }
