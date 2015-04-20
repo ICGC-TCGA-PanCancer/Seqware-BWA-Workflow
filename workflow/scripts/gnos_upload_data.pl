@@ -196,7 +196,9 @@ sub validate_submission {
     my $cmd = "cgsubmit --validate-only -s $upload_url -o validation.$bam_check.log -u $sub_path -vv";
     say "VALIDATING: $cmd";
 
-    return run($cmd) unless($skip_validate);
+    return 0 if ($skip_validate);
+
+    return run($cmd);
 }
 
 sub upload_submission {
@@ -206,15 +208,20 @@ sub upload_submission {
     my $cmd = "cgsubmit -s $upload_url -o $metadata_file -u $sub_path -vv -c $key";
 
     say "UPLOADING METADATA: $cmd";
-    return 1 if ((not $test) and (run($cmd)));
-
+    if ($test) {
+        say "SKIPPING: test mode";
+        return 0;
+    }
+    
+    return 1 if (!run($cmd));
+    
     # we need to hack the manifest.xml to drop any files that are inputs and I won't upload again
     modify_manifest_file("$sub_path/manifest.xml", $sub_path) if( not $test);
     my $log_file = 'upload.log';
     my $gt_upload_command = "cd $sub_path; gtupload -v -c $key -l ./$log_file -u ./manifest.xml; cd -";
     say "UPLOADING DATA: $cmd";
 
-    return 1 if ( (not $test) and (GNOS::Upload->upload($gt_upload_command, "$sub_path/$log_file", $retries, $cooldown, $md5_sleep) ) );
+    return 1 if ( GNOS::Upload->upload($gt_upload_command, "$sub_path/$log_file", $retries, $cooldown, $md5_sleep)  );
 
     # just touch this file to ensure monitoring tools know upload is complete
     run_("date +\%s > $final_touch_file", $metadata_file);
@@ -923,7 +930,7 @@ sub getRuntimeInfo {
         my $read_group = $qc_metrics->{readgroup};
     
         # now go ahead and read that index file for timing
-        my $download_timing = read_timing("download_timing_$i.txt");
+        my $download_timing = ($test) ? '99': read_timing("download_timing_$i.txt");
         my $bwa_timing = read_timing("bwa_timing_$i.txt");
         my $qc_timing = read_timing("qc_timing_$i.txt");
         my $merge_timing = read_timing("merge_timing.txt");
