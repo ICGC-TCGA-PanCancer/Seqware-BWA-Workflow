@@ -37,11 +37,12 @@ Feel free to email our [mailing list](http://seqware.github.io/community/) if yo
 
 * Brian O'Connor <boconnor@oicr.on.ca>
 * Junjun Zhang <Junjun.Zhang@oicr.on.ca>
+* Adam Wright <adam.wright@oicr.on.ca>
 
 ## Contributors
 
 * Keiran Raine: PCAP-Core and BWA-Mem workflow design
-* Roshaan Tahir: Original BWA-Align workflow design
+* Roshaan Tahir: Original BWA-Align workflow design 
 
 ## Workflow Authors' Release Checklist
 
