@@ -24,6 +24,7 @@
         <skipITs>true</skipITs>
         <bundleDirectory>${project.build.directory}/Workflow_Bundle_${workflow-directory-name}_${project.version}_SeqWare_${seqware-version}/Workflow_Bundle_${workflow-directory-name}/${project.version}</bundleDirectory>
         <workingDirectory>${user.home}/_testing/</workingDirectory>
+        <gt-download-upload-wrapper.version>2.0.3</gt-download-upload-wrapper.version>
         <seqwareDistribution>${bundleDirectory}/lib/seqware-distribution-${seqware-version}-full.jar</seqwareDistribution>
     </properties>
 
@@ -75,11 +76,12 @@
             <version>1.1.1</version>
             <type>tar.gz</type>
         </dependency>
-        <dependency>
-            <groupId>gt-upload-download-wrapper</groupId>
-            <artifactId>gt-upload-download-wrapper</artifactId>
-            <version>1.0.0</version>
-            <type>zip</type>
+	<dependency>
+	     <groupId>gt-download-upload-wrapper</groupId>
+	     <artifactId>gt-download-upload-wrapper</artifactId>
+	     <version>${gt-download-upload-wrapper.version}</version>
+	     <type>zip</type>
+        </dependency>
         </dependency>
     </dependencies>
 

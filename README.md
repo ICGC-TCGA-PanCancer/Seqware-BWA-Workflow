@@ -1,4 +1,4 @@
-# README
+# SeqWare BWA Workflow
 
 ## Overview
 

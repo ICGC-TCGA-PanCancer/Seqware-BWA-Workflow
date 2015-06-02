@@ -27,8 +27,6 @@ use Data::Dumper;
 my $cooldown = 60;
 # 30 retries at 60 seconds each is 30 hours
 my $retries = 30;
-# retries for md5sum, 4 hours
-my $md5_sleep = 240;
 #example command
 
 
@@ -62,6 +60,7 @@ my $md5_file = "";
 my $upload_url = "";
 my $test = 0;
 my $skip_validate = 0;
+my $skip_upload = 0;
 # hardcoded
 my $seqware_version = "";
 my $workflow_version = "";
@@ -79,7 +78,7 @@ my $unmapped_reads_upload = 0;
 my $study_ref_name = "icgc_pancancer";
 my $analysis_center = "OICR";
 
-if (scalar(@ARGV) < 18 || scalar(@ARGV) > 30) {
+if (scalar(@ARGV) < 18 || scalar(@ARGV) > 31) {
   die "USAGE: 'perl gnos_upload_data.pl
        --metadata-urls <URLs_comma_separated>
        --bam <sample-level_bam_file_path>
@@ -95,24 +94,26 @@ if (scalar(@ARGV) < 18 || scalar(@ARGV) > 30) {
        [--analysis-center-override <analysis_center_override>]
        [--unmapped-reads-upload]
        [--skip-validate]
+       [--skip-upload]
        [--test]\n"; }
 
 GetOptions(
-     "metadata-urls=s" => \$metadata_urls,
-     "bam=s" => \$bam,
-     "outdir=s" => \$output_dir,
-     "key=s" => \$key,
-     "bam-md5sum-file=s" => \$md5_file,
-     "upload-url=s" => \$upload_url,
-     "test" => \$test,
-     "force-copy" => \$force_copy,
-     "skip-validate" => \$skip_validate,
-     "unmapped-reads-upload" => \$unmapped_reads_upload,
-     "study-refname-override=s" => \$study_ref_name,     
+     "metadata-urls=s"            => \$metadata_urls,
+     "bam=s"                      => \$bam,
+     "outdir=s"                   => \$output_dir,
+     "key=s"                      => \$key,
+     "bam-md5sum-file=s"          => \$md5_file,
+     "upload-url=s"               => \$upload_url,
+     "test"                       => \$test,
+     "force-copy"                 => \$force_copy,
+     "skip-validate"              => \$skip_validate,
+     "unmapped-reads-upload"      => \$unmapped_reads_upload,
+     "study-refname-override=s"   => \$study_ref_name,     
      "analysis-center-override=s" => \$analysis_center,
-     "workflow-bundle-dir=s" => \$workflow_bundle_dir,
-     "workflow-version=s" => \$workflow_version,
-     "seqware-version=s" => \$seqware_version,
+     "workflow-bundle-dir=s"      => \$workflow_bundle_dir,
+     "workflow-version=s"         => \$workflow_version,
+     "seqware-version=s"          => \$seqware_version,
+     "skip-upload"                => \$skip_upload
      );
 
 # setup output dir
@@ -217,11 +218,11 @@ sub upload_submission {
     
     # we need to hack the manifest.xml to drop any files that are inputs and I won't upload again
     modify_manifest_file("$sub_path/manifest.xml", $sub_path) if( not $test);
-    my $log_file = 'upload.log';
-    my $gt_upload_command = "cd $sub_path; gtupload -v -c $key -l ./$log_file -u ./manifest.xml; cd -";
-    say "UPLOADING DATA: $cmd";
 
-    return 1 if ( GNOS::Upload->upload($gt_upload_command, "$sub_path/$log_file", $retries, $cooldown, $md5_sleep)  );
+    unless ( $test || $skip_upload ) {
+        die "ABORT: No gtupload installed, aborting!" if ( system("which gtupload") );
+        return 1 if ( GNOS::Upload->run_upload($sub_path, $key, $retries, $cooldown )  );
+    }
 
     # just touch this file to ensure monitoring tools know upload is complete
     run_("date +\%s > $final_touch_file", $metadata_file);
@@ -231,21 +232,21 @@ sub upload_submission {
 sub modify_manifest_file {
     my ($man, $sub_path) = @_;
 
-    open IN, '<', $man;
-    open OUT, '>', "$man.new";
+    open my $in, '<', $man;
+    open my $out, '>', "$man.new";
 
-    while(<IN>) {
+    while(<$in>) {
         chomp;
         if (/filename="([^"]+)"/) {
-           say OUT $_ if (-e "$sub_path/$1");    
+           say $out $_ if (-e "$sub_path/$1");    
         } 
         else {
-            say OUT $_;
+            say $out $_;
         }
     }
 
-    close IN;
-    close OUT;
+    close $in;
+    close $out;
  
     system("mv $man.new $man");
 }
