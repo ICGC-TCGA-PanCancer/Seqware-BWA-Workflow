@@ -9,7 +9,7 @@
 
     <groupId>com.github.seqware</groupId>
     <artifactId>BWA</artifactId>
-    <version>2.6.3</version>
+    <version>2.6.4</version>
     <packaging>jar</packaging>
 
     <name>workflow-bwa-pancancer</name>
@@ -18,8 +18,8 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <seqware-version>1.1.0-alpha.5</seqware-version>
-        <utilities-version>1.3-SNAPSHOT</utilities-version>
+        <seqware-version>1.1.1</seqware-version>
+    <!--    <utilities-version>1.3-SNAPSHOT</utilities-version> -->
         <skipBundleTest>true</skipBundleTest>
         <skipITs>true</skipITs>
         <bundleDirectory>${project.build.directory}/Workflow_Bundle_${workflow-directory-name}_${project.version}_SeqWare_${seqware-version}/Workflow_Bundle_${workflow-directory-name}/${project.version}</bundleDirectory>
@@ -59,11 +59,13 @@
             <version>${seqware-version}</version>
             <scope>provided</scope>
         </dependency>
+<!--
         <dependency>
           <groupId>ca.on.oicr.pde</groupId>
           <artifactId>workflow-utilities</artifactId>
-          <version>1.3-SNAPSHOT</version>
+          <version>${utilities-version}</version>
         </dependency>
+-->
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
@@ -82,7 +84,6 @@
 	     <version>${gt-download-upload-wrapper.version}</version>
 	     <type>zip</type>
         </dependency>
-        </dependency>
     </dependencies>
 
     <repositories>
@@ -91,11 +92,13 @@
             <name>seqwaremaven.oicr.on.ca-seqware-dependencies</name>
             <url>http://seqwaremaven.oicr.on.ca/artifactory/seqware-dependencies</url>
         </repository>
+<!-- 
          <repository>
             <id>seqwaremaven.oicr.on.ca-seqware-dependencies-snapshot</id>
             <name>seqwaremaven.oicr.on.ca-seqware-dependencies-snapshot</name>
             <url>http://seqwaremaven.oicr.on.ca/artifactory/seqware-dependencies-snapshot</url>
         </repository>
+-->
         <repository>
             <id>com.github.seqware</id>
             <name>SeqWare Maven Repository</name>
@@ -107,6 +110,7 @@
                 <enabled>false</enabled>
             </snapshots>
         </repository>
+<!--
         <repository>
             <id>snapshot.com.github.seqware</id>
             <name>SeqWare Snapshot Maven Repository</name>
@@ -118,6 +122,7 @@
                 <enabled>true</enabled>
             </snapshots>
         </repository>
+-->
     </repositories>
 
     <build>

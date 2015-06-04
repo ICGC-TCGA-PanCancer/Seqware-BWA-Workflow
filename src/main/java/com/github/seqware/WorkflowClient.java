@@ -11,7 +11,7 @@ import java.util.logging.Logger;
 import net.sourceforge.seqware.pipeline.workflowV2.model.Job;
 import net.sourceforge.seqware.pipeline.workflowV2.model.SqwFile;
 
-public class WorkflowClient extends OicrWorkflow {
+public class WorkflowClient extends AbstractWorkflowDataModel {
 
   // GENERAL
   // comma-seperated for multiple bam inputs
@@ -445,7 +445,7 @@ public class WorkflowClient extends OicrWorkflow {
     String finalOutDir = this.dataDir;
     if (!useGtUpload) { finalOutDir = this.resultsDir; }
     Job job05 = this.getWorkflow().createBashJob("upload");
-    job05.getCommand().addArgument("perl " + this.getWorkflowBaseDir() + "/scripts/gnos_upload_data.pl")
+    job05.getCommand().addArgument("perl -I " + getWorkflowBaseDir() + "/lib " + this.getWorkflowBaseDir() + "/scripts/gnos_upload_data.pl")
             .addArgument("--bam " + this.dataDir + outputFileName)
             .addArgument("--key " + gnosKey)
             .addArgument("--outdir " + finalOutDir)
@@ -471,7 +471,7 @@ public class WorkflowClient extends OicrWorkflow {
     // upload BAM with unmapped reads
     if (!useGtUpload) { finalOutDir = this.resultsDir; }
     Job job06 = this.getWorkflow().createBashJob("upload2");
-    job06.getCommand().addArgument("perl " + this.getWorkflowBaseDir() + "/scripts/gnos_upload_data.pl --unmapped-reads-upload ")
+    job06.getCommand().addArgument("perl -I " + this.getWorkflowBaseDir() + "/scripts/gnos_upload_data.pl --unmapped-reads-upload ")
             .addArgument("--bam " + this.dataDir + outputUnmappedFileName)
             .addArgument("--key " + gnosKey)
             .addArgument("--outdir " + finalOutDir)
@@ -591,16 +591,12 @@ public class WorkflowClient extends OicrWorkflow {
 
     if ("file_based".equals(wrapperType)) {
       job.getCommand().addArgument("set -e; set -o pipefail; date +%s > download_timing_" + jobId + ".txt;")
-      .addArgument("perl " + this.getWorkflowBaseDir() + "/scripts/launch_and_monitor_gnos.pl")
-      .addArgument("--command 'gtdownload "
-                + " --max-children " + gnosMaxChildren
-                + " --rate-limit " + gnosRateLimit
-                + " -c " + gnosKey
-                + " -v -d "+fileURL+"'")
-      .addArgument("--file-grep " + analysisId)
-      .addArgument("--search-path .")
-      .addArgument("--md5-retries " + gtdownloadMd5Time)
-      .addArgument("--retries "+gtdownloadRetries + " ;")
+      .addArgument("perl -I " + getWorkflowBaseDir() + "/lib " + this.getWorkflowBaseDir() + "/scripts/gnos_download_file.pl")
+      .addArguement("--pem" + gnos_key)
+      .addArgument(" --url " + gnosServer + "/cghub/data/analysis/download/" + analysisId)
+      .addArgument(" --file " + bamFile )
+      .addArgument(" --retries " + gtdownloadRetries)
+      .addArgument("--timeout-min " + timeoutMin);
       .addArgument("date +%s >> download_timing_" + jobId + ".txt");
     } else {
       job.getCommand().addArgument("set -e; set -o pipefail; date +%s > download_timing_" + jobId + ".txt;")
