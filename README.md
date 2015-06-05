@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/ICGC-TCGA-PanCancer/Seqware-BWA-Workflow.svg?branch=develop)](https://travis-ci.org/ICGC-TCGA-PanCancer/Seqware-BWA-Workflow)
+
 # SeqWare BWA Workflow
 
 ## Overview
