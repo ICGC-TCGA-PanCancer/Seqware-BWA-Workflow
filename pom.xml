@@ -18,11 +18,13 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <seqware-version>1.1.1</seqware-version>
+        <skipBundleTest>true</skipBundleTest>
         <skipITs>true</skipITs>
         <workflow-full-name>Workflow_Bundle_BWA_${workflow-version}_SeqWare_${seqware-version}</workflow-full-name>
         <workflow-dir>${project.build.directory}/${workflow-full-name}/Workflow_Bundle_BWA/${workflow-version}</workflow-dir>
         <bundleDirectory>${project.build.directory}/Workflow_Bundle_${workflow-directory-name}_${project.version}_SeqWare_${seqware-version}/Workflow_Bundle_${workflow-directory-name}/${project.version}</bundleDirectory>
-        <gt-download-upload-wrapper.version>2.0.4</gt-download-upload-wrapper.version>
+        <gt-download-upload-wrapper.version>2.0.10</gt-download-upload-wrapper.version>
     </properties>
 
     <dependencies>
@@ -58,7 +60,7 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-           <groupId>PCAP-core</groupId>
+            <groupId>PCAP-core</groupId>
             <artifactId>PCAP-core</artifactId>
             <version>1.1.1</version>
             <type>tar.gz</type>
@@ -88,7 +90,7 @@
                 <enabled>false</enabled>
             </snapshots>
         </repository>
-   </repositories>
+    </repositories>
 
     <build>
 
@@ -313,5 +315,8 @@
                 </configuration>
             </plugin>
         </plugins>
+
     </build>
+
 </project>
+

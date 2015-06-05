@@ -13,6 +13,7 @@ import net.sourceforge.seqware.pipeline.workflowV2.model.SqwFile;
 
 public class WorkflowClient extends AbstractWorkflowDataModel {
     // GENERAL
+    String gtDownloadWrapperVersion = "2.0.10";
     // comma-seperated for multiple bam inputs
     String inputBamPaths = null;
     ArrayList<String> bamPaths = new ArrayList<String>();
@@ -59,6 +60,7 @@ public class WorkflowClient extends AbstractWorkflowDataModel {
     // each retry is 1 minute
     String gtdownloadRetries = "30";
     String gtdownloadMd5Time = "120";
+    String timeoutMin = "60";
     String gtdownloadMem = "8";
     String gtdownloadWrapperType = "timer_based";
     String smallJobMemM = "4000";
@@ -105,6 +107,7 @@ public class WorkflowClient extends AbstractWorkflowDataModel {
             additionalPicardParams = getProperty("additionalPicardParams");
             skipUpload = getProperty("skip_upload") == null ? "true" : getProperty("skip_upload");
             gtdownloadRetries = getProperty("gtdownloadRetries") == null ? "30" : getProperty("gtdownloadRetries");
+            timeoutMin = getProperty("gnos_timeout_min") == null ? "60" : getProperty("gnos_timeout_min");
             gtdownloadMd5Time = getProperty("gtdownloadMd5time") == null ? "120" : getProperty("gtdownloadMd5time");
             gtdownloadMem = getProperty("gtdownloadMemG") == null ? "8" : getProperty("gtdownloadMemG");
             gtdownloadWrapperType = getProperty("gtdownloadWrapperType") == null ? "timer_based" : getProperty("gtdownloadWrapperType");
@@ -604,12 +607,13 @@ public class WorkflowClient extends AbstractWorkflowDataModel {
         if ("file_based".equals(wrapperType)) {
             job.getCommand()
                     .addArgument("set -e; set -o pipefail; date +%s > download_timing_" + jobId + ".txt;")
-                    .addArgument("perl " + this.getWorkflowBaseDir() + "/scripts/launch_and_monitor_gnos.pl")
-                    .addArgument(
-                            "--command 'gtdownload " + " --max-children " + gnosMaxChildren + " --rate-limit " + gnosRateLimit + " -c "
-                                    + gnosKey + " -v -d " + fileURL + "'").addArgument("--file-grep " + analysisId)
-                    .addArgument("--search-path .").addArgument("--md5-retries " + gtdownloadMd5Time)
-                    .addArgument("--retries " + gtdownloadRetries + " ;").addArgument("date +%s >> download_timing_" + jobId + ".txt");
+                    .addArgument("perl -I " + this.getWorkflowBaseDir() + "/bin/gt-download-upload-wrapper-"+ gtDownloadWrapperVersion + "/lib " + this.getWorkflowBaseDir() + "/scripts/gnos_download_file.pl")
+                    .addArgument(" -k 60") 
+                    .addArgument(" --pem "+ gnosKey)
+                    .addArgument(" --url " + fileURL)
+                    .addArgument(" --file " + file )
+                    .addArgument(" --retries " + gtdownloadRetries  + " --sleep-min 1 --timeout-min 60;")
+                    .addArgument("date +%s >> download_timing_" + jobId + ".txt");
         } else {
             job.getCommand()
                     .addArgument("set -e; set -o pipefail; date +%s > download_timing_" + jobId + ".txt;")
