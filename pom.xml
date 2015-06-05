@@ -9,6 +9,7 @@
 
     <groupId>com.github.seqware</groupId>
     <artifactId>BWA</artifactId>
+    <!-- MAKE SURE YOU UPDATE THE workflow.properties FILE TOO -->
     <version>2.6.4</version>
     <packaging>jar</packaging>
 
