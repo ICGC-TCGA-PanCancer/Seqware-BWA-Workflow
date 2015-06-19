@@ -16,8 +16,6 @@ use Time::Piece;
 
 use GNOS::Upload;
 
-use Data::Dumper;
-
 #############################################################################################
 # DESCRIPTION                                                                               #
 #############################################################################################
@@ -64,8 +62,10 @@ my $force_copy = 0;
 my $unmapped_reads_upload = 0;
 my $study_ref_name = "icgc_pancancer";
 my $analysis_center = "OICR";
+my $retries = 3;
+my $cooldown = 60;
 
-if (scalar(@ARGV) < 12 || scalar(@ARGV) > 21) {
+if (scalar(@ARGV) < 12 || scalar(@ARGV) > 25) {
   die "USAGE: 'perl gnos_upload_data.pl
        --metadata-urls <URLs_comma_separated>
        --bam <sample-level_bam_file_path>
@@ -79,6 +79,8 @@ if (scalar(@ARGV) < 12 || scalar(@ARGV) > 21) {
        [--unmapped-reads-upload]
        [--skip-validate]
        [--skip-upload]
+       [--retries <max-number-of-retries>]
+       [--cooldown <minutes-waiting-for-download-to-be-active]
        [--test]\n"; }
 
 GetOptions(
@@ -95,13 +97,19 @@ GetOptions(
      "unmapped-reads-upload"      => \$unmapped_reads_upload,
      "study-refname-override=s"   => \$study_ref_name,
      "analysis-center-override=s" => \$analysis_center,
+     "retries=i"                  => \$retries,
+     "cooldown=i"                 => \$cooldown
      );
 
 # setup output dir
 my $ug = Data::UUID->new;
 my $uuid = lc($ug->create_str());
-run("mkdir -p $output_dir/$uuid");
-$output_dir = $output_dir."/$uuid/";
+
+say $uuid;
+
+$output_dir = "$output_dir$uuid";
+run("mkdir -p $output_dir");
+
 my $final_touch_file = "$output_dir/upload_complete.txt";
 # md5sum
 my $bam_check = `cat $md5_file`;
@@ -155,56 +163,20 @@ sub upload_submission {
     my $cmd = "cgsubmit -s $upload_url -o $metadata_file -u $sub_path -vv -c $key";
 
     say "UPLOADING METADATA: $cmd";
-    if ($test) {
-        say "SKIPPING: test mode";
-        return 0;
-    }
-
-    return 1 if (!run($cmd));
+    return 0 if (!$test && !run($cmd));
 
     # we need to hack the manifest.xml to drop any files that are inputs and I won't upload again
-    modify_manifest_file("$sub_path/manifest.xml", $sub_path) if( not $test);
+    modify_manifest_file("$sub_path/manifest.xml", $sub_path);
 
-    unless ( $test || $skip_upload ) {
+    unless ( $skip_upload || $test ) {
         die "ABORT: No gtupload installed, aborting!" if ( system("which gtupload") );
-        return 1 if ( GNOS::Upload->run_upload($sub_path, $key, $retries, $cooldown )  );
+        return 0 unless ( GNOS::Upload->run_upload($sub_path, $key, $retries, $cooldown )  );
     }
 
     # just touch this file to ensure monitoring tools know upload is complete
     run_("date +\%s > $final_touch_file", $metadata_file);
 
-}
-
-
-sub upload_submission {
-    my ($sub_path) = @_;
-
-    my $cmd = "cgsubmit -s $upload_url -o metadata_upload.$bam_check.log -u $sub_path -vv -c $key";
-    print "UPLOADING METADATA: $cmd\n";
-    if (!$test) {
-         if (run($cmd)) { return(1); }
-    }
-
-    # we need to hack the manifest.xml to drop any files that are inputs and I won't upload again
-    if (!$test) {
-         modify_manifest_file("$sub_path/manifest.xml", $sub_path);
-    }
-
-    say "UPLOADING DATA:";
-    if (!$test) {
-      if (run($cmd)) { return(1); }
-    }
-
-    unless ( $test || $skip_upload ) {
-        die "ABORT: No gtupload installed, aborting!" if ( system("which gtupload") );
-        return 1 if ( GNOS::Upload->run_upload($sub_path, $key, $retries, $cooldown )  );
-    }
-
-
-
-  # just touch this file to ensure monitoring tools know upload is complete
-  run("date +\%s > $final_touch_file");
-
+    return 1;
 }
 
 sub modify_manifest_file {
@@ -230,6 +202,10 @@ sub generate_submission {
 
   my ($m) = @_;
 
+  # const
+  my $t = gmtime;
+  my $datetime = $t->datetime();
+  # populate refcenter from original BAM submission
   # @RG CN:(.*)
   my $refcenter = "OICR";
   # @CO sample_id
@@ -295,7 +271,7 @@ sub generate_submission {
     $participant_id = $participant_ids[0];
     my $index = 0;
     foreach my $bam_info (@{$m->{$file}{'run'}}) {
-      if ($bam_info->{data_block_name} ne '') {
+      if (exists($bam_info->{data_block_name}) && $bam_info->{data_block_name} ne '') {
         #print Dumper($bam_info);
         #print Dumper($m->{$file}{'file'}[$index]);
         my $pi = {};
@@ -782,7 +758,8 @@ sub download_url {
 sub getVal {
   my ($node, $key) = @_;
   #print "NODE: $node KEY: $key\n";
-  if ($node != undef) {
+  
+  if (defined ($node)) {
     if (defined($node->getElementsByTagName($key))) {
       if (defined($node->getElementsByTagName($key)->item(0))) {
         if (defined($node->getElementsByTagName($key)->item(0)->getFirstChild)) {

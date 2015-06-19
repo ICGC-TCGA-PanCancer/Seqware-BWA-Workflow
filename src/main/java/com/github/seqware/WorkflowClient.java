@@ -300,7 +300,13 @@ public class WorkflowClient extends AbstractWorkflowDataModel {
                         .addArgument("inputformat=sam level=1 inputthreads=2 outputthreads=2")
                         .addArgument("calmdnm=1 calmdnmrecompindetonly=1 calmdnmreference=" + reference_path)
                         .addArgument("tmpfile=out_" + i + ".sorttmp").addArgument("O=out_" + i + ".bam 2> bamsort_info_" + i + ".txt")
-                        .addArgument("&& date +%s >> bwa_timing_" + i + ".txt");
+                        .addArgument("&& date +%s >> bwa_timing_" + i + ".txt;");
+ 
+                // CLEANUP DOWNLOADED INPUT UNALIGNED BAM FILES
+                if (useGtDownload && cleanup) {
+                   job01.getCommand().addArgument("rm -f " + file);
+                }
+
 
                 job01.setMaxMemory(bwaAlignMemG + "900");
 
@@ -312,15 +318,6 @@ public class WorkflowClient extends AbstractWorkflowDataModel {
                 qcJob.addParent(job01);
                 qcJob.setMaxMemory(smallJobMemM);
                 qcJobs.add(qcJob);
-
-                // CLEANUP DOWNLOADED INPUT UNALIGNED BAM FILES
-                if (useGtDownload && cleanup) {
-                    Job cleanup1 = this.getWorkflow().createBashJob("cleanup2_" + i);
-                    cleanup1.getCommand().addArgument("rm -f " + file);
-                    cleanup1.setMaxMemory(smallJobMemM);
-                    cleanup1.addParent(job01);
-                }
-
             } else {
                 // not sure if there's a better way to do this
                 throw new RuntimeException("Don't understand a bwa choice of " + bwaChoice + " needs to be aln or mem");
@@ -466,7 +463,7 @@ public class WorkflowClient extends AbstractWorkflowDataModel {
             finalOutDir = this.resultsDir;
         }
         Job job05 = this.getWorkflow().createBashJob("upload");
-        job05.getCommand().addArgument("perl " + this.getWorkflowBaseDir() + "/scripts/gnos_upload_data.pl")
+        job05.getCommand().addArgument("perl -I" + this.getWorkflowBaseDir() + "/bin/gt-download-upload-wrapper-" + gtDownloadWrapperVersion + "/lib " + this.getWorkflowBaseDir() + "/scripts/gnos_upload_data.pl")
                 .addArgument("--bam " + this.dataDir + outputFileName).addArgument("--key " + gnosKey)
                 .addArgument("--outdir " + finalOutDir).addArgument("--metadata-urls " + gnosInputMetadataURLs)
                 .addArgument("--upload-url " + gnosUploadFileURL).addArgument("--study-refname-override " + studyRefnameOverride)
@@ -491,7 +488,7 @@ public class WorkflowClient extends AbstractWorkflowDataModel {
             finalOutDir = this.resultsDir;
         }
         Job job06 = this.getWorkflow().createBashJob("upload2");
-        job06.getCommand().addArgument("perl " + this.getWorkflowBaseDir() + "/scripts/gnos_upload_data.pl --unmapped-reads-upload ")
+        job06.getCommand().addArgument("perl -I" + this.getWorkflowBaseDir() + "/bin/gt-download-upload-wrapper-" + gtDownloadWrapperVersion + "/lib " + this.getWorkflowBaseDir() + "/scripts/gnos_upload_data.pl --unmapped-reads-upload ")
                 .addArgument("--bam " + this.dataDir + outputUnmappedFileName).addArgument("--key " + gnosKey)
                 .addArgument("--outdir " + finalOutDir).addArgument("--metadata-urls " + gnosInputMetadataURLs)
                 .addArgument("--upload-url " + gnosUploadFileURL).addArgument("--study-refname-override " + studyRefnameOverride)
