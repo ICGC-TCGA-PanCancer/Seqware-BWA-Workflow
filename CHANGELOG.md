@@ -5,6 +5,22 @@
 This is the changelog for the release of the BWA workflow used for the
 ICGC/TCGA PanCancer project.
 
+## Release 2.6.5
+
+* fixing bug with upload
+
+## Release 2.6.4
+
+* new upload download wrapper
+
+## Release 2.6.3
+
+* removing vcf-uploader now that it is in it own repository
+
+## Release 2.6.2
+
+* Debugging information for GTDownload
+
 ## Release 2.6.1
 
 * [PANCANCER-107](https://jira.oicr.on.ca/browse/PANCANCER-107) - Workflow: ensure we can control the maxmemory setting on the unaligned reads extraction steps (new ini param is unmappedReadsJobMemM). These are the only steps that did not have memory params in the ini in the previous version of the workflow.
