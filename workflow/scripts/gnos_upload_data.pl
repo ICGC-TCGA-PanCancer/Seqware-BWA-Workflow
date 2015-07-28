@@ -168,7 +168,7 @@ sub upload_submission {
     return 0 if (!$test && run($cmd));
 
     # we need to hack the manifest.xml to drop any files that are inputs and I won't upload again
-    if(!test) {
+    if(!$test) {
         modify_manifest_file("$sub_path/manifest.xml", $sub_path);
     }
     
