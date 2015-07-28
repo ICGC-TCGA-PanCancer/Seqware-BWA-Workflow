@@ -3,6 +3,8 @@
 use strict;
 use warnings;
 
+use autodie;
+
 use feature qw(say);
 
 use Getopt::Long;
@@ -181,8 +183,8 @@ sub upload_submission {
 
 sub modify_manifest_file {
   my ($man, $sub_path) = @_;
-  open OUT, ">$man.new" or die;
-  open IN, "<$man" or die;
+  open OUT, ">$man.new";
+  open IN, "<$man";
   while(<IN>) {
     chomp;
     if (/filename="([^"]+)"/) {
@@ -619,7 +621,7 @@ unless ($unmapped_reads_upload) {
   </ANALYSIS_SET>
 END
 
-  open OUT, ">$output_dir/analysis.xml" or die;
+  open OUT, ">$output_dir/analysis.xml";
   print OUT $analysis_xml;
   close OUT;
 
@@ -668,7 +670,7 @@ END
   </RUN_SET>
 END
 
-  open OUT, ">$output_dir/run.xml" or die;
+  open OUT, ">$output_dir/run.xml";
   print OUT $run_xml;
   close OUT;
 
@@ -679,7 +681,7 @@ END
 sub read_header {
   my ($header) = @_;
   my $hd = {};
-  open HEADER, "<$header" or die "Can't open header file $header\n";
+  open HEADER, "<$header";
   while(<HEADER>) {
     chomp;
     my @a = split /\t+/;
