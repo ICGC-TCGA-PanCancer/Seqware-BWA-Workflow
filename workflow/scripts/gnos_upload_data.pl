@@ -168,8 +168,10 @@ sub upload_submission {
     return 0 if (!$test && run($cmd));
 
     # we need to hack the manifest.xml to drop any files that are inputs and I won't upload again
-    modify_manifest_file("$sub_path/manifest.xml", $sub_path);
-
+    if(!test) {
+        modify_manifest_file("$sub_path/manifest.xml", $sub_path);
+    }
+    
     unless ( $skip_upload || $test ) {
         die "ABORT: No gtupload installed, aborting!" if ( system("which gtupload") );
         return 0 unless ( GNOS::Upload->run_upload($sub_path, $key, $retries, $cooldown )  );
