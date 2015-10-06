@@ -67,8 +67,8 @@ public class WorkflowClient extends AbstractWorkflowDataModel {
     String studyRefnameOverride = "icgc_pancancer";
     String unmappedReadsJobMemM = "8000";
     
-    private String uploadURL = "";
-    private boolean useGNOS = true;
+    //private String uploadURL = ""; //We don't really need a separate variable. We can just rename the old one without the word "gnos"
+    private boolean useGNOS = true; //Should come from INI file. If false, then use S3.
 
     @Override
     public Map<String, SqwFile> setupFiles() {
@@ -499,7 +499,10 @@ public class WorkflowClient extends AbstractWorkflowDataModel {
         }
         else // Using AWS S3
         {
-        	job05.getCommand().addArgument("aws s3 cp "+this.dataDir + outputFileName + " "+uploadURL);
+        	// TODO: Determine if we need to include --expected-size <size of file in bytes>. According to the docs, this is recommended if file is > 5 GB. Does BWA ever produce files that big?
+        	// TODO: Should we include settings for --acl (access control list) or --grants to allow uploaded files to be public?
+        	// TODO: also, what about --sse for sever-side encryption?
+        	job05.getCommand().addArgument("aws s3 cp "+this.dataDir + this.outputFileName + " "+this.gnosUploadFileURL);
         }
         
         job05.addParent(job04);
@@ -529,7 +532,10 @@ public class WorkflowClient extends AbstractWorkflowDataModel {
         }
         else // Upload to AWS S3
         {
-        	job06.getCommand().addArgument("aws s3 cp "+this.dataDir + outputUnmappedFileName + " "+uploadURL);
+        	// TODO: Determine if we need to include --expected-size <size of file in bytes>. According to the docs, this is recommended if file is > 5 GB. Does BWA ever produce files that big?
+        	// TODO: Should we include settings for --acl (access control list) or --grants to allow uploaded files to be public?
+        	// TODO: also, what about --sse for sever-side encryption?
+        	job06.getCommand().addArgument("aws s3 cp "+this.dataDir + this.outputUnmappedFileName + " "+this.gnosUploadFileURL);
         }
         job06.addParent(mergeUnmappedJob);
 
