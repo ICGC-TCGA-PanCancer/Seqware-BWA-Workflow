@@ -66,6 +66,9 @@ public class WorkflowClient extends AbstractWorkflowDataModel {
     String smallJobMemM = "4000";
     String studyRefnameOverride = "icgc_pancancer";
     String unmappedReadsJobMemM = "8000";
+    
+    private String uploadURL = "";
+    private boolean useGNOS = true;
 
     @Override
     public Map<String, SqwFile> setupFiles() {
@@ -463,46 +466,63 @@ public class WorkflowClient extends AbstractWorkflowDataModel {
             finalOutDir = this.resultsDir;
         }
         Job job05 = this.getWorkflow().createBashJob("upload");
-        job05.getCommand().addArgument("perl -I" + this.getWorkflowBaseDir() + "/bin/gt-download-upload-wrapper-" + gtDownloadWrapperVersion + "/lib " + this.getWorkflowBaseDir() + "/scripts/gnos_upload_data.pl")
-                .addArgument("--bam " + this.dataDir + outputFileName).addArgument("--key " + gnosKey)
-                .addArgument("--outdir " + finalOutDir).addArgument("--metadata-urls " + gnosInputMetadataURLs)
-                .addArgument("--upload-url " + gnosUploadFileURL).addArgument("--study-refname-override " + studyRefnameOverride)
-                .addArgument("--bam-md5sum-file " + this.dataDir + outputFileName + ".md5");
-        if (!useGtUpload) {
-            job05.getCommand().addArgument("--force-copy");
+        //if we are using a GNOS repo, we can use the gt-download-upload-wrapper.
+        if (useGNOS) {
+	        job05.getCommand().addArgument("perl -I" + this.getWorkflowBaseDir() + "/bin/gt-download-upload-wrapper-" + gtDownloadWrapperVersion + "/lib " + this.getWorkflowBaseDir() + "/scripts/gnos_upload_data.pl")
+	                .addArgument("--bam " + this.dataDir + outputFileName).addArgument("--key " + gnosKey)
+	                .addArgument("--outdir " + finalOutDir).addArgument("--metadata-urls " + gnosInputMetadataURLs)
+	                .addArgument("--upload-url " + gnosUploadFileURL).addArgument("--study-refname-override " + studyRefnameOverride)
+	                .addArgument("--bam-md5sum-file " + this.dataDir + outputFileName + ".md5");
+	        if (!useGtUpload) {
+	            job05.getCommand().addArgument("--force-copy");
+	        }
+	        if ("true".equals(skipUpload) || !useGtUpload) {
+	            job05.getCommand().addArgument("--test");
+	        }
+	        if (!useGtValidation) {
+	            job05.getCommand().addArgument("--skip-validate");
+	        }
+	        job05.setMaxMemory(uploadScriptJobMem + "900");
+	
+	        // upload BAM with unmapped reads
+	        if (!useGtUpload) {
+	            finalOutDir = this.resultsDir;
+	        }
         }
-        if ("true".equals(skipUpload) || !useGtUpload) {
-            job05.getCommand().addArgument("--test");
+        else // Using AWS S3
+        {
+        	job05.getCommand().addArgument("aws s3 cp "+this.dataDir + outputFileName + " "+uploadURL);
         }
-        if (!useGtValidation) {
-            job05.getCommand().addArgument("--skip-validate");
-        }
-        job05.setMaxMemory(uploadScriptJobMem + "900");
+        
         job05.addParent(job04);
         for (Job qcJob : qcJobs) {
             job05.addParent(qcJob);
         }
-
-        // upload BAM with unmapped reads
-        if (!useGtUpload) {
-            finalOutDir = this.resultsDir;
-        }
+        
         Job job06 = this.getWorkflow().createBashJob("upload2");
-        job06.getCommand().addArgument("perl -I" + this.getWorkflowBaseDir() + "/bin/gt-download-upload-wrapper-" + gtDownloadWrapperVersion + "/lib " + this.getWorkflowBaseDir() + "/scripts/gnos_upload_data.pl --unmapped-reads-upload ")
-                .addArgument("--bam " + this.dataDir + outputUnmappedFileName).addArgument("--key " + gnosKey)
-                .addArgument("--outdir " + finalOutDir).addArgument("--metadata-urls " + gnosInputMetadataURLs)
-                .addArgument("--upload-url " + gnosUploadFileURL).addArgument("--study-refname-override " + studyRefnameOverride)
-                .addArgument("--bam-md5sum-file " + this.dataDir + outputUnmappedFileName + ".md5");
-        if (!useGtUpload) {
-            job06.getCommand().addArgument("--force-copy");
+        
+        if (useGNOS)
+        {
+	        job06.getCommand().addArgument("perl -I" + this.getWorkflowBaseDir() + "/bin/gt-download-upload-wrapper-" + gtDownloadWrapperVersion + "/lib " + this.getWorkflowBaseDir() + "/scripts/gnos_upload_data.pl --unmapped-reads-upload ")
+	                .addArgument("--bam " + this.dataDir + outputUnmappedFileName).addArgument("--key " + gnosKey)
+	                .addArgument("--outdir " + finalOutDir).addArgument("--metadata-urls " + gnosInputMetadataURLs)
+	                .addArgument("--upload-url " + gnosUploadFileURL).addArgument("--study-refname-override " + studyRefnameOverride)
+	                .addArgument("--bam-md5sum-file " + this.dataDir + outputUnmappedFileName + ".md5");
+	        if (!useGtUpload) {
+	            job06.getCommand().addArgument("--force-copy");
+	        }
+	        if ("true".equals(skipUpload) || !useGtUpload) {
+	            job06.getCommand().addArgument("--test");
+	        }
+	        if (!useGtValidation) {
+	            job06.getCommand().addArgument("--skip-validate");
+	        }
+	        job06.setMaxMemory(uploadScriptJobMem + "900");
         }
-        if ("true".equals(skipUpload) || !useGtUpload) {
-            job06.getCommand().addArgument("--test");
+        else
+        {
+        	job06.getCommand().addArgument("aws s3 cp "+this.dataDir + outputUnmappedFileName + " "+uploadURL);
         }
-        if (!useGtValidation) {
-            job06.getCommand().addArgument("--skip-validate");
-        }
-        job06.setMaxMemory(uploadScriptJobMem + "900");
         job06.addParent(mergeUnmappedJob);
 
         // CLEANUP FINAL BAM
