@@ -180,10 +180,18 @@ public class WorkflowClient extends AbstractWorkflowDataModel {
 
             // the download job that either downloads or locates the file on the filesystem
             Job downloadJob = null;
-            if (useGtDownload) {
-                downloadJob = this.getWorkflow().createBashJob("gtdownload");
-                addDownloadJobArgs(downloadJob, file, fileURL, i, gtdownloadWrapperType);
-                downloadJob.setMaxMemory(gtdownloadMem + "000");
+            
+            if (this.useGNOS)
+            {
+	            if (useGtDownload) {
+	                downloadJob = this.getWorkflow().createBashJob("gtdownload");
+	                addDownloadJobArgs(downloadJob, file, fileURL, i, gtdownloadWrapperType);
+	                downloadJob.setMaxMemory(gtdownloadMem + "000");
+	            }
+            }
+            else
+            {
+            	downloadJob = this.getWorkflow().createBashJob("aws s3 cp "+fileURL+ " " +file);
             }
 
             // in the future this should use the read group if provided otherwise use read group from bam file
@@ -519,7 +527,7 @@ public class WorkflowClient extends AbstractWorkflowDataModel {
 	        }
 	        job06.setMaxMemory(uploadScriptJobMem + "900");
         }
-        else
+        else // Upload to AWS S3
         {
         	job06.getCommand().addArgument("aws s3 cp "+this.dataDir + outputUnmappedFileName + " "+uploadURL);
         }
