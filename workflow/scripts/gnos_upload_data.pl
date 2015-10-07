@@ -163,7 +163,7 @@ sub upload_submission {
     my $cmd = "cgsubmit -s $upload_url -o $metadata_file -u $sub_path -vv -c $key";
 
     say "UPLOADING METADATA: $cmd";
-    return 0 if (!$test && run($cmd));
+    return 0 if ($test || run($cmd));
 
     # we need to hack the manifest.xml to drop any files that are inputs and I won't upload again
     if(!$test) {
@@ -176,7 +176,7 @@ sub upload_submission {
     }
 
     # just touch this file to ensure monitoring tools know upload is complete
-    run_("date +\%s > $final_touch_file", $metadata_file);
+    run("date +\%s > $final_touch_file", $metadata_file);
 
     return 1;
 }
