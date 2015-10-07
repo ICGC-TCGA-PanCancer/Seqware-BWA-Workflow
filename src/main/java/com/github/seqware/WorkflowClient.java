@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import net.sourceforge.seqware.pipeline.workflowV2.AbstractWorkflowDataModel;
 import net.sourceforge.seqware.pipeline.workflowV2.model.Job;
 import net.sourceforge.seqware.pipeline.workflowV2.model.SqwFile;
@@ -502,7 +503,7 @@ public class WorkflowClient extends AbstractWorkflowDataModel {
         	// TODO: Determine if we need to include --expected-size <size of file in bytes>. According to the docs, this is recommended if file is > 5 GB. Does BWA ever produce files that big?
         	// TODO: Should we include settings for --acl (access control list) or --grants to allow uploaded files to be public?
         	// TODO: also, what about --sse for sever-side encryption?
-        	job05.getCommand().addArgument("aws s3 cp "+this.dataDir + this.outputFileName + " "+this.gnosUploadFileURL);
+        	job05.getCommand().addArgument("aws s3 cp "+this.dataDir + this.outputFileName + " "+this.gnosUploadFileURL + " --expected-size  $(stat --printf=\"%s\" "+this.outputFileName+")");
         }
         
         job05.addParent(job04);
@@ -532,10 +533,11 @@ public class WorkflowClient extends AbstractWorkflowDataModel {
         }
         else // Upload to AWS S3
         {
-        	// TODO: Determine if we need to include --expected-size <size of file in bytes>. According to the docs, this is recommended if file is > 5 GB. Does BWA ever produce files that big?
+			// TODO: Determine if we need to include --expected-size <size of file in bytes>. According to the docs, this is recommended if file is > 5 GB. Does BWA ever produce files that big?
+        	// According to Denis, YES! it does. So we need to get the file size.
         	// TODO: Should we include settings for --acl (access control list) or --grants to allow uploaded files to be public?
         	// TODO: also, what about --sse for sever-side encryption?
-        	job06.getCommand().addArgument("aws s3 cp "+this.dataDir + this.outputUnmappedFileName + " "+this.gnosUploadFileURL);
+        	job06.getCommand().addArgument("aws s3 cp "+this.dataDir + this.outputUnmappedFileName + " "+this.gnosUploadFileURL + " --expected-size  $(stat --printf=\"%s\" "+this.outputUnmappedFileName+")");
         }
         job06.addParent(mergeUnmappedJob);
 
