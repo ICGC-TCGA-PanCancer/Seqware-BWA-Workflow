@@ -118,6 +118,9 @@ public class WorkflowClient extends AbstractWorkflowDataModel {
             studyRefnameOverride = getProperty("study-refname-override") == null ? "icgc_pancancer" : getProperty("study-refname-override");
             smallJobMemM = getProperty("smallJobMemM") == null ? "3000" : getProperty("smallJobMemM");
             unmappedReadsJobMemM = getProperty("unmappedReadsJobMemM") == null ? "8000" : getProperty("unmappedReadsJobMemM");
+            
+            this.useGNOS = getProperty("useGNOS") == null ? true : Boolean.valueOf(getProperty("useGNOS")); 
+            
             if (getProperty("use_gtdownload") != null) {
                 if ("false".equals(getProperty("use_gtdownload"))) {
                     useGtDownload = false;
@@ -192,7 +195,8 @@ public class WorkflowClient extends AbstractWorkflowDataModel {
             }
             else
             {
-            	downloadJob = this.getWorkflow().createBashJob("aws s3 cp "+fileURL+ " " +file);
+            	downloadJob = this.getWorkflow().createBashJob("aws_s3_download");
+            	downloadJob.getCommand().addArgument("export AWS_CONFIG_FILE=/home/ubuntu/.gnos/config && aws s3 cp "+fileURL+ " " +file.replaceAll("/.*$", "")+ " --recursive");
             }
 
             // in the future this should use the read group if provided otherwise use read group from bam file
@@ -500,10 +504,9 @@ public class WorkflowClient extends AbstractWorkflowDataModel {
         }
         else // Using AWS S3
         {
-        	// TODO: Determine if we need to include --expected-size <size of file in bytes>. According to the docs, this is recommended if file is > 5 GB. Does BWA ever produce files that big?
         	// TODO: Should we include settings for --acl (access control list) or --grants to allow uploaded files to be public?
         	// TODO: also, what about --sse for sever-side encryption?
-        	job05.getCommand().addArgument("aws s3 cp "+this.dataDir + this.outputFileName + " "+this.gnosUploadFileURL + " --expected-size  $(stat --printf=\"%s\" "+this.outputFileName+")");
+        	job05.getCommand().addArgument("export AWS_CONFIG_FILE=/home/ubuntu/.gnos/config && aws s3 cp "+ this.dataDir + this.outputFileName + " "+this.gnosUploadFileURL + this.outputFileName+ " --expected-size  $(stat --printf=\"%s\" "+this.dataDir +this.outputFileName+")");
         }
         
         job05.addParent(job04);
@@ -533,11 +536,9 @@ public class WorkflowClient extends AbstractWorkflowDataModel {
         }
         else // Upload to AWS S3
         {
-			// TODO: Determine if we need to include --expected-size <size of file in bytes>. According to the docs, this is recommended if file is > 5 GB. Does BWA ever produce files that big?
-        	// According to Denis, YES! it does. So we need to get the file size.
         	// TODO: Should we include settings for --acl (access control list) or --grants to allow uploaded files to be public?
         	// TODO: also, what about --sse for sever-side encryption?
-        	job06.getCommand().addArgument("aws s3 cp "+this.dataDir + this.outputUnmappedFileName + " "+this.gnosUploadFileURL + " --expected-size  $(stat --printf=\"%s\" "+this.outputUnmappedFileName+")");
+        	job06.getCommand().addArgument("export AWS_CONFIG_FILE=/home/ubuntu/.gnos/config && aws s3 cp "+ this.dataDir + this.outputUnmappedFileName + " "+this.gnosUploadFileURL + this.outputUnmappedFileName + " --expected-size  $(stat --printf=\"%s\" "+this.dataDir +this.outputUnmappedFileName+")");
         }
         job06.addParent(mergeUnmappedJob);
 
