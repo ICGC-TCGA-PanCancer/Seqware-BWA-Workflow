@@ -84,7 +84,7 @@ public class WorkflowClient extends AbstractWorkflowDataModel {
             for (String path : inputBamPaths.split(",")) {
                 bamPaths.add(path);
             }
-            gnosInputFileURLs = getProperty("gnos_input_file_urls");
+            gnosInputFileURLs = getProperty("input_file_urls");
             for (String url : gnosInputFileURLs.split(",")) {
                 inputURLs.add(url);
             }
@@ -95,7 +95,7 @@ public class WorkflowClient extends AbstractWorkflowDataModel {
             outputDir = this.getMetadata_output_dir();
             outputPrefix = this.getMetadata_output_file_prefix();
             resultsDir = outputPrefix + outputDir;
-            gnosUploadFileURL = getProperty("gnos_output_file_url");
+            gnosUploadFileURL = getProperty("output_file_url");
             gnosKey = getProperty("gnos_key");
             gnosMaxChildren = getProperty("gnos_max_children") == null ? 3 : Integer.parseInt(getProperty("gnos_max_children"));
             gnosRateLimit = getProperty("gnos_rate_limit") == null ? 50 : Integer.parseInt(getProperty("gnos_rate_limit"));
