@@ -1,0 +1,5 @@
+/target/
+.classpath
+.project
+.settings
+Workflow_Bundle_BWA*.zip
