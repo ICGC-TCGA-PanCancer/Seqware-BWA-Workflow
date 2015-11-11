@@ -26,6 +26,12 @@ workflow directory (workflow-bwa-pancancer), execute the following:
 This will take a long time on first build since it download dependencies from Maven
 and the reference genome which is 5GB+ in size.
 
+## Building the Worklfow Docker Image
+
+You can also build a Docker image that has the workflow ready to run in it.
+
+    docker build -t pancancer/pcawg-bwa-workflow:2.6.6 .
+
 ## Installation & Running
 
 This is beyond the scope of this README.  Instead, you can see the SeqWare project pages for information on installing and running the workflow.  Briefly, you need a VM (local on VirtualBox, on a cloud like AWS, or a private cloud like OpenStack) to run this workflow.  We have pre-made VMs for Amazon and VirtualBox.  For other environments you can use [Bindle](https://github.com/CloudBindle/Bindle) to create a VM or cluster of VMs that are capable of running this workflow. See:
@@ -44,7 +50,7 @@ Feel free to email our [mailing list](http://seqware.github.io/community/) if yo
 ## Contributors
 
 * Keiran Raine: PCAP-Core and BWA-Mem workflow design
-* Roshaan Tahir: Original BWA-Align workflow design 
+* Roshaan Tahir: Original BWA-Align workflow design
 
 ## Workflow Authors' Release Checklist
 
