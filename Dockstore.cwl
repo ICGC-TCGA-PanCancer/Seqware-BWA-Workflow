@@ -2,9 +2,14 @@
 
 class: CommandLineTool
 
-description: |
-The BWA-Mem workflow from the PCAWG project
-  Usage: workflow-pcawg-bwa-alignment --file <unaligned bam> [--file <unaligned bam>]
+description: "The BWA-Mem workflow from the ICGC PanCancer Analysis of Whole Genomes (PCAWG) project.
+For more information see the PCAWG project [page](https://dcc.icgc.org/pcawg) and our GitHub 
+[page](https://github.com/ICGC-TCGA-PanCancer) for our code including the source for 
+[this workflow](https://github.com/ICGC-TCGA-PanCancer/Seqware-BWA-Workflow).
+
+    Usage: workflow-pcawg-bwa-alignment --file <unaligned bam> [--file <unaligned bam>]
+
+"
 
 dct:creator:
   "@id": "http://orcid.org/0000-0002-7681-6415"
