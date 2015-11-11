@@ -7,6 +7,7 @@ description: |
     For more information see the PCAWG project [page](https://dcc.icgc.org/pcawg) and our GitHub 
     [page](https://github.com/ICGC-TCGA-PanCancer) for our code including the source for 
     [this workflow](https://github.com/ICGC-TCGA-PanCancer/Seqware-BWA-Workflow).
+    
             Usage: workflow-pcawg-bwa-alignment --file unaligned_bam [--file unaligned_bam]
 
 dct:creator:
