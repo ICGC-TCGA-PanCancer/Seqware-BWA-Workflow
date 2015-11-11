@@ -18,6 +18,7 @@ COPY src /home/seqware/Seqware-BWA-Workflow/src
 COPY workflow /home/seqware/Seqware-BWA-Workflow/workflow
 COPY pom.xml /home/seqware/Seqware-BWA-Workflow/
 COPY workflow.properties /home/seqware/Seqware-BWA-Workflow/
+COPY scripts/run_seqware_workflow.pl /home/seqware/Seqware-BWA-Workflow/
 RUN chown -R seqware /home/seqware/Seqware-BWA-Workflow
 USER seqware
 WORKDIR /home/seqware/Seqware-BWA-Workflow/
