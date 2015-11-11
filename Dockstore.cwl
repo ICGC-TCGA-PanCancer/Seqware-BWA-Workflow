@@ -6,6 +6,11 @@ description: |
 The BWA-Mem workflow from the PCAWG project
   Usage: workflow-pcawg-bwa-alignment --file <unaligned bam> [--file <unaligned bam>]
 
+dct:creator:
+  "@id": "http://orcid.org/0000-0002-7681-6415"
+  foaf:name: Brian O'Connor
+  foaf:mbox: "mailto:briandoconnor@gmail.com"
+
 requirements:
   - class: ExpressionEngineRequirement
     id: "#node-engine"
