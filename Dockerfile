@@ -22,5 +22,5 @@ COPY scripts/run_seqware_workflow.pl /home/seqware/Seqware-BWA-Workflow/
 RUN chown -R seqware /home/seqware/Seqware-BWA-Workflow
 USER seqware
 WORKDIR /home/seqware/Seqware-BWA-Workflow/
-RUN mvn clean install
+RUN mvn -B clean install
 CMD ["/bin/bash"]

@@ -4,6 +4,7 @@ package com.github.seqware;
  * Mine
  */
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -17,9 +18,9 @@ public class WorkflowClient extends AbstractWorkflowDataModel {
     String gtDownloadWrapperVersion = "2.0.10";
     // comma-seperated for multiple bam inputs
     String inputBamPaths = null;
-    ArrayList<String> bamPaths = new ArrayList<String>();
-    ArrayList<String> inputURLs = new ArrayList<String>();
-    ArrayList<String> inputMetadataURLs = new ArrayList<String>();
+    ArrayList<String> bamPaths = new ArrayList<>();
+    ArrayList<String> inputURLs = new ArrayList<>();
+    ArrayList<String> inputMetadataURLs = new ArrayList<>();
     String bwaChoice = "aln"; // can be "aln" or "mem"
     // used to download with gtdownload
     String gnosInputFileURLs = null;
@@ -81,17 +82,11 @@ public class WorkflowClient extends AbstractWorkflowDataModel {
         try {
 
             inputBamPaths = getProperty("input_bam_paths");
-            for (String path : inputBamPaths.split(",")) {
-                bamPaths.add(path);
-            }
+            Collections.addAll(bamPaths, inputBamPaths.split(","));
             gnosInputFileURLs = getProperty("input_file_urls");
-            for (String url : gnosInputFileURLs.split(",")) {
-                inputURLs.add(url);
-            }
+            Collections.addAll(inputURLs, gnosInputFileURLs.split(","));
             gnosInputMetadataURLs = getProperty("gnos_input_metadata_urls");
-            for (String url : gnosInputMetadataURLs.split(",")) {
-                inputMetadataURLs.add(url);
-            }
+            Collections.addAll(inputMetadataURLs, gnosInputMetadataURLs.split(","));
             outputDir = this.getMetadata_output_dir();
             outputPrefix = this.getMetadata_output_file_prefix();
             resultsDir = outputPrefix + outputDir;
@@ -164,8 +159,8 @@ public class WorkflowClient extends AbstractWorkflowDataModel {
     public void buildWorkflow() {
 
         int numBamFiles = bamPaths.size();
-        ArrayList<Job> bamJobs = new ArrayList<Job>();
-        ArrayList<Job> qcJobs = new ArrayList<Job>();
+        ArrayList<Job> bamJobs = new ArrayList<>();
+        ArrayList<Job> qcJobs = new ArrayList<>();
 
         // DOWNLOAD DATA
         // let's start by downloading the input BAMs
@@ -193,7 +188,7 @@ public class WorkflowClient extends AbstractWorkflowDataModel {
 	                downloadJob.setMaxMemory(gtdownloadMem + "000");
 	            }
             }
-            else
+            else if(file.startsWith("s3://"))
             {
             	downloadJob = this.getWorkflow().createBashJob("aws_s3_download");
             	downloadJob.getCommand().addArgument("export AWS_CONFIG_FILE=/home/ubuntu/.gnos/config && aws s3 cp "+fileURL+ " " +file.replaceAll("/.*$", "")+ " --recursive");
