@@ -1,6 +1,8 @@
 #!/usr/bin/env cwl-runner
 
 class: CommandLineTool
+id: "Seqware-BWA-Workflow"
+label: "Seqware-BWA-Workflow"
 
 description: |
     The BWA-Mem workflow from the ICGC PanCancer Analysis of Whole Genomes (PCAWG) project.
@@ -24,7 +26,7 @@ requirements:
       dockerPull: commonworkflowlanguage/nodejs-engine
     engineCommand: cwlNodeEngine.js
   - class: DockerRequirement
-    dockerPull: quay.io/briandoconnor/dockstore-workflow-pcawg-bwa-alignment:brian_for_dockstore
+    dockerPull: quay.io/collaboratory/seqware-bwa-workflow:patch_workflow_run
 
 inputs:
   - id: "#reads"
@@ -37,8 +39,9 @@ inputs:
 
 outputs:
   - id: "#bam"
-    type: array
-    items: File
+    type:
+      type: array
+      items: File
     outputBinding:
       glob: ["*.bam", "*.bai"]
 
