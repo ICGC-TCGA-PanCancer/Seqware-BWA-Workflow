@@ -32,6 +32,19 @@ You can also build a Docker image that has the workflow ready to run in it.
 
     docker build -t pancancer/pcawg-bwa-workflow:2.6.6 .
 
+## Testing
+
+    
+You can run the image and then run the workflow
+
+    docker run -ti --rm pancancer/pcawg-bwa-workflow:2.6.6 /bin/bash
+    seqware bundle launch --dir target/Workflow_Bundle_BWA_2.6.6_SeqWare_1.1.1/ --engine whitestar --no-metadata
+
+To save time, if you have reference data handy, you can mount it into the container to save time. You can grab it from the links directory when running the test execution of the workflow like above.  
+
+    docker run -ti --rm -v /<your custom location>/links.bak:/home/seqware/Seqware-BWA-Workflow/links  pancancer/pcawg-bwa-workflow:2.6.6 /bin/bash
+
+
 ## Installation & Running
 
 This is beyond the scope of this README.  Instead, you can see the SeqWare project pages for information on installing and running the workflow.  Briefly, you need a VM (local on VirtualBox, on a cloud like AWS, or a private cloud like OpenStack) to run this workflow.  We have pre-made VMs for Amazon and VirtualBox.  For other environments you can use [Bindle](https://github.com/CloudBindle/Bindle) to create a VM or cluster of VMs that are capable of running this workflow. See:
@@ -59,9 +72,9 @@ Make sure you:
 * update the workflow version in:
     * workflow.properties
     * pom.xml
-    * gnos_upload_data.pl
+    * gnos\_upload\_data.pl
     * make sure you grep for any other files
-* update the description of the workflow in workflow.properties and gnos_upload_data.pl, this includes differences with the previous release. Update the CHANGELOG which should contain the bulk of documentation about changes and links to our Bug system.
+* update the description of the workflow in workflow.properties and gnos\_upload\_data.pl, this includes differences with the previous release. Update the CHANGELOG which should contain the bulk of documentation about changes and links to our Bug system.
 * test the workflow locally (VM) and at clouds
 * do not package your gnostest.pem key!
 * release in Github using HubFlow
