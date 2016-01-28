@@ -242,6 +242,7 @@
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>1.2.1</version>
                 <executions>
+	            <!-- download reference data during workflow, too large for docker 
                     <execution>
                         <id>download_data</id>
                         <phase>package</phase>
@@ -251,6 +252,18 @@
                         <configuration>
                             <executable>perl</executable>
                             <commandlineArgs>${basedir}/workflow/scripts/download_data.pl ${basedir}/links ${project.build.directory}/Workflow_Bundle_${workflow-directory-name}_${project.version}_SeqWare_${seqware-version}/Workflow_Bundle_${workflow-directory-name}/${project.version}/bin/</commandlineArgs>
+                        </configuration>
+                    </execution>
+                    -->
+                    <execution>
+                        <id>download_data</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>mkdir</executable>
+			    <commandlineArgs>-p ${basedir}/links</commandlineArgs>
                         </configuration>
                     </execution>
                     <execution>

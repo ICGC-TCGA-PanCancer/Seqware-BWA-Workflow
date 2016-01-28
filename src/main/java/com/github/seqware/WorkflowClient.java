@@ -162,6 +162,14 @@ public class WorkflowClient extends AbstractWorkflowDataModel {
         ArrayList<Job> bamJobs = new ArrayList<>();
         ArrayList<Job> qcJobs = new ArrayList<>();
 
+        // download reference data if not present
+        final Job reference_download = this.getWorkflow().createBashJob("reference_download");
+        reference_download.getCommand()
+            .addArgument("set -e; set -o pipefail;")
+            .addArgument("perl " + this.getWorkflowBaseDir() + "/scripts/download_data.pl")
+            .addArgument(this.getWorkflowBaseDir() + "/data" );
+
+
         // DOWNLOAD DATA
         // let's start by downloading the input BAMs
         int numInputURLs = this.inputURLs.size();
@@ -186,12 +194,14 @@ public class WorkflowClient extends AbstractWorkflowDataModel {
 	                downloadJob = this.getWorkflow().createBashJob("gtdownload");
 	                addDownloadJobArgs(downloadJob, file, fileURL, i, gtdownloadWrapperType);
 	                downloadJob.setMaxMemory(gtdownloadMem + "000");
-	            }
+                    downloadJob.addParent(reference_download);
+                }
             }
             else if(file.startsWith("s3://"))
             {
             	downloadJob = this.getWorkflow().createBashJob("aws_s3_download");
             	downloadJob.getCommand().addArgument("export AWS_CONFIG_FILE=/home/ubuntu/.gnos/config && aws s3 cp "+fileURL+ " " +file.replaceAll("/.*$", "")+ " --recursive");
+                downloadJob.addParent(reference_download);
             }
 
             // in the future this should use the read group if provided otherwise use read group from bam file
@@ -213,6 +223,7 @@ public class WorkflowClient extends AbstractWorkflowDataModel {
                 headerJob.addParent(downloadJob);
             }
             headerJob.setMaxMemory(smallJobMemM);
+            headerJob.addParent(reference_download);
 
             // the QC job used by either path below
             Job qcJob = null;
