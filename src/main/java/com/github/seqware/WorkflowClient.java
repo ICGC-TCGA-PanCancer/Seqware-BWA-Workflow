@@ -497,7 +497,7 @@ public class WorkflowClient extends AbstractWorkflowDataModel {
 	            finalOutDir = this.resultsDir;
 	        }
         }
-        else // Using AWS S3
+        else if(this.gnosUploadFileURL.startsWith("s3://")) // Using AWS S3
         {
         	// TODO: Should we include settings for --acl (access control list) or --grants to allow uploaded files to be public?
         	// TODO: also, what about --sse for sever-side encryption?
@@ -529,7 +529,7 @@ public class WorkflowClient extends AbstractWorkflowDataModel {
 	        }
 	        job06.setMaxMemory(uploadScriptJobMem + "900");
         }
-        else // Upload to AWS S3
+        else if(this.gnosUploadFileURL.startsWith("s3://")) // Using AWS S3
         {
         	// TODO: Should we include settings for --acl (access control list) or --grants to allow uploaded files to be public?
         	// TODO: also, what about --sse for sever-side encryption?
@@ -653,7 +653,7 @@ public class WorkflowClient extends AbstractWorkflowDataModel {
                     .addArgument("--retries " + gtdownloadRetries + " ;").addArgument("date +%s >> download_timing_" + jobId + ".txt");
         }
 
-        return (job);
+        return job;
     }
 
     private Job addBamStatsQcJobArgument(final int i, Job job) {
