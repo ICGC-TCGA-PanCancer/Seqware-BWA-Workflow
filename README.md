@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/ICGC-TCGA-PanCancer/Seqware-BWA-Workflow.svg?branch=develop)](https://travis-ci.org/ICGC-TCGA-PanCancer/Seqware-BWA-Workflow)
+[![Docker Repository on Quay](https://quay.io/repository/collaboratory/seqware-bwa-workflow/status "Docker Repository on Quay")](https://quay.io/repository/collaboratory/seqware-bwa-workflow)
 
 # SeqWare BWA Workflow
 
