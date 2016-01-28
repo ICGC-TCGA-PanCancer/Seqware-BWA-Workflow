@@ -155,8 +155,8 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.1</version>
                 <configuration>
-                    <source>1.6</source>
-                    <target>1.6</target>
+                    <source>1.7</source>
+                    <target>1.7</target>
                 </configuration>
             </plugin>
 
@@ -242,6 +242,7 @@
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>1.2.1</version>
                 <executions>
+	            <!-- download reference data during workflow, too large for docker 
                     <execution>
                         <id>download_data</id>
                         <phase>package</phase>
@@ -251,6 +252,18 @@
                         <configuration>
                             <executable>perl</executable>
                             <commandlineArgs>${basedir}/workflow/scripts/download_data.pl ${basedir}/links ${project.build.directory}/Workflow_Bundle_${workflow-directory-name}_${project.version}_SeqWare_${seqware-version}/Workflow_Bundle_${workflow-directory-name}/${project.version}/bin/</commandlineArgs>
+                        </configuration>
+                    </execution>
+                    -->
+                    <execution>
+                        <id>download_data</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>mkdir</executable>
+			    <commandlineArgs>-p ${basedir}/links</commandlineArgs>
                         </configuration>
                     </execution>
                     <execution>
@@ -285,6 +298,7 @@
             <plugin>
                 <groupId>com.pyx4j</groupId>
                 <artifactId>maven-junction-plugin</artifactId>
+                <version>1.0.3</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
