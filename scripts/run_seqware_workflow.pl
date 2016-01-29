@@ -73,14 +73,10 @@ my $error = system("seqware bundle launch --dir /home/seqware/Seqware-BWA-Workfl
 # NOW FIND OUTPUT
 my $path = `ls -1t /datastore/ | grep 'oozie-' | head -1`;
 chomp $path;
-my $bam_path = "$path/data/merged_output.bam";
-my $bai_path = "$path/data/merged_output.bam.bai";
-my $ubam_path = "$path/data/merged_output.unmapped.bam";
-my $ubai_path = "$path/data/merged_output.unmapped.bam.bai";
 
 # MOVE THESE TO THE RIGHT PLACE
-system("mv $path/data/merged_output.bam* $cwd");
-system("mv $path/data/merged_output.unmapped.bam* $cwd");
+system("mv /datastore/$path/data/merged_output.bam* $cwd");
+system("mv /datastore/$path/data/merged_output.unmapped.bam* $cwd");
 
 # RETURN RESULT
 exit($error);
