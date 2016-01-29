@@ -23,4 +23,9 @@ RUN chown -R seqware /home/seqware/Seqware-BWA-Workflow
 USER seqware
 WORKDIR /home/seqware/Seqware-BWA-Workflow/
 RUN mvn -B clean install
+# designate directories that need to read-write to allow seqware to function 
+VOLUME ["/datastore"]
+VOLUME ["/tmp"]
+VOLUME ["/home/seqware"]
+
 CMD ["/bin/bash"]
