@@ -87,11 +87,25 @@ inputs:
       prefix: "--reference-gz-sa"
 
 outputs:
-  - id: "#bam"
+  - id: "#merged_output_bam"
     type:
-      type: array
-      items: File
+      type: File
     outputBinding:
-      glob: ["*.bam", "*.bai"]
+      glob: "merged_output.bam"
+  - id: "#merged_output_bai"
+    type:
+      type: File
+    outputBinding:
+      glob: "merged_output.bam.bai"
+  - id: "#merged_output_unmapped_bam"
+    type:
+      type: File
+    outputBinding:
+      glob: "merged_output.unmapped.bam"
+  - id: "#merged_output_unmapped_bai"
+    type:
+      type: File
+    outputBinding:
+      glob: "merged_output.unmapped.bam.bai"
 
 baseCommand: ["perl", "/home/seqware/Seqware-BWA-Workflow/run_seqware_workflow.pl"]

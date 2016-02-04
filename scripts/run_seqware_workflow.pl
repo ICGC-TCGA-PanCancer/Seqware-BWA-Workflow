@@ -21,6 +21,7 @@ my @files;
 my $cwd = cwd();
 
 GetOptions ("file=s"   => \@files)
+# TODO: need to add all the new params, then symlink the ref files to the right place 
  or die("Error in command line arguments\n");
 
 # PARSE OPTIONS
