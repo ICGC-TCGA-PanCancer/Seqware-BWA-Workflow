@@ -35,7 +35,7 @@ You can also build a Docker image that has the workflow ready to run in it.
 
 ## Testing
 
-    
+
 You can run the image and then run the workflow
 
     docker run -ti --rm pancancer/pcawg-bwa-workflow:2.6.6 /bin/bash
@@ -54,6 +54,25 @@ This is beyond the scope of this README.  Instead, you can see the SeqWare proje
 * [Testing, Installing, and Running a SeqWare Workflow](http://seqware.github.io/docs/3-getting-started/)
 
 Feel free to email our [mailing list](http://seqware.github.io/community/) if you have questions.
+
+## Sample Data
+
+Some synthetic sample data.
+
+* https://s3.amazonaws.com/oicr.workflow.bundles/released-bundles/synthetic_bam_for_GNOS_upload/hg19.chr22.5x.normal2.bam
+* https://s3.amazonaws.com/oicr.workflow.bundles/released-bundles/synthetic_bam_for_GNOS_upload/hg19.chr22.5x.normal.bam
+
+## Reference Data
+
+We use a specific reference based on GRCh37.
+
+* http://s3.amazonaws.com/pan-cancer-data/pan-cancer-reference/genome.fa.gz
+* http://s3.amazonaws.com/pan-cancer-data/pan-cancer-reference/genome.fa.gz.fai
+* http://s3.amazonaws.com/pan-cancer-data/pan-cancer-reference/genome.fa.gz.64.amb
+* http://s3.amazonaws.com/pan-cancer-data/pan-cancer-reference/genome.fa.gz.64.ann
+* http://s3.amazonaws.com/pan-cancer-data/pan-cancer-reference/genome.fa.gz.64.bwt
+* http://s3.amazonaws.com/pan-cancer-data/pan-cancer-reference/genome.fa.gz.64.pac
+* http://s3.amazonaws.com/pan-cancer-data/pan-cancer-reference/genome.fa.gz.64.sa
 
 ## Authors
 

@@ -18,9 +18,20 @@ use Cwd;
 # this is a very hard-coded script and assumes it's running inside the Docker container
 
 my @files;
+my ($reference_gz, $reference_gz_fai, $reference_gz_amb, $reference_gz_ann, $reference_gz_bwt, $reference_gz_pac, $reference_gz_sa);
 my $cwd = cwd();
 
-GetOptions ("file=s"   => \@files)
+GetOptions (
+  "file=s"   => \@files,
+  "reference-gz=s" => \$reference_gz,
+  "reference-gz-fai=s" => \$reference_gz_fai,
+  "reference-gz-amb=s" => \$reference_gz_amb,
+  "reference-gz-ann=s" => \$reference_gz_ann,
+  "reference-gz-bwt=s" => \$reference_gz_bwt,
+  "reference-gz-pac=s" => \$reference_gz_pac,
+  "reference-gz-sa=s" => \$reference_gz_sa,
+)
+# TODO: need to add all the new params, then symlink the ref files to the right place
  or die("Error in command line arguments\n");
 
 # PARSE OPTIONS
@@ -34,6 +45,11 @@ for (my $i=0; $i<scalar(@files); $i++) {
 }
 my $metadata_str = join ",", @metadata;
 my $download_str = join ",", @download;
+
+# SYMLINK REF FILES
+for my $i ($reference_gz, $reference_gz_fai, $reference_gz_amb, $reference_gz_ann, $reference_gz_bwt, $reference_gz_pac, $reference_gz_sa) {
+  system ("ln -s $i /home/seqware/Seqware-BWA-Workflow/target/Workflow_Bundle_BWA_2.6.6_SeqWare_1.1.1/Workflow_Bundle_BWA/2.6.6/data/");
+}
 
 # MAKE CONFIG
 # the default config is the workflow_local.ini and has most configs ready to go
