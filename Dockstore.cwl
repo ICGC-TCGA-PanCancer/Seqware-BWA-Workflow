@@ -89,22 +89,22 @@ inputs:
 outputs:
   - id: "#merged_output_bam"
     type:
-      type: File
+    type: File
     outputBinding:
       glob: "merged_output.bam"
   - id: "#merged_output_bai"
     type:
-      type: File
+    type: File
     outputBinding:
       glob: "merged_output.bam.bai"
   - id: "#merged_output_unmapped_bam"
     type:
-      type: File
+    type: File
     outputBinding:
       glob: "merged_output.unmapped.bam"
   - id: "#merged_output_unmapped_bai"
     type:
-      type: File
+    type: File
     outputBinding:
       glob: "merged_output.unmapped.bam.bai"
 
