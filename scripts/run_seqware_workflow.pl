@@ -47,9 +47,15 @@ my $metadata_str = join ",", @metadata;
 my $download_str = join ",", @download;
 
 # SYMLINK REF FILES
-for my $i ($reference_gz, $reference_gz_fai, $reference_gz_amb, $reference_gz_ann, $reference_gz_bwt, $reference_gz_pac, $reference_gz_sa) {
-  system ("ln -s $i /home/seqware/Seqware-BWA-Workflow/target/Workflow_Bundle_BWA_2.6.6_SeqWare_1.1.1/Workflow_Bundle_BWA/2.6.6/data/");
-}
+#for my $i ($reference_gz, $reference_gz_fai, $reference_gz_amb, $reference_gz_ann, $reference_gz_bwt, $reference_gz_pac, $reference_gz_sa) {
+run("ln $reference_gz /home/seqware/Seqware-BWA-Workflow/target/Workflow_Bundle_BWA_2.6.6_SeqWare_1.1.1/Workflow_Bundle_BWA/2.6.6/data/reference/bwa-0.6.2/genome.fa.gz");
+run("ln $reference_gz_fai /home/seqware/Seqware-BWA-Workflow/target/Workflow_Bundle_BWA_2.6.6_SeqWare_1.1.1/Workflow_Bundle_BWA/2.6.6/data/reference/bwa-0.6.2/genome.fa.gz.fai");
+run("ln $reference_gz_amb /home/seqware/Seqware-BWA-Workflow/target/Workflow_Bundle_BWA_2.6.6_SeqWare_1.1.1/Workflow_Bundle_BWA/2.6.6/data/reference/bwa-0.6.2/genome.fa.gz.64.amb");
+run("ln $reference_gz_ann /home/seqware/Seqware-BWA-Workflow/target/Workflow_Bundle_BWA_2.6.6_SeqWare_1.1.1/Workflow_Bundle_BWA/2.6.6/data/reference/bwa-0.6.2/genome.fa.gz.64.ann");
+run("ln $reference_gz_bwt /home/seqware/Seqware-BWA-Workflow/target/Workflow_Bundle_BWA_2.6.6_SeqWare_1.1.1/Workflow_Bundle_BWA/2.6.6/data/reference/bwa-0.6.2/genome.fa.gz.64.bwt");
+run("ln $reference_gz_pac /home/seqware/Seqware-BWA-Workflow/target/Workflow_Bundle_BWA_2.6.6_SeqWare_1.1.1/Workflow_Bundle_BWA/2.6.6/data/reference/bwa-0.6.2/genome.fa.gz.64.pac");
+run("ln $reference_gz_sa /home/seqware/Seqware-BWA-Workflow/target/Workflow_Bundle_BWA_2.6.6_SeqWare_1.1.1/Workflow_Bundle_BWA/2.6.6/data/reference/bwa-0.6.2/genome.fa.gz.64.sa");
+#}
 
 # MAKE CONFIG
 # the default config is the workflow_local.ini and has most configs ready to go
@@ -96,3 +102,9 @@ system("mv /datastore/$path/data/merged_output.unmapped.bam* $cwd");
 
 # RETURN RESULT
 exit($error);
+
+sub run {
+  my $cmd = shift;
+  my $error = system($cmd);
+  if ($error) { exit($error); }
+}
