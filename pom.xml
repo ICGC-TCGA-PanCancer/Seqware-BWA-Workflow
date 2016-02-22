@@ -242,7 +242,7 @@
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>1.2.1</version>
                 <executions>
-	            <!-- download reference data during workflow, too large for docker 
+	            <!-- download reference data during workflow, disabled because it's generally too large for docker, especially if built on Dockerhub
                     <execution>
                         <id>download_data</id>
                         <phase>package</phase>
