@@ -13,13 +13,16 @@ use Cwd;
 # is already setup to run in local file mode so I just really need to override
 # the inputs and outputs.
 # EXAMPLE:
-# perl /workflow/scripts/run_seqware_workflow.pl --file '${workflow_bundle_dir}/Workflow_Bundle_BWA/2.6.6/data/testData/sample_bam_sequence_synthetic_chr22_normal/9c414428-9446-11e3-86c1-ab5c73f0e08b/hg19.chr22.5x.normal.bam' --file '${workflow_bundle_dir}/Workflow_Bundle_BWA/2.6.6/data/testData/sample_bam_sequence_synthetic_chr22_normal/4fb18a5a-9504-11e3-8d90-d1f1d69ccc24/hg19.chr22.5x.normal2.bam'
+# perl /workflow/scripts/run_seqware_workflow.pl --file '${workflow_bundle_dir}/Workflow_Bundle_BWA/2.6.7/data/testData/sample_bam_sequence_synthetic_chr22_normal/9c414428-9446-11e3-86c1-ab5c73f0e08b/hg19.chr22.5x.normal.bam' --file '${workflow_bundle_dir}/Workflow_Bundle_BWA/2.6.7/data/testData/sample_bam_sequence_synthetic_chr22_normal/4fb18a5a-9504-11e3-8d90-d1f1d69ccc24/hg19.chr22.5x.normal2.bam'
 # TODO:
 # this is a very hard-coded script and assumes it's running inside the Docker container
 
 my @files;
 my ($reference_gz, $reference_gz_fai, $reference_gz_amb, $reference_gz_ann, $reference_gz_bwt, $reference_gz_pac, $reference_gz_sa);
 my $cwd = cwd();
+
+# workflow version
+my $wfversion = "2.6.7";
 
 GetOptions (
   "file=s"   => \@files,
@@ -47,21 +50,17 @@ my $metadata_str = join ",", @metadata;
 my $download_str = join ",", @download;
 
 # SYMLINK REF FILES
-#for my $i ($reference_gz, $reference_gz_fai, $reference_gz_amb, $reference_gz_ann, $reference_gz_bwt, $reference_gz_pac, $reference_gz_sa) {
-run("mkdir -p /home/seqware/Seqware-BWA-Workflow/target/Workflow_Bundle_BWA_2.6.6_SeqWare_1.1.1/Workflow_Bundle_BWA/2.6.6/data/reference/bwa-0.6.2/");
-run("ln -s $reference_gz /home/seqware/Seqware-BWA-Workflow/target/Workflow_Bundle_BWA_2.6.6_SeqWare_1.1.1/Workflow_Bundle_BWA/2.6.6/data/reference/bwa-0.6.2/genome.fa.gz");
-run("ln -s $reference_gz_fai /home/seqware/Seqware-BWA-Workflow/target/Workflow_Bundle_BWA_2.6.6_SeqWare_1.1.1/Workflow_Bundle_BWA/2.6.6/data/reference/bwa-0.6.2/genome.fa.gz.fai");
-run("ln -s $reference_gz_amb /home/seqware/Seqware-BWA-Workflow/target/Workflow_Bundle_BWA_2.6.6_SeqWare_1.1.1/Workflow_Bundle_BWA/2.6.6/data/reference/bwa-0.6.2/genome.fa.gz.64.amb");
-run("ln -s $reference_gz_ann /home/seqware/Seqware-BWA-Workflow/target/Workflow_Bundle_BWA_2.6.6_SeqWare_1.1.1/Workflow_Bundle_BWA/2.6.6/data/reference/bwa-0.6.2/genome.fa.gz.64.ann");
-run("ln -s $reference_gz_bwt /home/seqware/Seqware-BWA-Workflow/target/Workflow_Bundle_BWA_2.6.6_SeqWare_1.1.1/Workflow_Bundle_BWA/2.6.6/data/reference/bwa-0.6.2/genome.fa.gz.64.bwt");
-run("ln -s $reference_gz_pac /home/seqware/Seqware-BWA-Workflow/target/Workflow_Bundle_BWA_2.6.6_SeqWare_1.1.1/Workflow_Bundle_BWA/2.6.6/data/reference/bwa-0.6.2/genome.fa.gz.64.pac");
-run("ln -s $reference_gz_sa /home/seqware/Seqware-BWA-Workflow/target/Workflow_Bundle_BWA_2.6.6_SeqWare_1.1.1/Workflow_Bundle_BWA/2.6.6/data/reference/bwa-0.6.2/genome.fa.gz.64.sa");
+run("mkdir -p /home/seqware/Seqware-BWA-Workflow/target/Workflow_Bundle_BWA_".$wfversion."_SeqWare_1.1.1/Workflow_Bundle_BWA/".$wfversion."/data/reference/bwa-0.6.2/");
+run("ln -s $reference_gz /home/seqware/Seqware-BWA-Workflow/target/Workflow_Bundle_BWA_".$wfversion."_SeqWare_1.1.1/Workflow_Bundle_BWA/".$wfversion."/data/reference/bwa-0.6.2/genome.fa.gz");
+run("ln -s $reference_gz_fai /home/seqware/Seqware-BWA-Workflow/target/Workflow_Bundle_BWA_".$wfversion."_SeqWare_1.1.1/Workflow_Bundle_BWA/".$wfversion."/data/reference/bwa-0.6.2/genome.fa.gz.fai");
+run("ln -s $reference_gz_amb /home/seqware/Seqware-BWA-Workflow/target/Workflow_Bundle_BWA_".$wfversion."_SeqWare_1.1.1/Workflow_Bundle_BWA/".$wfversion."/data/reference/bwa-0.6.2/genome.fa.gz.64.amb");
+run("ln -s $reference_gz_ann /home/seqware/Seqware-BWA-Workflow/target/Workflow_Bundle_BWA_".$wfversion."_SeqWare_1.1.1/Workflow_Bundle_BWA/".$wfversion."/data/reference/bwa-0.6.2/genome.fa.gz.64.ann");
+run("ln -s $reference_gz_bwt /home/seqware/Seqware-BWA-Workflow/target/Workflow_Bundle_BWA_".$wfversion."_SeqWare_1.1.1/Workflow_Bundle_BWA/".$wfversion."/data/reference/bwa-0.6.2/genome.fa.gz.64.bwt");
+run("ln -s $reference_gz_pac /home/seqware/Seqware-BWA-Workflow/target/Workflow_Bundle_BWA_".$wfversion."_SeqWare_1.1.1/Workflow_Bundle_BWA/".$wfversion."/data/reference/bwa-0.6.2/genome.fa.gz.64.pac");
+run("ln -s $reference_gz_sa /home/seqware/Seqware-BWA-Workflow/target/Workflow_Bundle_BWA_".$wfversion."_SeqWare_1.1.1/Workflow_Bundle_BWA/".$wfversion."/data/reference/bwa-0.6.2/genome.fa.gz.64.sa");
 
-print "HERE1!!!!!\n/home/seqware/Seqware-BWA-Workflow/target/Workflow_Bundle_BWA_2.6.6_SeqWare_1.1.1/Workflow_Bundle_BWA/2.6.6/data/reference/bwa-0.6.2/\n";
-system("ls -lth /home/seqware/Seqware-BWA-Workflow/target/Workflow_Bundle_BWA_2.6.6_SeqWare_1.1.1/Workflow_Bundle_BWA/2.6.6/data/reference/bwa-0.6.2/");
-print "HERE2!!!!!\n";
-
-#}
+print "REFERENCE DIRECTORY:\n/home/seqware/Seqware-BWA-Workflow/target/Workflow_Bundle_BWA_".$wfversion."_SeqWare_1.1.1/Workflow_Bundle_BWA/".$wfversion."/data/reference/bwa-0.6.2/\n";
+system("ls -lth /home/seqware/Seqware-BWA-Workflow/target/Workflow_Bundle_BWA_".$wfversion."_SeqWare_1.1.1/Workflow_Bundle_BWA/".$wfversion."/data/reference/bwa-0.6.2/");
 
 # MAKE CONFIG
 # the default config is the workflow_local.ini and has most configs ready to go
@@ -96,7 +95,7 @@ print OUT $config;
 close OUT;
 
 # NOW RUN WORKFLOW
-my $error = system("seqware bundle launch --dir /home/seqware/Seqware-BWA-Workflow/target/Workflow_Bundle_BWA_2.6.6_SeqWare_1.1.1 --engine whitestar --ini workflow.ini --no-metadata");
+my $error = system("seqware bundle launch --dir /home/seqware/Seqware-BWA-Workflow/target/Workflow_Bundle_BWA_".$wfversion."_SeqWare_1.1.1 --engine whitestar --ini workflow.ini --no-metadata");
 
 # NOW FIND OUTPUT
 my $path = `ls -1t /datastore/ | grep 'oozie-' | head -1`;

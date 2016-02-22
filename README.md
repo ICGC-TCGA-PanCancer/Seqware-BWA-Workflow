@@ -31,20 +31,36 @@ and the reference genome which is 5GB+ in size.
 
 You can also build a Docker image that has the workflow ready to run in it.
 
-    docker build -t pancancer/pcawg-bwa-workflow:2.6.6 .
+    docker build -t pancancer/pcawg-bwa-workflow:2.6.7 .
 
-## Testing
-
+## Testing Locally via Docker
 
 You can run the image and then run the workflow
 
-    docker run -ti --rm pancancer/pcawg-bwa-workflow:2.6.6 /bin/bash
-    seqware bundle launch --dir target/Workflow_Bundle_BWA_2.6.6_SeqWare_1.1.1/ --engine whitestar --no-metadata
+    docker run -ti --rm pancancer/pcawg-bwa-workflow:2.6.7 /bin/bash
+    seqware bundle launch --dir target/Workflow_Bundle_BWA_2.6.7_SeqWare_1.1.1/ --engine whitestar --no-metadata
 
 To save time, if you have reference data handy, you can mount it into the container to save time. You can grab it from the links directory when running the test execution of the workflow like above.  
 
-    docker run -ti --rm -v /<your custom location>/links.bak:/home/seqware/Seqware-BWA-Workflow/links  pancancer/pcawg-bwa-workflow:2.6.6 /bin/bash
+    docker run -ti --rm -v /<your custom location>/links.bak:/home/seqware/Seqware-BWA-Workflow/links  pancancer/pcawg-bwa-workflow:2.6.7 /bin/bash
 
+## Running via Dockstore
+
+See the Dockstore [page](https://www.dockstore.org/containers/quay.io/collaboratory/seqware-bwa-workflow) for this
+ workflow.  The idea is Dockstore links together the Dockstore.cwl descriptor (which tells you how to launch this workflow)
+ and the Docker image for this workflow (which contains the compiled workflow).  You can then use the `dockstore` command
+ line to easily find parameters, parameterize, and then run the workflow. For this workflow, the Docker image is hosted
+ and built on [quay.io](https://quay.io/repository/collaboratory/seqware-bwa-workflow) and the [Dockstore.cwl](Dockstore.cwl)
+ is in GitHub.  We also provide a sample [Dockstore.json](Dockstore.json) which includes links for sample reference files
+ and input but *you need to update the output to write to an S3 bucket where you have access*.
+
+     dockstore launch --entry quay.io/collaboratory/seqware-bwa-workflow --json Dockstore.json
+
+This downloads the sample inputs and reference files from HTTP URLs to a local `datastore` working directory, runs the
+workflow, and uploads the results back to the location you specified in S3.
+
+Currently this process does not work with local file paths and files aren't cached so each run downloads the full reference and
+sample inputs.
 
 ## Installation & Running
 
