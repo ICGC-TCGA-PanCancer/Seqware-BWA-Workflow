@@ -57,7 +57,7 @@ run("ln -s $reference_gz_bwt /home/seqware/Seqware-BWA-Workflow/target/Workflow_
 run("ln -s $reference_gz_pac /home/seqware/Seqware-BWA-Workflow/target/Workflow_Bundle_BWA_2.6.6_SeqWare_1.1.1/Workflow_Bundle_BWA/2.6.6/data/reference/bwa-0.6.2/genome.fa.gz.64.pac");
 run("ln -s $reference_gz_sa /home/seqware/Seqware-BWA-Workflow/target/Workflow_Bundle_BWA_2.6.6_SeqWare_1.1.1/Workflow_Bundle_BWA/2.6.6/data/reference/bwa-0.6.2/genome.fa.gz.64.sa");
 
-print "HERE1!!!!!\n";
+print "HERE1!!!!!\n/home/seqware/Seqware-BWA-Workflow/target/Workflow_Bundle_BWA_2.6.6_SeqWare_1.1.1/Workflow_Bundle_BWA/2.6.6/data/reference/bwa-0.6.2/\n";
 system("ls -lth /home/seqware/Seqware-BWA-Workflow/target/Workflow_Bundle_BWA_2.6.6_SeqWare_1.1.1/Workflow_Bundle_BWA/2.6.6/data/reference/bwa-0.6.2/");
 print "HERE2!!!!!\n";
 
