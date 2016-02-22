@@ -1,0 +1,16 @@
+{
+  "Seqware_BWA_Workflow.Seqware_BWA_Workflow.reference_gz_fai": "http://s3.amazonaws.com/pan-cancer-data/pan-cancer-reference/genome.fa.gz.fai",
+  "Seqware_BWA_Workflow.Seqware_BWA_Workflow.reference_gz_bwt": "http://s3.amazonaws.com/pan-cancer-data/pan-cancer-reference/genome.fa.gz.64.bwt",
+  "Seqware_BWA_Workflow.Seqware_BWA_Workflow.reference_gz_amb": "http://s3.amazonaws.com/pan-cancer-data/pan-cancer-reference/genome.fa.gz.64.amb",
+  "Seqware_BWA_Workflow.Seqware_BWA_Workflow.reference_gz_ann": "http://s3.amazonaws.com/pan-cancer-data/pan-cancer-reference/genome.fa.gz.64.ann",
+  "Seqware_BWA_Workflow.Seqware_BWA_Workflow.reads": [{
+  "path":"https://s3.amazonaws.com/oicr.workflow.bundles/released-bundles/synthetic_bam_for_GNOS_upload/hg19.chr22.5x.normal.bam",
+  "class":"File"
+  },
+  {"path":"https://s3.amazonaws.com/oicr.workflow.bundles/released-bundles/synthetic_bam_for_GNOS_upload/hg19.chr22.5x.normal2.bam",
+  "class":"File"
+  }],
+  "Seqware_BWA_Workflow.Seqware_BWA_Workflow.reference_gz_sa": "http://s3.amazonaws.com/pan-cancer-data/pan-cancer-reference/genome.fa.gz.64.sa",
+  "Seqware_BWA_Workflow.Seqware_BWA_Workflow.reference_gz_pac": "http://s3.amazonaws.com/pan-cancer-data/pan-cancer-reference/genome.fa.gz.64.pac",
+  "Seqware_BWA_Workflow.Seqware_BWA_Workflow.reference_gz": "http://s3.amazonaws.com/pan-cancer-data/pan-cancer-reference/genome.fa.gz"
+}
