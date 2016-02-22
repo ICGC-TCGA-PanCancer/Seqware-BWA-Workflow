@@ -32,7 +32,7 @@ sub download {
   my $fsize = -s "$dir/$file";
   print "+LOCAL FILE SIZE: $size\n";
 
-  if (!-e "$dir/$file" || -l "$dir/$file" || -s "$dir/$file" == 0 || -s "$dir/$file" != $size) {
+  if (!-e "$dir/$file" || -s "$dir/$file" == 0 || -s "$dir/$file" != $size) {
     my $cmd = "wget --no-verbose -c -O $dir/$file $url"; 
     print "\nDOWNLOADING: $cmd\nFILE: $file\n\n";
     my $r = system($cmd);
