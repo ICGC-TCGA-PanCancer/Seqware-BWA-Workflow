@@ -55,7 +55,7 @@ See the Dockstore [page](https://www.dockstore.org/containers/quay.io/collaborat
  and input but *you need to update the output to write to an S3 bucket where you have access*.
 
     # this docker build needs to be tagged with whatever is mentioned in Dockstore.cwl!
-    docker build --no-cache -t quay.io/collaboratory/seqware-bwa-workflow:latest . 
+    docker build --no-cache -t quay.io/collaboratory/seqware-bwa-workflow:2.6.7 . 
     dockstore launch --entry quay.io/collaboratory/seqware-bwa-workflow --json Dockstore.json
 
 This downloads the sample inputs and reference files from HTTP URLs to a local `datastore` working directory, runs the
