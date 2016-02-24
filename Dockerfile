@@ -24,6 +24,7 @@ USER seqware
 RUN sudo rm -Rf /root
 RUN sudo mkdir /root
 RUN sudo chown seqware:seqware /root
+RUN sudo chmod -R a+rwx /root
 WORKDIR /home/seqware/Seqware-BWA-Workflow/
 RUN mvn -B clean install
 # designate directories that need to read-write to allow seqware to function 

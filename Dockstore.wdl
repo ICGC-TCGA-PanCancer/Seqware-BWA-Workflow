@@ -9,7 +9,7 @@ task Seqware_BWA_Workflow {
     File reference_gz_sa
 
     command {
-        perl /home/seqware/Seqware-BWA-Workflow/run_seqware_workflow.pl \
+        sudo chmod -R a+wrx /root ; perl /home/seqware/Seqware-BWA-Workflow/run_seqware_workflow.pl \
         --file ${sep=' ' reads} \
         --reference-gz ${reference_gz} \
         --reference-gz-fai ${reference_gz_fai} \
