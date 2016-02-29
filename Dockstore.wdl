@@ -28,7 +28,7 @@ task Seqware_BWA_Workflow {
     }
 
     runtime {
-        docker: 'quay.io/collaboratory/seqware-bwa-workflow'
+        docker: 'quay.io/collaboratory/seqware-bwa-workflow:wdl_support'
     }
 }
 
