@@ -26,7 +26,7 @@ requirements:
       dockerPull: commonworkflowlanguage/nodejs-engine
     engineCommand: cwlNodeEngine.js
   - class: DockerRequirement
-    dockerPull: quay.io/collaboratory/seqware-bwa-workflow:2.6.7
+    dockerImageId: seqware-bwa-workflow
 
 inputs:
   - id: "#reads"
@@ -35,7 +35,7 @@ inputs:
       items: File
     inputBinding:
       position: 1
-      prefix: "--file"
+      prefix: "--files"
 
   - id: "#reference_gz"
     type: File
@@ -104,4 +104,4 @@ outputs:
     outputBinding:
       glob: "merged_output.unmapped.bam.bai"
 
-baseCommand: ["perl", "/home/seqware/Seqware-BWA-Workflow/run_seqware_workflow.pl"]
+baseCommand: ["python", "/home/seqware/Seqware-BWA-Workflow/run_seqware_workflow.pyA"]
