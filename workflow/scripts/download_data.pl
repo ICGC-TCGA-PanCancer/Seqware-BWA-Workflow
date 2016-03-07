@@ -8,14 +8,13 @@ system("mkdir -p $link_dir");
 
 check_tools();
 
-# all downloads were disabled; not all platforms support connections to external ips
-# download("$link_dir/reference/bwa-0.6.2", "http://s3.amazonaws.com/pan-cancer-data/pan-cancer-reference/genome.fa.gz");
-# download("$link_dir/reference/bwa-0.6.2", "http://s3.amazonaws.com/pan-cancer-data/pan-cancer-reference/genome.fa.gz.fai");
-# download("$link_dir/reference/bwa-0.6.2", "http://s3.amazonaws.com/pan-cancer-data/pan-cancer-reference/genome.fa.gz.64.amb");
-# download("$link_dir/reference/bwa-0.6.2", "http://s3.amazonaws.com/pan-cancer-data/pan-cancer-reference/genome.fa.gz.64.ann");
-# download("$link_dir/reference/bwa-0.6.2", "http://s3.amazonaws.com/pan-cancer-data/pan-cancer-reference/genome.fa.gz.64.bwt");
-# download("$link_dir/reference/bwa-0.6.2", "http://s3.amazonaws.com/pan-cancer-data/pan-cancer-reference/genome.fa.gz.64.pac");
-# download("$link_dir/reference/bwa-0.6.2", "http://s3.amazonaws.com/pan-cancer-data/pan-cancer-reference/genome.fa.gz.64.sa");
+download("$link_dir/reference/bwa-0.6.2", "http://s3.amazonaws.com/pan-cancer-data/pan-cancer-reference/genome.fa.gz");
+download("$link_dir/reference/bwa-0.6.2", "http://s3.amazonaws.com/pan-cancer-data/pan-cancer-reference/genome.fa.gz.fai");
+download("$link_dir/reference/bwa-0.6.2", "http://s3.amazonaws.com/pan-cancer-data/pan-cancer-reference/genome.fa.gz.64.amb");
+download("$link_dir/reference/bwa-0.6.2", "http://s3.amazonaws.com/pan-cancer-data/pan-cancer-reference/genome.fa.gz.64.ann");
+download("$link_dir/reference/bwa-0.6.2", "http://s3.amazonaws.com/pan-cancer-data/pan-cancer-reference/genome.fa.gz.64.bwt");
+download("$link_dir/reference/bwa-0.6.2", "http://s3.amazonaws.com/pan-cancer-data/pan-cancer-reference/genome.fa.gz.64.pac");
+download("$link_dir/reference/bwa-0.6.2", "http://s3.amazonaws.com/pan-cancer-data/pan-cancer-reference/genome.fa.gz.64.sa");
 # download("$link_dir/testData", "https://s3.amazonaws.com/oicr.workflow.bundles/released-bundles/synthetic_bam_for_GNOS_upload/sample_bam_sequence_synthetic_chr22_normal.tar.gz");
 # system("tar zxf $link_dir/testData/sample_bam_sequence_synthetic_chr22_normal.tar.gz -C $link_dir/testData/");
 
@@ -46,7 +45,9 @@ sub download {
         die ("+SECOND DOWNLOAD FAILED! GIVING UP!\n");
       }
     }
-  }
+  } else {
+			print "\n$file FOUND LOCALLY - SKIPPING DOWNLOAD\n"
+	}
 }
 
 sub check_tools {
