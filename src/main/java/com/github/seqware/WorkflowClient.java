@@ -69,8 +69,8 @@ public class WorkflowClient extends AbstractWorkflowDataModel {
     String studyRefnameOverride = "icgc_pancancer";
     String unmappedReadsJobMemM = "8000";
     
-    //private String uploadURL = ""; //We don't really need a separate variable. We can just rename the old one without the word "gnos"
-    private boolean useGNOS = true; //Should come from INI file. If false, then use S3.
+    //private String uploadURL = ""; // We don't really need a separate variable. We can just rename the old one without the word "gnos"
+    Boolean useGNOS = true; // Should come from INI file. If false, then use S3.
 
     @Override
     public Map<String, SqwFile> setupFiles() {
@@ -114,7 +114,11 @@ public class WorkflowClient extends AbstractWorkflowDataModel {
             smallJobMemM = getProperty("smallJobMemM") == null ? "3000" : getProperty("smallJobMemM");
             unmappedReadsJobMemM = getProperty("unmappedReadsJobMemM") == null ? "8000" : getProperty("unmappedReadsJobMemM");
             
-            this.useGNOS = getProperty("useGNOS") == null ? true : Boolean.valueOf(getProperty("useGNOS")); 
+            if (getProperty("useGNOS") != null) {
+							if ("false".equals(getProperty("useGNOS"))) {
+								useGNOS = false;
+							} 
+						}
             
             if (getProperty("use_gtdownload") != null) {
                 if ("false".equals(getProperty("use_gtdownload"))) {
@@ -188,20 +192,20 @@ public class WorkflowClient extends AbstractWorkflowDataModel {
             // the download job that either downloads or locates the file on the filesystem
             Job downloadJob = null;
             
-            if (this.useGNOS)
+            if (useGNOS)
             {
 	            if (useGtDownload) {
 	                downloadJob = this.getWorkflow().createBashJob("gtdownload");
 	                addDownloadJobArgs(downloadJob, file, fileURL, i, gtdownloadWrapperType);
 	                downloadJob.setMaxMemory(gtdownloadMem + "000");
-                    downloadJob.addParent(reference_download);
+									downloadJob.addParent(reference_download);
                 }
             }
             else if(file.startsWith("s3://"))
             {
             	downloadJob = this.getWorkflow().createBashJob("aws_s3_download");
             	downloadJob.getCommand().addArgument("export AWS_CONFIG_FILE=/home/ubuntu/.gnos/config && aws s3 cp "+fileURL+ " " +file.replaceAll("/.*$", "")+ " --recursive");
-                downloadJob.addParent(reference_download);
+							downloadJob.addParent(reference_download);
             }
 
             // in the future this should use the read group if provided otherwise use read group from bam file
@@ -211,16 +215,15 @@ public class WorkflowClient extends AbstractWorkflowDataModel {
             // The quick fix is to detect that and drop the empty PI in the header, one liner Perl is used (replacing previous sed)
             headerJob
                     .getCommand()
-                    .addArgument(
-                            "set -e; set -o pipefail; "
-                                    + this.getWorkflowBaseDir()
-                                    + pcapPath
-                                    + "/bin/samtools view -H "
-                                    + file
-                                    + " | perl -nae 'next unless /^\\@RG/; s/\\tPI:\\s*\\t/\\t/; s/\\tPI:\\s*\\z/\\n/; s/\\t/\\\\t/g; print' > bam_header."
-                                    + i + ".txt");
+                    .addArgument("set -e; set -o pipefail; "
+																 + this.getWorkflowBaseDir()
+																 + pcapPath
+																 + "/bin/samtools view -H "
+																 + file
+																 + " | perl -nae 'next unless /^\\@RG/; s/\\tPI:\\s*\\t/\\t/; s/\\tPI:\\s*\\z/\\n/; s/\\t/\\\\t/g; print' > bam_header."
+																 + i + ".txt");
             if (useGtDownload) {
-                headerJob.addParent(downloadJob);
+							headerJob.addParent(downloadJob);
             }
             headerJob.setMaxMemory(smallJobMemM);
             headerJob.addParent(reference_download);
@@ -238,9 +241,9 @@ public class WorkflowClient extends AbstractWorkflowDataModel {
                 Job job01 = this.getWorkflow().createBashJob("bwa_align1_" + i);
                 job01.addParent(headerJob);
                 job01.getCommand().addArgument("set -e; set -o pipefail; date +%s > bwa_timing_" + i + ".txt ;")
-                        .addArgument(this.getWorkflowBaseDir() + "/bin/bwa-0.6.2/bwa aln ")
-                        .addArgument(this.parameters("aln") == null ? " " : this.parameters("aln")).addArgument(reference_path + " -b1 ")
-                        .addArgument(file).addArgument(" > aligned_" + i + "_1.sai");
+									.addArgument(this.getWorkflowBaseDir() + "/bin/bwa-0.6.2/bwa aln ")
+									.addArgument(this.parameters("aln") == null ? " " : this.parameters("aln")).addArgument(reference_path + " -b1 ")
+									.addArgument(file).addArgument(" > aligned_" + i + "_1.sai");
                 job01.setMaxMemory(bwaAlignMemG + "900");
                 /*
                  * if (!getProperty("numOfThreads").isEmpty()) { job01.setThreads(Integer.parseInt(getProperty("numOfThreads"))); }
@@ -249,8 +252,8 @@ public class WorkflowClient extends AbstractWorkflowDataModel {
                 Job job02 = this.getWorkflow().createBashJob("bwa_align2_" + i);
                 job02.addParent(headerJob);
                 job02.getCommand().addArgument(this.getWorkflowBaseDir() + "/bin/bwa-0.6.2/bwa aln ")
-                        .addArgument(this.parameters("aln") == null ? " " : this.parameters("aln")).addArgument(reference_path + " -b2 ")
-                        .addArgument(file).addArgument(" > aligned_" + i + "_2.sai");
+									.addArgument(this.parameters("aln") == null ? " " : this.parameters("aln")).addArgument(reference_path + " -b2 ")
+									.addArgument(file).addArgument(" > aligned_" + i + "_2.sai");
                 job02.setMaxMemory(bwaAlignMemG + "900");
                 /*
                  * if (!getProperty("numOfThreads").isEmpty()) { job02.setThreads(Integer.parseInt(getProperty("numOfThreads"))); }
@@ -262,15 +265,15 @@ public class WorkflowClient extends AbstractWorkflowDataModel {
                 // HG00096.chrom20.ILLUMINA.bwa.GBR.low_coverage.20120522.bam_000000.bam > aligned.sam
                 Job job03 = this.getWorkflow().createBashJob("bwa_sam_bam_" + i);
                 job03.getCommand().addArgument("set -e; set -o pipefail;")
-                        .addArgument(this.getWorkflowBaseDir() + "/bin/bwa-0.6.2/bwa sampe ")
-                        .addArgument("-r \"`cat bam_header." + i + ".txt`\"")
-                        .addArgument(this.parameters("sampe").isEmpty() ? " " : this.parameters("sampe")).addArgument(reference_path)
-                        .addArgument("aligned_" + i + "_1.sai").addArgument("aligned_" + i + "_2.sai").addArgument(file).addArgument(file)
-                        .addArgument(" | java -Xmx" + bwaSampeSortSamMemG + "g -jar ")
-                        .addArgument(this.getWorkflowBaseDir() + "/bin/picard-tools-1.89/SortSam.jar")
-                        .addArgument("I=/dev/stdin TMP_DIR=./ VALIDATION_STRINGENCY=SILENT")
-                        .addArgument("SORT_ORDER=coordinate CREATE_INDEX=true").addArgument("O=out_" + i + ".bam ;")
-                        .addArgument("date +%s >> bwa_timing_" + i + ".txt");
+									.addArgument(this.getWorkflowBaseDir() + "/bin/bwa-0.6.2/bwa sampe ")
+									.addArgument("-r \"`cat bam_header." + i + ".txt`\"")
+									.addArgument(this.parameters("sampe").isEmpty() ? " " : this.parameters("sampe")).addArgument(reference_path)
+									.addArgument("aligned_" + i + "_1.sai").addArgument("aligned_" + i + "_2.sai").addArgument(file).addArgument(file)
+									.addArgument(" | java -Xmx" + bwaSampeSortSamMemG + "g -jar ")
+									.addArgument(this.getWorkflowBaseDir() + "/bin/picard-tools-1.89/SortSam.jar")
+									.addArgument("I=/dev/stdin TMP_DIR=./ VALIDATION_STRINGENCY=SILENT")
+									.addArgument("SORT_ORDER=coordinate CREATE_INDEX=true").addArgument("O=out_" + i + ".bam ;")
+									.addArgument("date +%s >> bwa_timing_" + i + ".txt");
 
                 job03.addParent(job01);
                 job03.addParent(job02);
@@ -286,63 +289,62 @@ public class WorkflowClient extends AbstractWorkflowDataModel {
 
                 // CLEANUP DOWNLOADED INPUT UNALIGNED BAM FILES
                 if (useGtDownload && cleanup) {
-                    Job cleanup1 = this.getWorkflow().createBashJob("cleanup_" + i);
-                    cleanup1.getCommand().addArgument("rm -f " + file);
-                    cleanup1.setMaxMemory(smallJobMemM);
-                    cleanup1.addParent(job03);
+									Job cleanup1 = this.getWorkflow().createBashJob("cleanup_" + i);
+									cleanup1.getCommand().addArgument("rm -f " + file);
+									cleanup1.setMaxMemory(smallJobMemM);
+									cleanup1.addParent(job03);
                 }
 
             } else if ("mem".equals(bwaChoice)) {
 
-                // BWA MEM
-                Job job01 = this.getWorkflow().createBashJob("bwa_mem_" + i);
-                job01.addParent(headerJob);
-                job01.getCommand()
-                        .addArgument("set -e; set -o pipefail; date +%s > bwa_timing_" + i + ".txt ;")
-                        .addArgument("LD_LIBRARY_PATH=" + this.getWorkflowBaseDir() + pcapPath + "/lib")
-                        .addArgument(this.getWorkflowBaseDir() + pcapPath + "/bin/bamtofastq")
-                        .addArgument("exclude=QCFAIL,SECONDARY,SUPPLEMENTARY")
-                        .addArgument("T=out_" + i + ".t")
-                        .addArgument("S=out_" + i + ".s")
-                        .addArgument("O=out_" + i + ".o")
-                        .addArgument("O2=out_" + i + ".o2")
-                        .addArgument("collate=1")
-                        .addArgument("tryoq=1")
-                        .addArgument("filename=" + file)
-                        .addArgument(
-                                " | perl -e 'while(<>){$i++; $_ =~ s|@[01](/[12])$|\\1| if($i % 4 == 1); print $_;} $c = $i/4; warn \"$c\\n\";' 2> input_bam_"
-                                        + i + ".count.txt")
-                        .addArgument(" | LD_LIBRARY_PATH=" + this.getWorkflowBaseDir() + pcapPath + "/lib")
-                        .addArgument(this.getWorkflowBaseDir() + pcapPath + "/bin/bwa mem")
-                        // this pulls in threads and extra params
-                        .addArgument(this.parameters("mem") == null ? " " : this.parameters("mem")).addArgument("-p -T 0")
-                        .addArgument("-R \"`cat bam_header." + i + ".txt`\"").addArgument(reference_path).addArgument("-")
-                        .addArgument("| LD_LIBRARY_PATH=" + this.getWorkflowBaseDir() + pcapPath + "/lib ")
-                        .addArgument(this.getWorkflowBaseDir() + pcapPath + "/bin/bamsort")
-                        .addArgument("inputformat=sam level=1 inputthreads=2 outputthreads=2")
-                        .addArgument("calmdnm=1 calmdnmrecompindetonly=1 calmdnmreference=" + reference_path)
-                        .addArgument("tmpfile=out_" + i + ".sorttmp").addArgument("O=out_" + i + ".bam 2> bamsort_info_" + i + ".txt")
-                        .addArgument("&& date +%s >> bwa_timing_" + i + ".txt;");
+							// BWA MEM
+							Job job01 = this.getWorkflow().createBashJob("bwa_mem_" + i);
+							job01.addParent(headerJob);
+							job01.getCommand()
+								.addArgument("set -e; set -o pipefail; date +%s > bwa_timing_" + i + ".txt ;")
+								.addArgument("LD_LIBRARY_PATH=" + this.getWorkflowBaseDir() + pcapPath + "/lib")
+								.addArgument(this.getWorkflowBaseDir() + pcapPath + "/bin/bamtofastq")
+								.addArgument("exclude=QCFAIL,SECONDARY,SUPPLEMENTARY")
+								.addArgument("T=out_" + i + ".t")
+								.addArgument("S=out_" + i + ".s")
+								.addArgument("O=out_" + i + ".o")
+								.addArgument("O2=out_" + i + ".o2")
+								.addArgument("collate=1")
+								.addArgument("tryoq=1")
+								.addArgument("filename=" + file)
+								.addArgument(
+														 " | perl -e 'while(<>){$i++; $_ =~ s|@[01](/[12])$|\\1| if($i % 4 == 1); print $_;} $c = $i/4; warn \"$c\\n\";' 2> input_bam_"
+														 + i + ".count.txt")
+								.addArgument(" | LD_LIBRARY_PATH=" + this.getWorkflowBaseDir() + pcapPath + "/lib")
+								.addArgument(this.getWorkflowBaseDir() + pcapPath + "/bin/bwa mem")
+								// this pulls in threads and extra params
+								.addArgument(this.parameters("mem") == null ? " " : this.parameters("mem")).addArgument("-p -T 0")
+								.addArgument("-R \"`cat bam_header." + i + ".txt`\"").addArgument(reference_path).addArgument("-")
+								.addArgument("| LD_LIBRARY_PATH=" + this.getWorkflowBaseDir() + pcapPath + "/lib ")
+								.addArgument(this.getWorkflowBaseDir() + pcapPath + "/bin/bamsort")
+								.addArgument("inputformat=sam level=1 inputthreads=2 outputthreads=2")
+								.addArgument("calmdnm=1 calmdnmrecompindetonly=1 calmdnmreference=" + reference_path)
+								.addArgument("tmpfile=out_" + i + ".sorttmp").addArgument("O=out_" + i + ".bam 2> bamsort_info_" + i + ".txt")
+								.addArgument("&& date +%s >> bwa_timing_" + i + ".txt;");
  
-                // CLEANUP DOWNLOADED INPUT UNALIGNED BAM FILES
-                if (useGtDownload && cleanup) {
-                   job01.getCommand().addArgument("rm -f " + file);
-                }
+							// CLEANUP DOWNLOADED INPUT UNALIGNED BAM FILES
+							if (useGtDownload && cleanup) {
+								job01.getCommand().addArgument("rm -f " + file);
+							}
 
+							job01.setMaxMemory(bwaAlignMemG + "900");
 
-                job01.setMaxMemory(bwaAlignMemG + "900");
+							bamJobs.add(job01);
 
-                bamJobs.add(job01);
-
-                // QC JOB
-                qcJob = this.getWorkflow().createBashJob("bam_stats_qc_" + i);
-                addBamStatsQcJobArgument(i, qcJob);
-                qcJob.addParent(job01);
-                qcJob.setMaxMemory(smallJobMemM);
-                qcJobs.add(qcJob);
+							// QC JOB
+							qcJob = this.getWorkflow().createBashJob("bam_stats_qc_" + i);
+							addBamStatsQcJobArgument(i, qcJob);
+							qcJob.addParent(job01);
+							qcJob.setMaxMemory(smallJobMemM);
+							qcJobs.add(qcJob);
             } else {
-                // not sure if there's a better way to do this
-                throw new RuntimeException("Don't understand a bwa choice of " + bwaChoice + " needs to be aln or mem");
+							// not sure if there's a better way to do this
+							throw new RuntimeException("Don't understand a bwa choice of " + bwaChoice + " needs to be aln or mem");
             }
         }
 
@@ -351,48 +353,46 @@ public class WorkflowClient extends AbstractWorkflowDataModel {
 
         if ("aln".equals(bwaChoice)) {
 
-            job04.getCommand()
-                    .addArgument("set -e; set -o pipefail; date +%s > merge_timing.txt ;")
-                    .addArgument(
-                            "java -Xmx" + picardSortMem + "g -jar " + this.getWorkflowBaseDir()
-                                    + "/bin/picard-tools-1.89/MergeSamFiles.jar " + " "
-                                    + (additionalPicardParams.isEmpty() ? "" : additionalPicardParams));
-            for (int i = 0; i < numBamFiles; i++) {
-                job04.getCommand().addArgument(" I=out_" + i + ".bam");
-            }
-            job04.getCommand().addArgument(" O=" + this.dataDir + outputFileName)
-                    .addArgument("SORT_ORDER=coordinate VALIDATION_STRINGENCY=SILENT CREATE_INDEX=true CREATE_MD5_FILE=true ;")
-                    .addArgument("date +%s >> merge_timing.txt ;");
-            for (Job pJob : bamJobs) {
-                job04.addParent(pJob);
-            }
-            job04.setMaxMemory(picardSortJobMem + "900");
+					job04.getCommand()
+						.addArgument("set -e; set -o pipefail; date +%s > merge_timing.txt ;")
+						.addArgument("java -Xmx" + picardSortMem + "g -jar " + this.getWorkflowBaseDir()
+												 + "/bin/picard-tools-1.89/MergeSamFiles.jar " + " "
+												 + (additionalPicardParams.isEmpty() ? "" : additionalPicardParams));
+					for (int i = 0; i < numBamFiles; i++) {
+						job04.getCommand().addArgument(" I=out_" + i + ".bam");
+					}
+					job04.getCommand().addArgument(" O=" + this.dataDir + outputFileName)
+						.addArgument("SORT_ORDER=coordinate VALIDATION_STRINGENCY=SILENT CREATE_INDEX=true CREATE_MD5_FILE=true ;")
+						.addArgument("date +%s >> merge_timing.txt ;");
+					for (Job pJob : bamJobs) {
+						job04.addParent(pJob);
+					}
+					job04.setMaxMemory(picardSortJobMem + "900");
 
         } else if ("mem".equals(bwaChoice)) {
 
-            job04.getCommand().addArgument("set -e; set -o pipefail; date +%s > merge_timing.txt ;")
-                    .addArgument("LD_LIBRARY_PATH=" + this.getWorkflowBaseDir() + pcapPath + "/lib")
-                    .addArgument(this.getWorkflowBaseDir() + pcapPath + "/bin/bammarkduplicates")
-                    .addArgument("O=" + this.dataDir + outputFileName).addArgument("M=" + this.dataDir + outputFileName + ".metrics")
-                    .addArgument("tmpfile=" + this.dataDir + outputFileName + ".biormdup").addArgument("markthreads=" + numOfThreads)
-                    .addArgument("rewritebam=1 rewritebamlevel=1 index=1 md5=1");
-            for (int i = 0; i < numBamFiles; i++) {
-                job04.getCommand().addArgument(" I=out_" + i + ".bam");
-            }
-            job04.getCommand().addArgument(" && date +%s >> merge_timing.txt ");
-            for (Job pJob : bamJobs) {
-                job04.addParent(pJob);
-            }
-            /*
-             * if (!getProperty("numOfThreads").isEmpty()) { job04.setThreads(Integer.parseInt(getProperty("numOfThreads"))); }
-             */
+					job04.getCommand().addArgument("set -e; set -o pipefail; date +%s > merge_timing.txt ;")
+						.addArgument("LD_LIBRARY_PATH=" + this.getWorkflowBaseDir() + pcapPath + "/lib")
+						.addArgument(this.getWorkflowBaseDir() + pcapPath + "/bin/bammarkduplicates")
+						.addArgument("O=" + this.dataDir + outputFileName).addArgument("M=" + this.dataDir + outputFileName + ".metrics")
+						.addArgument("tmpfile=" + this.dataDir + outputFileName + ".biormdup").addArgument("markthreads=" + numOfThreads)
+						.addArgument("rewritebam=1 rewritebamlevel=1 index=1 md5=1");
+					for (int i = 0; i < numBamFiles; i++) {
+						job04.getCommand().addArgument(" I=out_" + i + ".bam");
+					}
+					job04.getCommand().addArgument(" && date +%s >> merge_timing.txt ");
+					for (Job pJob : bamJobs) {
+						job04.addParent(pJob);
+					}
+					/*
+					 * if (!getProperty("numOfThreads").isEmpty()) { job04.setThreads(Integer.parseInt(getProperty("numOfThreads"))); }
+					 */
 
-            // now compute md5sum for the bai file
-            job04.getCommand().addArgument(
-                    " && md5sum " + this.dataDir + outputFileName + ".bai | awk '{printf $1}'" + " > " + this.dataDir + outputFileName
-                            + ".bai.md5");
+					// now compute md5sum for the bai file
+					job04.getCommand().addArgument(" && md5sum " + this.dataDir + outputFileName + ".bai | awk '{printf $1}'" + 
+																				 " > " + this.dataDir + outputFileName + ".bai.md5");
 
-            job04.setMaxMemory(picardSortJobMem + "900");
+					job04.setMaxMemory(picardSortJobMem + "900");
 
         }
 
@@ -402,47 +402,42 @@ public class WorkflowClient extends AbstractWorkflowDataModel {
         Job unmappedReadsJob3;
         unmappedReadsJob1 = this.getWorkflow().createBashJob("unmappedReads1");
         unmappedReadsJob1
-                .getCommand()
-                .addArgument(
-                        this.getWorkflowBaseDir() + pcapPath
-                                + "/bin/samtools view -h -f 4 " // reads unmapped
-                                + this.dataDir + outputFileName + " | perl " + this.getWorkflowBaseDir()
-                                + "/scripts/remove_both_ends_unmapped_reads.pl ")
-                // this is necessary because samtools -f 4 outputs both-ends-unmapped reads
-                .addArgument("| LD_LIBRARY_PATH=" + this.getWorkflowBaseDir() + pcapPath + "/lib ")
-                .addArgument(this.getWorkflowBaseDir() + pcapPath + "/bin/bamsort")
-                .addArgument("inputformat=sam level=1 inputthreads=2 outputthreads=2")
-                .addArgument("calmdnm=1 calmdnmrecompindetonly=1 calmdnmreference=" + reference_path)
-                .addArgument("tmpfile=unmapped1.sorttmp").addArgument("O=unmappedReads1.bam");
+					.getCommand()
+					.addArgument(this.getWorkflowBaseDir() + pcapPath
+											 + "/bin/samtools view -h -f 4 " // reads unmapped
+											 + this.dataDir + outputFileName + " | perl " + this.getWorkflowBaseDir()
+											 + "/scripts/remove_both_ends_unmapped_reads.pl ")
+					// this is necessary because samtools -f 4 outputs both-ends-unmapped reads
+					.addArgument("| LD_LIBRARY_PATH=" + this.getWorkflowBaseDir() + pcapPath + "/lib ")
+					.addArgument(this.getWorkflowBaseDir() + pcapPath + "/bin/bamsort")
+					.addArgument("inputformat=sam level=1 inputthreads=2 outputthreads=2")
+					.addArgument("calmdnm=1 calmdnmrecompindetonly=1 calmdnmreference=" + reference_path)
+					.addArgument("tmpfile=unmapped1.sorttmp").addArgument("O=unmappedReads1.bam");
 
         unmappedReadsJob1.setMaxMemory(unmappedReadsJobMemM);
         unmappedReadsJob1.addParent(job04);
 
         unmappedReadsJob2 = this.getWorkflow().createBashJob("unmappedReads2");
         unmappedReadsJob2
-                .getCommand()
-                .addArgument(
-                        this.getWorkflowBaseDir() + pcapPath
-                                + "/bin/samtools view -h -f 8 " // reads' mate unmapped
-                                + this.dataDir + outputFileName + " | perl " + this.getWorkflowBaseDir()
-                                + "/scripts/remove_both_ends_unmapped_reads.pl ")
-                // this is necessary because samtools -f 8 outputs both-ends-unmapped reads
-                .addArgument("| LD_LIBRARY_PATH=" + this.getWorkflowBaseDir() + pcapPath + "/lib ")
-                .addArgument(this.getWorkflowBaseDir() + pcapPath + "/bin/bamsort")
-                .addArgument("inputformat=sam level=1 inputthreads=2 outputthreads=2")
-                .addArgument("calmdnm=1 calmdnmrecompindetonly=1 calmdnmreference=" + reference_path)
-                .addArgument("tmpfile=unmapped2.sorttmp").addArgument("O=unmappedReads2.bam");
+					.getCommand()
+					.addArgument(this.getWorkflowBaseDir() + pcapPath
+											 + "/bin/samtools view -h -f 8 " // reads' mate unmapped
+											 + this.dataDir + outputFileName + " | perl " + this.getWorkflowBaseDir()
+											 + "/scripts/remove_both_ends_unmapped_reads.pl ")
+					// this is necessary because samtools -f 8 outputs both-ends-unmapped reads
+					.addArgument("| LD_LIBRARY_PATH=" + this.getWorkflowBaseDir() + pcapPath + "/lib ")
+					.addArgument(this.getWorkflowBaseDir() + pcapPath + "/bin/bamsort")
+					.addArgument("inputformat=sam level=1 inputthreads=2 outputthreads=2")
+					.addArgument("calmdnm=1 calmdnmrecompindetonly=1 calmdnmreference=" + reference_path)
+					.addArgument("tmpfile=unmapped2.sorttmp").addArgument("O=unmappedReads2.bam");
 
         unmappedReadsJob2.setMaxMemory(unmappedReadsJobMemM);
         unmappedReadsJob2.addParent(job04);
 
         unmappedReadsJob3 = this.getWorkflow().createBashJob("unmappedReads3");
-        unmappedReadsJob3.getCommand().addArgument(this.getWorkflowBaseDir() + pcapPath + "/bin/samtools view -h -b -f 12 " // reads with
-                                                                                                                            // both ends
-                                                                                                                            // unmapped, no
-                                                                                                                            // need to sort
-                                                                                                                            // at all
-                + this.dataDir + outputFileName + " > unmappedReads3.bam");
+				// reads with both ends unmapped, no need to sort at all
+        unmappedReadsJob3.getCommand().addArgument(this.getWorkflowBaseDir() + pcapPath + "/bin/samtools view -h -b -f 12 " 
+																									 + this.dataDir + outputFileName + " > unmappedReads3.bam");
         unmappedReadsJob3.setMaxMemory(unmappedReadsJobMemM);
         unmappedReadsJob3.addParent(job04);
 
@@ -450,237 +445,233 @@ public class WorkflowClient extends AbstractWorkflowDataModel {
         Job mergeUnmappedJob = this.getWorkflow().createBashJob("mergeUnmappedBAM");
 
         mergeUnmappedJob.getCommand().addArgument("LD_LIBRARY_PATH=" + this.getWorkflowBaseDir() + pcapPath + "/lib")
-                .addArgument(this.getWorkflowBaseDir() + pcapPath + "/bin/bammarkduplicates")
-                .addArgument("O=" + this.dataDir + outputUnmappedFileName)
-                .addArgument("M=" + this.dataDir + outputUnmappedFileName + ".metrics")
-                .addArgument("tmpfile=" + this.dataDir + outputUnmappedFileName + ".biormdup").addArgument("markthreads=" + numOfThreads)
-                .addArgument("rewritebam=1 rewritebamlevel=1 index=1 md5=1")
-                .addArgument("I=unmappedReads1.bam I=unmappedReads2.bam I=unmappedReads3.bam");
+					.addArgument(this.getWorkflowBaseDir() + pcapPath + "/bin/bammarkduplicates")
+					.addArgument("O=" + this.dataDir + outputUnmappedFileName)
+					.addArgument("M=" + this.dataDir + outputUnmappedFileName + ".metrics")
+					.addArgument("tmpfile=" + this.dataDir + outputUnmappedFileName + ".biormdup").addArgument("markthreads=" + numOfThreads)
+					.addArgument("rewritebam=1 rewritebamlevel=1 index=1 md5=1")
+					.addArgument("I=unmappedReads1.bam I=unmappedReads2.bam I=unmappedReads3.bam");
 
         // now compute md5sum for the bai file
-        mergeUnmappedJob.getCommand().addArgument(
-                " && md5sum " + this.dataDir + outputUnmappedFileName + ".bai | awk '{printf $1}'" + " > " + this.dataDir
-                        + outputUnmappedFileName + ".bai.md5");
+        mergeUnmappedJob.getCommand().addArgument(" && md5sum " + this.dataDir + outputUnmappedFileName + ".bai | awk '{printf $1}'" + " > " + this.dataDir
+																									+ outputUnmappedFileName + ".bai.md5");
 
         mergeUnmappedJob.addParent(unmappedReadsJob1);
         mergeUnmappedJob.addParent(unmappedReadsJob2);
         mergeUnmappedJob.addParent(unmappedReadsJob3);
-
         mergeUnmappedJob.setMaxMemory(unmappedReadsJobMemM);
 
         // CLEANUP LANE LEVEL BAM FILES
         if (cleanup) {
-            for (int i = 0; i < numBamFiles; i++) {
-                Job cleanup2 = this.getWorkflow().createBashJob("cleanup3_" + i);
-                cleanup2.getCommand().addArgument("rm -f out_" + i + ".bam");
-                cleanup2.addParent(job04);
-                cleanup2.setMaxMemory(smallJobMemM);
-                cleanup2.addParent(qcJobs.get(i));
-            }
+					for (int i = 0; i < numBamFiles; i++) {
+						Job cleanup2 = this.getWorkflow().createBashJob("cleanup3_" + i);
+						cleanup2.getCommand().addArgument("rm -f out_" + i + ".bam");
+						cleanup2.addParent(job04);
+						cleanup2.setMaxMemory(smallJobMemM);
+						cleanup2.addParent(qcJobs.get(i));
+					}
         }
 
         // PREPARE METADATA & UPLOAD
         String finalOutDir = this.dataDir;
         if (!useGtUpload) {
-            finalOutDir = this.resultsDir;
+					finalOutDir = this.resultsDir;
         }
         Job job05 = this.getWorkflow().createBashJob("upload");
         //if we are using a GNOS repo, we can use the gt-download-upload-wrapper.
         if (useGNOS) {
 	        job05.getCommand().addArgument("perl -I" + this.getWorkflowBaseDir() + "/bin/gt-download-upload-wrapper-" + gtDownloadWrapperVersion + "/lib " + this.getWorkflowBaseDir() + "/scripts/gnos_upload_data.pl")
-	                .addArgument("--bam " + this.dataDir + outputFileName).addArgument("--key " + gnosKey)
-	                .addArgument("--outdir " + finalOutDir).addArgument("--metadata-urls " + gnosInputMetadataURLs)
-	                .addArgument("--upload-url " + gnosUploadFileURL).addArgument("--study-refname-override " + studyRefnameOverride)
-	                .addArgument("--bam-md5sum-file " + this.dataDir + outputFileName + ".md5");
+						.addArgument("--bam " + this.dataDir + outputFileName).addArgument("--key " + gnosKey)
+						.addArgument("--outdir " + finalOutDir).addArgument("--metadata-urls " + gnosInputMetadataURLs)
+						.addArgument("--upload-url " + gnosUploadFileURL).addArgument("--study-refname-override " + studyRefnameOverride)
+						.addArgument("--bam-md5sum-file " + this.dataDir + outputFileName + ".md5");
 	        if (!useGtUpload) {
-	            job05.getCommand().addArgument("--force-copy");
+						job05.getCommand().addArgument("--force-copy");
 	        }
 	        if ("true".equals(skipUpload) || !useGtUpload) {
-	            job05.getCommand().addArgument("--test");
+						job05.getCommand().addArgument("--test");
 	        }
 	        if (!useGtValidation) {
-	            job05.getCommand().addArgument("--skip-validate");
+						job05.getCommand().addArgument("--skip-validate");
 	        }
 	        job05.setMaxMemory(uploadScriptJobMem + "900");
 	
 	        // upload BAM with unmapped reads
 	        if (!useGtUpload) {
-	            finalOutDir = this.resultsDir;
+						finalOutDir = this.resultsDir;
 	        }
         }
         else if(this.gnosUploadFileURL.startsWith("s3://")) // Using AWS S3
-        {
-        	// TODO: Should we include settings for --acl (access control list) or --grants to allow uploaded files to be public?
-        	// TODO: also, what about --sse for sever-side encryption?
-        	job05.getCommand().addArgument("export AWS_CONFIG_FILE=/home/ubuntu/.gnos/config && aws s3 cp "+ this.dataDir + this.outputFileName + " "+this.gnosUploadFileURL + this.outputFileName+ " --expected-size  $(stat --printf=\"%s\" "+this.dataDir +this.outputFileName+")");
-        }
+					{
+						// TODO: Should we include settings for --acl (access control list) or --grants to allow uploaded files to be public?
+						// TODO: also, what about --sse for sever-side encryption?
+						job05.getCommand().addArgument("export AWS_CONFIG_FILE=/home/ubuntu/.gnos/config && aws s3 cp "+ this.dataDir + this.outputFileName + " "+this.gnosUploadFileURL + this.outputFileName+ " --expected-size  $(stat --printf=\"%s\" "+this.dataDir +this.outputFileName+")");
+					}
         
         job05.addParent(job04);
         for (Job qcJob : qcJobs) {
-            job05.addParent(qcJob);
+					job05.addParent(qcJob);
         }
         
         Job job06 = this.getWorkflow().createBashJob("upload2");
         
         if (useGNOS)
-        {
-	        job06.getCommand().addArgument("perl -I" + this.getWorkflowBaseDir() + "/bin/gt-download-upload-wrapper-" + gtDownloadWrapperVersion + "/lib " + this.getWorkflowBaseDir() + "/scripts/gnos_upload_data.pl --unmapped-reads-upload ")
-	                .addArgument("--bam " + this.dataDir + outputUnmappedFileName).addArgument("--key " + gnosKey)
-	                .addArgument("--outdir " + finalOutDir).addArgument("--metadata-urls " + gnosInputMetadataURLs)
-	                .addArgument("--upload-url " + gnosUploadFileURL).addArgument("--study-refname-override " + studyRefnameOverride)
-	                .addArgument("--bam-md5sum-file " + this.dataDir + outputUnmappedFileName + ".md5");
-	        if (!useGtUpload) {
+					{
+						job06.getCommand().addArgument("perl -I" + this.getWorkflowBaseDir() + "/bin/gt-download-upload-wrapper-" + gtDownloadWrapperVersion + "/lib " + this.getWorkflowBaseDir() + "/scripts/gnos_upload_data.pl --unmapped-reads-upload ")
+							.addArgument("--bam " + this.dataDir + outputUnmappedFileName).addArgument("--key " + gnosKey)
+							.addArgument("--outdir " + finalOutDir).addArgument("--metadata-urls " + gnosInputMetadataURLs)
+							.addArgument("--upload-url " + gnosUploadFileURL).addArgument("--study-refname-override " + studyRefnameOverride)
+							.addArgument("--bam-md5sum-file " + this.dataDir + outputUnmappedFileName + ".md5");
+						if (!useGtUpload) {
 	            job06.getCommand().addArgument("--force-copy");
-	        }
-	        if ("true".equals(skipUpload) || !useGtUpload) {
+						}
+						if ("true".equals(skipUpload) || !useGtUpload) {
 	            job06.getCommand().addArgument("--test");
-	        }
-	        if (!useGtValidation) {
+						}
+						if (!useGtValidation) {
 	            job06.getCommand().addArgument("--skip-validate");
-	        }
-	        job06.setMaxMemory(uploadScriptJobMem + "900");
-        }
+						}
+						job06.setMaxMemory(uploadScriptJobMem + "900");
+					}
         else if(this.gnosUploadFileURL.startsWith("s3://")) // Using AWS S3
-        {
-        	// TODO: Should we include settings for --acl (access control list) or --grants to allow uploaded files to be public?
-        	// TODO: also, what about --sse for sever-side encryption?
-        	job06.getCommand().addArgument("export AWS_CONFIG_FILE=/home/ubuntu/.gnos/config && aws s3 cp "+ this.dataDir + this.outputUnmappedFileName + " "+this.gnosUploadFileURL + this.outputUnmappedFileName + " --expected-size  $(stat --printf=\"%s\" "+this.dataDir +this.outputUnmappedFileName+")");
-        }
+					{
+						// TODO: Should we include settings for --acl (access control list) or --grants to allow uploaded files to be public?
+						// TODO: also, what about --sse for sever-side encryption?
+						job06.getCommand().addArgument("export AWS_CONFIG_FILE=/home/ubuntu/.gnos/config && aws s3 cp "+ this.dataDir + this.outputUnmappedFileName + " "+this.gnosUploadFileURL + this.outputUnmappedFileName + " --expected-size  $(stat --printf=\"%s\" "+this.dataDir +this.outputUnmappedFileName+")");
+					}
         job06.addParent(mergeUnmappedJob);
 
         // CLEANUP FINAL BAM
         if (cleanup) {
-            Job cleanup3 = this.getWorkflow().createBashJob("cleanup3");
-            cleanup3.getCommand().addArgument("rm -f *.bam " + this.dataDir + outputFileName + " " + this.dataDir + outputUnmappedFileName);
-            cleanup3.addParent(job05);
-            cleanup3.addParent(job06);
-            for (Job qcJob : qcJobs) {
-                cleanup3.addParent(qcJob);
-            }
-            cleanup3.setMaxMemory(smallJobMemM);
+					Job cleanup3 = this.getWorkflow().createBashJob("cleanup3");
+					cleanup3.getCommand().addArgument("rm -f *.bam " + this.dataDir + outputFileName + " " + this.dataDir + outputUnmappedFileName);
+					cleanup3.addParent(job05);
+					cleanup3.addParent(job06);
+					for (Job qcJob : qcJobs) {
+						cleanup3.addParent(qcJob);
+					}
+					cleanup3.setMaxMemory(smallJobMemM);
         }
 
     }
 
-    public String parameters(final String setup) {
+	public String parameters(final String setup) {
 
-        String paramCommand = null;
-        StringBuilder a = new StringBuilder();
+		String paramCommand = null;
+		StringBuilder a = new StringBuilder();
 
-        try {
-            if (setup.equals("aln")) {
+		try {
+			if (setup.equals("aln")) {
 
-                if (!getProperty("numOfThreads").isEmpty()) {
-                    numOfThreads = Integer.parseInt(getProperty("numOfThreads"));
-                    a.append(" -t ");
-                    a.append(numOfThreads);
-                    a.append(" ");
-                }
+				if (!getProperty("numOfThreads").isEmpty()) {
+					numOfThreads = Integer.parseInt(getProperty("numOfThreads"));
+					a.append(" -t ");
+					a.append(numOfThreads);
+					a.append(" ");
+				}
 
-                if (!getProperty("bwa_aln_params").isEmpty()) {
-                    bwa_aln_params = getProperty("bwa_aln_params");
-                    a.append(" ");
-                    a.append(bwa_aln_params);
-                    a.append(" ");
-                }
-                paramCommand = a.toString();
-                return paramCommand;
-            }
+				if (!getProperty("bwa_aln_params").isEmpty()) {
+					bwa_aln_params = getProperty("bwa_aln_params");
+					a.append(" ");
+					a.append(bwa_aln_params);
+					a.append(" ");
+				}
+				paramCommand = a.toString();
+				return paramCommand;
+			}
 
-            if (setup.equals("mem")) {
+			if (setup.equals("mem")) {
 
-                if (!getProperty("numOfThreads").isEmpty()) {
-                    numOfThreads = Integer.parseInt(getProperty("numOfThreads"));
-                    a.append(" -t ");
-                    a.append(numOfThreads);
-                    a.append(" ");
-                }
+				if (!getProperty("numOfThreads").isEmpty()) {
+					numOfThreads = Integer.parseInt(getProperty("numOfThreads"));
+					a.append(" -t ");
+					a.append(numOfThreads);
+					a.append(" ");
+				}
 
-                if (!getProperty("bwa_mem_params").isEmpty()) {
-                    bwa_aln_params = getProperty("bwa_mem_params");
-                    a.append(" ");
-                    a.append(bwa_aln_params);
-                    a.append(" ");
-                }
-                paramCommand = a.toString();
-                return paramCommand;
-            }
+				if (!getProperty("bwa_mem_params").isEmpty()) {
+					bwa_aln_params = getProperty("bwa_mem_params");
+					a.append(" ");
+					a.append(bwa_aln_params);
+					a.append(" ");
+				}
+				paramCommand = a.toString();
+				return paramCommand;
+			}
 
-            if (setup.equals("sampe")) {
+			if (setup.equals("sampe")) {
 
-                if (!getProperty("maxInsertSize").isEmpty()) {
-                    maxInsertSize = Integer.parseInt(getProperty("maxInsertSize"));
-                    a.append(" -a ");
-                    a.append(maxInsertSize);
-                    a.append(" ");
-                }
+				if (!getProperty("maxInsertSize").isEmpty()) {
+					maxInsertSize = Integer.parseInt(getProperty("maxInsertSize"));
+					a.append(" -a ");
+					a.append(maxInsertSize);
+					a.append(" ");
+				}
 
-                if (!getProperty("readGroup").isEmpty()) {
-                    a.append(" -r ");
-                    a.append(readGroup);
-                    a.append(" ");
-                }
+				if (!getProperty("readGroup").isEmpty()) {
+					a.append(" -r ");
+					a.append(readGroup);
+					a.append(" ");
+				}
 
-                if (!getProperty("bwa_sampe_params").isEmpty()) {
-                    bwa_sampe_params = getProperty("bwa_sampe_params");
-                    a.append(" ");
-                    a.append(bwa_sampe_params);
-                    a.append(" ");
-                }
-                paramCommand = a.toString();
-                return paramCommand;
-            }
+				if (!getProperty("bwa_sampe_params").isEmpty()) {
+					bwa_sampe_params = getProperty("bwa_sampe_params");
+					a.append(" ");
+					a.append(bwa_sampe_params);
+					a.append(" ");
+				}
+				paramCommand = a.toString();
+				return paramCommand;
+			}
 
-        } catch (Exception e) {
-            Logger.getLogger(WorkflowClient.class.getName()).log(Level.SEVERE, null, e);
-            throw new RuntimeException("Param Parsing exception " + e.getMessage());
-        }
-        return paramCommand;
-    }
+		} catch (Exception e) {
+			Logger.getLogger(WorkflowClient.class.getName()).log(Level.SEVERE, null, e);
+			throw new RuntimeException("Param Parsing exception " + e.getMessage());
+		}
+		return paramCommand;
+	}
 
-    private Job addDownloadJobArgs(Job job, String file, String fileURL, int jobId, String wrapperType) {
+	private Job addDownloadJobArgs(Job job, String file, String fileURL, int jobId, String wrapperType) {
 
-        // a little unsafe
-        String[] pathElements = file.split("/");
-        String analysisId = pathElements[0];
+		// a little unsafe
+		String[] pathElements = file.split("/");
+		String analysisId = pathElements[0];
 
-        if ("file_based".equals(wrapperType)) {
-            job.getCommand()
-                    .addArgument("set -e; set -o pipefail; date +%s > download_timing_" + jobId + ".txt;")
-                    .addArgument("perl -I " + this.getWorkflowBaseDir() + "/bin/gt-download-upload-wrapper-"+ gtDownloadWrapperVersion + "/lib " + this.getWorkflowBaseDir() + "/scripts/gnos_download_file.pl")
-                    .addArgument(" -k 60") 
-                    .addArgument(" --pem "+ gnosKey)
-                    .addArgument(" --url " + fileURL)
-                    .addArgument(" --file " + file )
-                    .addArgument(" --retries " + gtdownloadRetries  + " --sleep-min 1 --timeout-min 60;")
-                    .addArgument("date +%s >> download_timing_" + jobId + ".txt");
-        } else {
-            job.getCommand()
-                    .addArgument("set -e; set -o pipefail; date +%s > download_timing_" + jobId + ".txt;")
-                    .addArgument("perl " + this.getWorkflowBaseDir() + "/scripts/launch_and_monitor_cmd.pl")
-                    .addArgument(
-                            " --command 'gtdownload " + " --max-children " + gnosMaxChildren + " --rate-limit " + gnosRateLimit
-                                    + " --inactivity-timeout " + gnosTimeout + " -c " + gnosKey + " -v -d " + fileURL + "'")
-                    .addArgument("--retries " + gtdownloadRetries + " ;").addArgument("date +%s >> download_timing_" + jobId + ".txt");
-        }
+		if ("file_based".equals(wrapperType)) {
+			job.getCommand()
+				.addArgument("set -e; set -o pipefail; date +%s > download_timing_" + jobId + ".txt;")
+				.addArgument("perl -I " + this.getWorkflowBaseDir() + "/bin/gt-download-upload-wrapper-"+ gtDownloadWrapperVersion + "/lib " + this.getWorkflowBaseDir() + "/scripts/gnos_download_file.pl")
+				.addArgument(" -k 60") 
+				.addArgument(" --pem "+ gnosKey)
+				.addArgument(" --url " + fileURL)
+				.addArgument(" --file " + file )
+				.addArgument(" --retries " + gtdownloadRetries  + " --sleep-min 1 --timeout-min 60;")
+				.addArgument("date +%s >> download_timing_" + jobId + ".txt");
+		} else {
+			job.getCommand()
+				.addArgument("set -e; set -o pipefail; date +%s > download_timing_" + jobId + ".txt;")
+				.addArgument("perl " + this.getWorkflowBaseDir() + "/scripts/launch_and_monitor_cmd.pl")
+				.addArgument(" --command 'gtdownload " + " --max-children " + gnosMaxChildren + " --rate-limit " + gnosRateLimit
+										 + " --inactivity-timeout " + gnosTimeout + " -c " + gnosKey + " -v -d " + fileURL + "'")
+				.addArgument("--retries " + gtdownloadRetries + " ;").addArgument("date +%s >> download_timing_" + jobId + ".txt");
+		}
 
-        return job;
-    }
+		return job;
+	}
 
-    private Job addBamStatsQcJobArgument(final int i, Job job) {
+	private Job addBamStatsQcJobArgument(final int i, Job job) {
 
-        job.getCommand()
-                .addArgument("set -e; set -o pipefail; date +%s > qc_timing_" + i + ".txt;")
-                .addArgument("perl -I " + this.getWorkflowBaseDir() + pcapPath + "/lib/perl5/")
-                .addArgument("-I " + this.getWorkflowBaseDir() + pcapPath + "/lib/perl5/x86_64-linux-gnu-thread-multi/")
-                .addArgument(this.getWorkflowBaseDir() + pcapPath + "/bin/bam_stats.pl")
-                .addArgument("-i " + "out_" + i + ".bam")
-                .addArgument("-o " + "out_" + i + ".bam.stats.txt")
-                .addArgument(
-                        "&& perl " + this.getWorkflowBaseDir() + "/scripts/verify_read_groups.pl --header-file bam_header." + i + ".txt"
-                                + " --bas-file out_" + i + ".bam.stats.txt" + " --input-read-count-file input_bam_" + i + ".count.txt")
-                .addArgument("&& date +%s >> qc_timing_" + i + ".txt");
+		job.getCommand()
+			.addArgument("set -e; set -o pipefail; date +%s > qc_timing_" + i + ".txt;")
+			.addArgument("perl -I " + this.getWorkflowBaseDir() + pcapPath + "/lib/perl5/")
+			.addArgument("-I " + this.getWorkflowBaseDir() + pcapPath + "/lib/perl5/x86_64-linux-gnu-thread-multi/")
+			.addArgument(this.getWorkflowBaseDir() + pcapPath + "/bin/bam_stats.pl")
+			.addArgument("-i " + "out_" + i + ".bam")
+			.addArgument("-o " + "out_" + i + ".bam.stats.txt")
+			.addArgument("&& perl " + this.getWorkflowBaseDir() + "/scripts/verify_read_groups.pl --header-file bam_header." + i + ".txt"
+									 + " --bas-file out_" + i + ".bam.stats.txt" + " --input-read-count-file input_bam_" + i + ".count.txt")
+			.addArgument("&& date +%s >> qc_timing_" + i + ".txt");
 
-        return job;
-    }
+		return job;
+	}
 }

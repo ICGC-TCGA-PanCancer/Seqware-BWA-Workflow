@@ -74,19 +74,26 @@ use_gtvalidation=false
 # don't cleanup the BAMS, we need them after the workflow runs!
 cleanup=false
 
-# key=input_bam_paths:type=text:display=T:display_name=The relative BAM paths which are typically the UUID/bam_file.bam for bams from a GNOS repo if use_gtdownload is true. If use_gtdownload is false these should be full paths to local BAMs.
+# key=input_bam_paths:type=text:display=T:display_name=The relative BAM paths which 
+# are typically the UUID/bam_file.bam for bams from a GNOS repo if use_gtdownload is true. 
+# If use_gtdownload is false these should be full paths to local BAMs.
 input_bam_paths=$file_str
 
-# key=input_file_urls:type=text:display=T:display_name=The URLs (comma-delimited) that are used to download the BAM files. The URLs should be in the same order as the BAMs for input_bam_paths. These are not used if use_gtdownload is false.
+# key=input_file_urls:type=text:display=T:display_name=The URLs (comma-delimited) that 
+# are used to download the BAM files. The URLs should be in the same order as the BAMs 
+# for input_bam_paths. These are not used if use_gtdownload is false.
 input_file_urls=$download_str
 
-# key=gnos_input_metadata_urls:type=text:display=T:display_name=The URLs (comma-delimited) that are used to download the BAM files. The URLs should be in the same order as the BAMs for input_bam_paths. Metadata is read from GNOS regardless of whether or not bams are downloaded from there.
+# key=gnos_input_metadata_urls:type=text:display=T:display_name=The URLs (comma-delimited) 
+# that are used to download the BAM files. The URLs should be in the same order as the BAMs 
+# for input_bam_paths. Metadata is read from GNOS regardless of whether or not bams are downloaded from there.
 gnos_input_metadata_urls=$metadata_str
 
 # key=output_dir:type=text:display=F:display_name=A local file path if chosen rather than an upload to a GNOS server
 output_dir=/
 
-# key=output_prefix:type=text:display=F:display_name=The output_prefix is a convention and used to specify the root of the absolute output path
+# key=output_prefix:type=text:display=F:display_name=The output_prefix is a convention and 
+# used to specify the root of the absolute output path
 output_prefix=$cwd/
 ";
 
