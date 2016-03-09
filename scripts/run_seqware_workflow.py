@@ -15,6 +15,7 @@ import logging
 import os
 import re
 import subprocess
+import sys
 
 # set global variable for workflow version
 global workflow_version
@@ -160,6 +161,9 @@ def write_ini(args, cwd):
     assert len(metadata_urls) == len(args.files)
     assert len(file_urls) == len(args.files)
 
+    output_dir = os.path.abspath(args.output_dir).split("/")[-1]
+    output_prefix = re.sub(output_dir, "", os.path.abspath(args.output_dir))
+
     ini_parts = ["useGNOS={0}".format(args.useGNOS),
                  "use_gtdownload={0}".format(args.use_gtdownload),
                  "use_gtupload={0}".format(args.use_gtupload),
@@ -168,8 +172,8 @@ def write_ini(args, cwd):
                  "input_bam_paths={0}".format(",".join(args.files)),
                  "input_file_urls={0}".format(",".join(file_urls)),
                  "gnos_input_metadata_urls={0}".format(",".join(metadata_urls)),
-                 "output_dir={0}".format("/"),
-                 "output_prefix={0}".format(cwd)]
+                 "output_dir={0}".format(output_dir),
+                 "output_prefix={0}".format(output_prefix)]
 
     ini = "\n".join(ini_parts)
     ini_file = os.path.join(cwd, "workflow.ini")
@@ -196,8 +200,8 @@ def main():
 
     cwd = os.getcwd()
     print("Current Working Directory: {}".format(cwd))
-    
-    # PUT INPUT AND REF FILE IN THE RIGHT PLACE
+
+    # PUT REF FILES IN THE RIGHT PLACE
     link_references(args)
 
     # WRITE WORKFLOW INI
@@ -220,8 +224,16 @@ def main():
         execute("mkdir -p {0}".format(args.output_dir))
 
     # MOVE OUTPUT FILES TO THE OUTPUT DIRECTORY
-    execute("mv {0}/merged_output.bam* {1}".format(results_dir, args.output_dir))
-    execute("mv {0}/merged_output.unmapped.bam* {1}".format(results_dir, args.output_dir))
+    if not os.path.isfile("{0}/merged_output.bam".format(args.output_dir)):
+        if os.path.isfile("{0}/merged_output.bam".format(args.results_dir)):
+            execute("mv {0}/merged_output.bam* {1}".format(
+                results_dir, args.output_dir))
+            execute("mv {0}/merged_output.unmapped.bam* {1}".format(
+                results_dir, args.output_dir))
+    else:
+        sys.stderr.write(
+            "[ERROR] Could not find output files in:\n{0}\n{1}".format(
+                results_dir, args.output_dir))
 
 
 if __name__ == "__main__":
