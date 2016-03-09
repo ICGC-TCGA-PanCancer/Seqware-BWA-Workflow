@@ -22,7 +22,7 @@ workflow_version = "2.6.7"
 
 
 def collect_args():
-    descr = 'SeqWare-based BWA alignment workflow from the PCAWG project'
+    descr = 'SeqWare-based BWA alignment workflow from the PCAWG project.'
     parser = argparse.ArgumentParser(
         description=descr
     )
@@ -35,6 +35,12 @@ def collect_args():
         help="The relative BAM paths which are typically the UUID/bam_file.bam \
         for bams from a GNOS repo if use_gtdownload is true. If use_gtdownload \
         is false these should be full paths to local BAMs.")
+    parser.add_argument(
+        "--output-dir",
+        dest="output_dir",
+        type=str,
+        default="/output/",
+        help="directory in which to store the output of the workflow.")
     parser.add_argument(
         "--file-urls",
         dest="file_urls",
@@ -57,11 +63,11 @@ def collect_args():
     requiredArgs.add_argument("--reference-gz",
                               type=str,
                               required=True,
-                              help="gzipped reference genome")
+                              help="gzipped reference genome.")
     requiredArgs.add_argument("--reference-gz-fai",
                               type=str,
                               required=True,
-                              help="gzipped reference genome index")
+                              help="gzipped reference genome index.")
     requiredArgs.add_argument("--reference-gz-amb",
                               type=str,
                               required=True,
@@ -213,9 +219,12 @@ def main():
     path = glob.glob("/datastore/oozie-*")[0]
     results_dir = os.path.join(path, "data")
 
-    # MOVE THESE TO THE RIGHT PLACE
-    execute("mv {0}/merged_output.bam* {1}".format(results_dir, cwd))
-    execute("mv {0}/merged_output.unmapped.bam* {1}".format(results_dir, cwd))
+    if not os.path.isdir(args.output_dir):
+        execute("mkdir -p {0}".format(args.output_dir))
+
+    # MOVE OUTPUT FILES TO THE OUTPUT DIRECTORY
+    execute("mv {0}/merged_output.bam* {1}".format(results_dir, args.output_dir))
+    execute("mv {0}/merged_output.unmapped.bam* {1}".format(results_dir, args.output_dir))
 
 
 if __name__ == "__main__":

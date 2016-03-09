@@ -18,19 +18,19 @@ COPY src /home/seqware/Seqware-BWA-Workflow/src
 COPY workflow /home/seqware/Seqware-BWA-Workflow/workflow
 COPY pom.xml /home/seqware/Seqware-BWA-Workflow/
 COPY workflow.properties /home/seqware/Seqware-BWA-Workflow/
-COPY scripts/run_seqware_workflow.pl /home/seqware/Seqware-BWA-Workflow/
 COPY scripts/run_seqware_workflow.py /home/seqware/Seqware-BWA-Workflow/
 
-RUN chown -R seqware /home/seqware/Seqware-BWA-Workflow
-USER seqware
+RUN chmod a+x /home/seqware/Seqware-BWA-Workflow/run_seqware_workflow.py
 
+RUN chown -R seqware /home/seqware/
+
+USER seqware
 WORKDIR /home/seqware/Seqware-BWA-Workflow/
 
-# RUN mvn -B clean install
+RUN mvn -B clean install
 
-# designate directories that need to read-write to allow seqware to function 
-VOLUME ["/datastore"]
-VOLUME ["/tmp"]
-VOLUME ["/home/seqware"]
+VOLUME /output
+VOLUME /datastore
 
-CMD ["/bin/bash"]
+# CMD /home/seqware/Seqware-BWA-Workflow/run_seqware_workflow.py
+CMD /bin/bash
