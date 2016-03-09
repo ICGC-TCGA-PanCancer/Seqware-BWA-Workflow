@@ -196,10 +196,7 @@ def main():
 
     cwd = os.getcwd()
     print("Current Working Directory: {}".format(cwd))
-
-    # BULD SEQWARE WORKFLOW
-    execute("mvn -B clean install")
-
+    
     # PUT INPUT AND REF FILE IN THE RIGHT PLACE
     link_references(args)
 
