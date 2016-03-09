@@ -18,8 +18,10 @@ COPY src /home/seqware/Seqware-BWA-Workflow/src
 COPY workflow /home/seqware/Seqware-BWA-Workflow/workflow
 COPY pom.xml /home/seqware/Seqware-BWA-Workflow/
 COPY workflow.properties /home/seqware/Seqware-BWA-Workflow/
+COPY scripts/run_seqware_workflow.pl /home/seqware/Seqware-BWA-Workflow/
 COPY scripts/run_seqware_workflow.py /home/seqware/Seqware-BWA-Workflow/
 
+RUN chmod a+x /home/seqware/Seqware-BWA-Workflow/run_seqware_workflow.pl
 RUN chmod a+x /home/seqware/Seqware-BWA-Workflow/run_seqware_workflow.py
 
 RUN chown -R seqware /home/seqware/
@@ -32,5 +34,4 @@ RUN mvn -B clean install
 VOLUME /output
 VOLUME /datastore
 
-# CMD /home/seqware/Seqware-BWA-Workflow/run_seqware_workflow.py
 CMD /bin/bash
