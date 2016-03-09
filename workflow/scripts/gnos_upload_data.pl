@@ -702,7 +702,7 @@ sub read_header {
 
 sub download_metadata {
 	if ($skip_download) {
-			return 0;
+			# TODO: Parse BAM header for relevant info?			
 	}
 
   my ($urls_str) = @_;
