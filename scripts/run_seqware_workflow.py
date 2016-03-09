@@ -225,7 +225,7 @@ def main():
 
     # MOVE OUTPUT FILES TO THE OUTPUT DIRECTORY
     if not os.path.isfile("{0}/merged_output.bam".format(args.output_dir)):
-        if os.path.isfile("{0}/merged_output.bam".format(args.results_dir)):
+        if os.path.isfile("{0}/merged_output.bam".format(results_dir)):
             execute("mv {0}/merged_output.bam* {1}".format(
                 results_dir, args.output_dir))
             execute("mv {0}/merged_output.unmapped.bam* {1}".format(
