@@ -69,26 +69,32 @@ public class WorkflowClient extends AbstractWorkflowDataModel {
     String studyRefnameOverride = "icgc_pancancer";
     String unmappedReadsJobMemM = "8000";
     
-    //private String uploadURL = ""; // We don't really need a separate variable. We can just rename the old one without the word "gnos"
-    Boolean useGNOS = true; // Should come from INI file. If false, then use S3.
+	  // We don't really need a separate variable. We can just rename the old one without the word "gnos"
+    // private String uploadURL = "";
+
+	  // Should come from INI file. If false, then use S3.
+    Boolean useGNOS = true;
 
     @Override
     public Map<String, SqwFile> setupFiles() {
 
         /*
-         * This workflow isn't using file provisioning since we're using GeneTorrent. So this method is just being used to setup various
-         * variables.
+         * This workflow isn't using file provisioning since we're using GeneTorrent. 
+				 * So this method is just being used to setup various variables.
          */
         try {
 
             inputBamPaths = getProperty("input_bam_paths");
             Collections.addAll(bamPaths, inputBamPaths.split(","));
+
             gnosInputFileURLs = getProperty("input_file_urls");
             Collections.addAll(inputURLs, gnosInputFileURLs.split(","));
+
             gnosInputMetadataURLs = getProperty("gnos_input_metadata_urls");
             Collections.addAll(inputMetadataURLs, gnosInputMetadataURLs.split(","));
-            outputDir = this.getMetadata_output_dir();
-            outputPrefix = this.getMetadata_output_file_prefix();
+
+            outputDir = getProperty("output_dir");
+            outputPrefix = getProperty("output_prefix");
             resultsDir = outputPrefix + outputDir;
             gnosUploadFileURL = getProperty("output_file_url");
             gnosKey = getProperty("gnos_key");
@@ -204,7 +210,8 @@ public class WorkflowClient extends AbstractWorkflowDataModel {
             else if(file.startsWith("s3://"))
             {
             	downloadJob = this.getWorkflow().createBashJob("aws_s3_download");
-            	downloadJob.getCommand().addArgument("export AWS_CONFIG_FILE=/home/ubuntu/.gnos/config && aws s3 cp "+fileURL+ " " +file.replaceAll("/.*$", "")+ " --recursive");
+            	downloadJob.getCommand().addArgument("export AWS_CONFIG_FILE=/home/ubuntu/.gnos/config && aws s3 cp " + fileURL 
+																									 + " " +file.replaceAll("/.*$", "")+ " --recursive");
 							downloadJob.addParent(reference_download);
             }
 
@@ -312,8 +319,7 @@ public class WorkflowClient extends AbstractWorkflowDataModel {
 								.addArgument("collate=1")
 								.addArgument("tryoq=1")
 								.addArgument("filename=" + file)
-								.addArgument(
-														 " | perl -e 'while(<>){$i++; $_ =~ s|@[01](/[12])$|\\1| if($i % 4 == 1); print $_;} $c = $i/4; warn \"$c\\n\";' 2> input_bam_"
+								.addArgument(" | perl -e 'while(<>){$i++; $_ =~ s|@[01](/[12])$|\\1| if($i % 4 == 1); print $_;} $c = $i/4; warn \"$c\\n\";' 2> input_bam_"
 														 + i + ".count.txt")
 								.addArgument(" | LD_LIBRARY_PATH=" + this.getWorkflowBaseDir() + pcapPath + "/lib")
 								.addArgument(this.getWorkflowBaseDir() + pcapPath + "/bin/bwa mem")
@@ -453,7 +459,8 @@ public class WorkflowClient extends AbstractWorkflowDataModel {
 					.addArgument("I=unmappedReads1.bam I=unmappedReads2.bam I=unmappedReads3.bam");
 
         // now compute md5sum for the bai file
-        mergeUnmappedJob.getCommand().addArgument(" && md5sum " + this.dataDir + outputUnmappedFileName + ".bai | awk '{printf $1}'" + " > " + this.dataDir
+        mergeUnmappedJob.getCommand().addArgument(" && md5sum " + this.dataDir + outputUnmappedFileName + ".bai | awk '{printf $1}'" 
+																									+ " > " + this.dataDir
 																									+ outputUnmappedFileName + ".bai.md5");
 
         mergeUnmappedJob.addParent(unmappedReadsJob1);
@@ -478,34 +485,32 @@ public class WorkflowClient extends AbstractWorkflowDataModel {
 					finalOutDir = this.resultsDir;
         }
         Job job05 = this.getWorkflow().createBashJob("upload");
-        //if we are using a GNOS repo, we can use the gt-download-upload-wrapper.
+        // if we are using a GNOS repo, we can use the gt-download-upload-wrapper.
         if (useGNOS) {
-	        job05.getCommand().addArgument("perl -I" + this.getWorkflowBaseDir() + "/bin/gt-download-upload-wrapper-" + gtDownloadWrapperVersion + "/lib " + this.getWorkflowBaseDir() + "/scripts/gnos_upload_data.pl")
+	        job05.getCommand().addArgument("perl -I" + this.getWorkflowBaseDir() + "/bin/gt-download-upload-wrapper-" 
+																				 + gtDownloadWrapperVersion + "/lib " + this.getWorkflowBaseDir() 
+																				 + "/scripts/gnos_upload_data.pl")
 						.addArgument("--bam " + this.dataDir + outputFileName).addArgument("--key " + gnosKey)
 						.addArgument("--outdir " + finalOutDir).addArgument("--metadata-urls " + gnosInputMetadataURLs)
 						.addArgument("--upload-url " + gnosUploadFileURL).addArgument("--study-refname-override " + studyRefnameOverride)
-						.addArgument("--bam-md5sum-file " + this.dataDir + outputFileName + ".md5");
-	        if (!useGtUpload) {
-						job05.getCommand().addArgument("--force-copy");
-	        }
+						.addArgument("--bam-md5sum-file " + this.dataDir + outputFileName + ".md5");	        
 	        if ("true".equals(skipUpload) || !useGtUpload) {
-						job05.getCommand().addArgument("--test");
+						job05.getCommand().addArgument("--force-copy");
+						job05.getCommand().addArgument("--skip-upload");
 	        }
 	        if (!useGtValidation) {
 						job05.getCommand().addArgument("--skip-validate");
 	        }
 	        job05.setMaxMemory(uploadScriptJobMem + "900");
-	
-	        // upload BAM with unmapped reads
-	        if (!useGtUpload) {
-						finalOutDir = this.resultsDir;
-	        }
         }
-        else if(this.gnosUploadFileURL.startsWith("s3://")) // Using AWS S3
+        else if (this.gnosUploadFileURL.startsWith("s3://")) // Using AWS S3
 					{
 						// TODO: Should we include settings for --acl (access control list) or --grants to allow uploaded files to be public?
 						// TODO: also, what about --sse for sever-side encryption?
-						job05.getCommand().addArgument("export AWS_CONFIG_FILE=/home/ubuntu/.gnos/config && aws s3 cp "+ this.dataDir + this.outputFileName + " "+this.gnosUploadFileURL + this.outputFileName+ " --expected-size  $(stat --printf=\"%s\" "+this.dataDir +this.outputFileName+")");
+						job05.getCommand().addArgument("export AWS_CONFIG_FILE=/home/ubuntu/.gnos/config && aws s3 cp " 
+																					 + this.dataDir + this.outputFileName + " " + this.gnosUploadFileURL 
+																					 + this.outputFileName+ " --expected-size  $(stat --printf=\"%s\" " 
+																					 + this.dataDir +this.outputFileName+")");
 					}
         
         job05.addParent(job04);
@@ -517,16 +522,16 @@ public class WorkflowClient extends AbstractWorkflowDataModel {
         
         if (useGNOS)
 					{
-						job06.getCommand().addArgument("perl -I" + this.getWorkflowBaseDir() + "/bin/gt-download-upload-wrapper-" + gtDownloadWrapperVersion + "/lib " + this.getWorkflowBaseDir() + "/scripts/gnos_upload_data.pl --unmapped-reads-upload ")
+						job06.getCommand().addArgument("perl -I" + this.getWorkflowBaseDir() + "/bin/gt-download-upload-wrapper-" 
+																					 + gtDownloadWrapperVersion + "/lib " + this.getWorkflowBaseDir() 
+																					 + "/scripts/gnos_upload_data.pl --unmapped-reads-upload ")
 							.addArgument("--bam " + this.dataDir + outputUnmappedFileName).addArgument("--key " + gnosKey)
 							.addArgument("--outdir " + finalOutDir).addArgument("--metadata-urls " + gnosInputMetadataURLs)
 							.addArgument("--upload-url " + gnosUploadFileURL).addArgument("--study-refname-override " + studyRefnameOverride)
 							.addArgument("--bam-md5sum-file " + this.dataDir + outputUnmappedFileName + ".md5");
-						if (!useGtUpload) {
-	            job06.getCommand().addArgument("--force-copy");
-						}
 						if ("true".equals(skipUpload) || !useGtUpload) {
-	            job06.getCommand().addArgument("--test");
+	            job06.getCommand().addArgument("--force-copy");
+	            job06.getCommand().addArgument("--skip-upload");
 						}
 						if (!useGtValidation) {
 	            job06.getCommand().addArgument("--skip-validate");
@@ -537,14 +542,18 @@ public class WorkflowClient extends AbstractWorkflowDataModel {
 					{
 						// TODO: Should we include settings for --acl (access control list) or --grants to allow uploaded files to be public?
 						// TODO: also, what about --sse for sever-side encryption?
-						job06.getCommand().addArgument("export AWS_CONFIG_FILE=/home/ubuntu/.gnos/config && aws s3 cp "+ this.dataDir + this.outputUnmappedFileName + " "+this.gnosUploadFileURL + this.outputUnmappedFileName + " --expected-size  $(stat --printf=\"%s\" "+this.dataDir +this.outputUnmappedFileName+")");
+						job06.getCommand().addArgument("export AWS_CONFIG_FILE=/home/ubuntu/.gnos/config && aws s3 cp " 
+																					 + this.dataDir + this.outputUnmappedFileName + " "+this.gnosUploadFileURL 
+																					 + this.outputUnmappedFileName + " --expected-size  $(stat --printf=\"%s\" " 
+																					 + this.dataDir +this.outputUnmappedFileName+")");
 					}
         job06.addParent(mergeUnmappedJob);
 
         // CLEANUP FINAL BAM
         if (cleanup) {
 					Job cleanup3 = this.getWorkflow().createBashJob("cleanup3");
-					cleanup3.getCommand().addArgument("rm -f *.bam " + this.dataDir + outputFileName + " " + this.dataDir + outputUnmappedFileName);
+					cleanup3.getCommand().addArgument("rm -f *.bam " + this.dataDir + outputFileName + " " 
+																						+ this.dataDir + outputUnmappedFileName);
 					cleanup3.addParent(job05);
 					cleanup3.addParent(job06);
 					for (Job qcJob : qcJobs) {
@@ -640,7 +649,8 @@ public class WorkflowClient extends AbstractWorkflowDataModel {
 		if ("file_based".equals(wrapperType)) {
 			job.getCommand()
 				.addArgument("set -e; set -o pipefail; date +%s > download_timing_" + jobId + ".txt;")
-				.addArgument("perl -I " + this.getWorkflowBaseDir() + "/bin/gt-download-upload-wrapper-"+ gtDownloadWrapperVersion + "/lib " + this.getWorkflowBaseDir() + "/scripts/gnos_download_file.pl")
+				.addArgument("perl -I " + this.getWorkflowBaseDir() + "/bin/gt-download-upload-wrapper-"+ gtDownloadWrapperVersion 
+										 + "/lib " + this.getWorkflowBaseDir() + "/scripts/gnos_download_file.pl")
 				.addArgument(" -k 60") 
 				.addArgument(" --pem "+ gnosKey)
 				.addArgument(" --url " + fileURL)
