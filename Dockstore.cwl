@@ -10,7 +10,7 @@ description: |
     [page](https://github.com/ICGC-TCGA-PanCancer) for our code including the source for
     [this workflow](https://github.com/ICGC-TCGA-PanCancer/Seqware-BWA-Workflow).
     ```
-    Usage: workflow-pcawg-bwa-alignment --file unaligned_bam [--file unaligned_bam]
+    Usage: workflow-pcawg-bwa-alignment --files [unaligned_bam unaligned_bam2 ...]
     ```
 
 dct:creator:
@@ -104,4 +104,4 @@ outputs:
     outputBinding:
       glob: "merged_output.unmapped.bam.bai"
 
-baseCommand: ["python", "/home/seqware/Seqware-BWA-Workflow/run_seqware_workflow.pyA"]
+baseCommand: ["python", "/home/seqware/Seqware-BWA-Workflow/run_seqware_workflow.py"]

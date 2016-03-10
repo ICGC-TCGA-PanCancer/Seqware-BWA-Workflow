@@ -61,34 +61,34 @@ def collect_args():
         URLs should be in the same order as the BAMs for files. Metadata is \
         read from GNOS if useGNOS = 'true' of whether or not bams are downloaded \
         from there.")
-    requiredArgs.add_argument("--reference-gz",
-                              type=str,
-                              required=True,
-                              help="gzipped reference genome.")
-    requiredArgs.add_argument("--reference-gz-fai",
-                              type=str,
-                              required=True,
-                              help="gzipped reference genome index.")
-    requiredArgs.add_argument("--reference-gz-amb",
-                              type=str,
-                              required=True,
-                              help="")
-    requiredArgs.add_argument("--reference-gz-ann",
-                              type=str,
-                              required=True,
-                              help="")
-    requiredArgs.add_argument("--reference-gz-bwt",
-                              type=str,
-                              required=True,
-                              help="")
-    requiredArgs.add_argument("--reference-gz-pac",
-                              type=str,
-                              required=True,
-                              help="")
-    requiredArgs.add_argument("--reference-gz-sa",
-                              type=str,
-                              required=True,
-                              help="")
+    parser.add_argument("--reference-gz",
+                        type=str,
+                        required=False,
+                        help="gzipped reference genome.")
+    parser.add_argument("--reference-gz-fai",
+                        type=str,
+                        required=False,
+                        help="gzipped reference genome index.")
+    parser.add_argument("--reference-gz-amb",
+                        type=str,
+                        required=False,
+                        help="")
+    parser.add_argument("--reference-gz-ann",
+                        type=str,
+                        required=False,
+                        help="")
+    parser.add_argument("--reference-gz-bwt",
+                        type=str,
+                        required=False,
+                        help="")
+    parser.add_argument("--reference-gz-pac",
+                        type=str,
+                        required=False,
+                        help="")
+    parser.add_argument("--reference-gz-sa",
+                        type=str,
+                        required=False,
+                        help="")
     parser.add_argument("--useGNOS",
                         type=str,
                         default="false",
@@ -112,6 +112,12 @@ def collect_args():
                         default="false",
                         choices=["true", "false"],
                         help="")
+    parser.add_argument("--download-reference-files",
+                        dest="download_refs",
+                        type=str,
+                        default="false",
+                        choices=["true", "false"],
+                        help="Download reference files from S3")
     return parser
 
 
@@ -128,7 +134,7 @@ def link_references(args):
 
     # symlink reference files to dest
     for key, val, in vars(args).iteritems():
-        if re.match("reference", key):
+        if val is not None and re.match("reference", key):
             execute("ln -s {0} {1}".format(os.path.abspath(val), dest))
 
     execute("ls -lth {0}".format(dest))
@@ -168,6 +174,7 @@ def write_ini(args, cwd):
                  "use_gtdownload={0}".format(args.use_gtdownload),
                  "use_gtupload={0}".format(args.use_gtupload),
                  "use_gtvalidation={0}".format(args.use_gtvalidation),
+                 "download_reference_files={0}".format(args.download_refs),
                  "cleanup={0}".format("false"),
                  "input_bam_paths={0}".format(",".join(args.files)),
                  "input_file_urls={0}".format(",".join(file_urls)),
