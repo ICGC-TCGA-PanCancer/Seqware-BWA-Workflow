@@ -207,15 +207,15 @@ def main():
 
     if args.download_refs == "false":
         try:
-            assert args['reference-gz'] is not None
-            assert args['reference-gz-fai'] is not None
-            assert args['reference-gz-amb'] is not None
-            assert args['reference-gz-ann'] is not None
-            assert args['reference-gz-bwt'] is not None
-            assert args['reference-gz-pac'] is not None
-            assert args['reference-gz-sa'] is not None
-        except:
-            raise RuntimeError("If download-reference-files is 'false', all reference files must be explicitly provided")
+            assert args.reference_gz is not None
+            assert args.reference_gz_fai is not None
+            assert args.reference_gz_amb is not None
+            assert args.reference_gz_ann is not None
+            assert args.reference_gz_bwt is not None
+            assert args.reference_gz_pac is not None
+            assert args.reference_gz_sa is not None
+        except AssertionError:
+            raise AssertionError("If download-reference-files is 'false', all reference files must be explicitly provided")
 
     cwd = os.getcwd()
     print("Current Working Directory: {}".format(cwd))
