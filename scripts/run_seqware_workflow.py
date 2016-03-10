@@ -205,6 +205,18 @@ def main():
     parser = collect_args()
     args = parser.parse_args()
 
+    if args.download_refs == "false":
+        try:
+            assert args['reference-gz'] is not None
+            assert args['reference-gz-fai'] is not None
+            assert args['reference-gz-amb'] is not None
+            assert args['reference-gz-ann'] is not None
+            assert args['reference-gz-bwt'] is not None
+            assert args['reference-gz-pac'] is not None
+            assert args['reference-gz-sa'] is not None
+        except:
+            raise RuntimeError("If download-reference-files is 'false', all reference files must be explicitly provided")
+
     cwd = os.getcwd()
     print("Current Working Directory: {}".format(cwd))
 
