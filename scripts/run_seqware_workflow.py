@@ -242,10 +242,11 @@ def main():
     if not os.path.isdir(args.output_dir):
         # Need to use sudo since this is process is running as seqware        
         execute("sudo mkdir -p {0}".format(args.output_dir))
-        execute("sudo chown -R seqware {0}".format(args.output_dir))
 
     # MOVE OUTPUT FILES TO THE OUTPUT DIRECTORY
     if os.path.isfile("{0}/merged_output.bam".format(results_dir)):
+        # Ensure we can write to the output_dir
+        execute("sudo chown -R seqware {0}".format(args.output_dir))
         execute("mv {0}/merged_output.bam* {1}".format(
             results_dir, args.output_dir))
         execute("mv {0}/merged_output.unmapped.bam* {1}".format(
