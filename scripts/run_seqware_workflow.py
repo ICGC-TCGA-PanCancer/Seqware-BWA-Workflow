@@ -253,8 +253,7 @@ def main():
             results_dir, args.output_dir))
     else:
         sys.stderr.write(
-            "[ERROR] Could not find output files in:\n{0}\n{1}".format(
-                results_dir, args.output_dir))
+            "[ERROR] Could not find output files in:\n{0}".format(results_dir))
 
 
 if __name__ == "__main__":
