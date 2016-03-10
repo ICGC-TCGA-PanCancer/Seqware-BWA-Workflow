@@ -86,22 +86,29 @@ inputs:
       position: 8
       prefix: "--reference-gz-sa"
 
+  - id: "#output_dir"
+    type: string
+    description: 'the output directory'
+    inputBinding:
+      position: 9
+      prefix: "--output-dir"
+
 outputs:
   - id: "#merged_output_bam"
     type: File
     outputBinding:
-      glob: "merged_output.bam"
+      glob: $(inputs.output_dir) + "/merged_output.bam"
   - id: "#merged_output_bai"
     type: File
     outputBinding:
-      glob: "merged_output.bam.bai"
+      glob: $(inputs.output_dir) + "/merged_output.bam.bai"
   - id: "#merged_output_unmapped_bam"
     type: File
     outputBinding:
-      glob: "merged_output.unmapped.bam"
+      glob: $(inputs.output_dir) + "/merged_output.unmapped.bam"
   - id: "#merged_output_unmapped_bai"
     type: File
     outputBinding:
-      glob: "merged_output.unmapped.bam.bai"
+      glob: $(inputs.output_dir) + "/merged_output.unmapped.bam.bai"
 
 baseCommand: ["python", "/home/seqware/Seqware-BWA-Workflow/run_seqware_workflow.py"]

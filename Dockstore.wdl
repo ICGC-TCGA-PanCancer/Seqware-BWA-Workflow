@@ -7,10 +7,12 @@ task Seqware_BWA_Workflow {
     File reference_gz_bwt
     File reference_gz_pac
     File reference_gz_sa
+		String output-dir
 
     command {
         python /home/seqware/Seqware-BWA-Workflow/run_seqware_workflow.py \
         --files ${sep=' ' reads} \
+				--output-dir ${output_dir} \
         --reference-gz ${reference_gz} \
         --reference-gz-fai ${reference_gz_fai} \
         --reference-gz-amb ${reference_gz_amb} \
@@ -21,10 +23,10 @@ task Seqware_BWA_Workflow {
     }
 
     output {
-        File merged_output_bam = 'merged_output.bam'
-        File merged_output_bai = 'merged_output.bam.bai'
-        File merged_output_unmapped_bam = 'merged_output.unmapped.bam'
-        File merged_output_unmapped_bai = 'merged_output.unmapped.bam.bai'
+        File merged_output_bam = '${output_dir}/merged_output.bam'
+        File merged_output_bai = '${output_dir}/merged_output.bam.bai'
+        File merged_output_unmapped_bam = '${output_dir}/merged_output.unmapped.bam'
+        File merged_output_unmapped_bai = '${output_dir}/merged_output.unmapped.bam.bai'
     }
 
     runtime {
