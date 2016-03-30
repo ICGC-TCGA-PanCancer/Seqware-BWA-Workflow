@@ -11,9 +11,9 @@ from __future__ import print_function
 
 import argparse
 import glob
-import logging
 import os
 import re
+import shlex
 import subprocess
 import sys
 
@@ -189,16 +189,27 @@ def write_ini(args, cwd):
 
 
 def execute(cmd):
-    logging.info("RUNNING: %s" % (cmd))
     print("RUNNING...\n", cmd, "\n")
-    p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE,
-                         stderr=subprocess.PIPE)
-    stdout, stderr = p.communicate()
+    process = subprocess.Popen(shlex.split(cmd),
+                               shell=False,
+                               stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE)
+
+    while True:
+        nextline = process.stdout.readline()
+        if nextline == '' and process.poll() is not None:
+            break
+        sys.stdout.write(nextline)
+        sys.stdout.flush()
+
+    stderr = process.communicate()[1]
+    if process.returncode != 0:
+        sys.stderr.write("[WARNING] command: {0} exited with code: {1}".format(
+            cmd, process.returncode
+        ))
     if stderr is not None:
-        print(stderr)
-    if stdout is not None:
-        print(stdout)
-    return p.returncode
+        sys.stderr.write(stderr)
+    return process.returncode
 
 
 def main():
