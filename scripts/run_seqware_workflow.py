@@ -273,7 +273,7 @@ def execute(cmd):
 
     stderr = process.communicate()[1]
     if process.returncode != 0:
-        sys.stderr.write("[WARNING] command: {0} exited with code: {1}".format(
+        sys.stderr.write("[WARNING] command: {0} exited with code: {1}\n".format(
             cmd, process.returncode
         ))
     if stderr is not None:
@@ -323,9 +323,9 @@ def main():
 
     # MOVE OUTPUT FILES TO THE OUTPUT DIRECTORY
     if os.path.isfile("{0}/merged_output.bam".format(results_dir)):
-        execute("mv {0}/merged_output.bam* {1}".format(
+        execute("mv {0}/merged_output.bam* {1}/".format(
             results_dir, output_dir))
-        execute("mv {0}/merged_output.unmapped.bam* {1}".format(
+        execute("mv {0}/merged_output.unmapped.bam* {1}/".format(
             results_dir, output_dir))
     else:
         sys.stderr.write(
