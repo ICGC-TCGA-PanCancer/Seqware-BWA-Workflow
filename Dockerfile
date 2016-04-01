@@ -24,13 +24,7 @@ COPY scripts/run_seqware_workflow.py /home/seqware/Seqware-BWA-Workflow/
 RUN chmod a+x /home/seqware/Seqware-BWA-Workflow/run_seqware_workflow.pl
 RUN chmod a+x /home/seqware/Seqware-BWA-Workflow/run_seqware_workflow.py
 
-RUN mkdir /output/
-
-RUN chown -R seqware /home/seqware
-RUN chown -R seqware /datastore/
-RUN chown -R seqware /output/
-
-USER seqware
+ENV SEQWARE_ROOT="root"
 WORKDIR /home/seqware/Seqware-BWA-Workflow/
 
 RUN mvn -B clean install

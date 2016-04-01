@@ -17,9 +17,19 @@ import shlex
 import subprocess
 import sys
 
-# set global variable for workflow version
+# set global variables
 global workflow_version
+global workflow_bundle
+global workflow_bundle_dir
 workflow_version = "2.6.7"
+workflow_bundle = "Workflow_Bundle_BWA"
+workflow_bundle_dir = "".join(
+    ["/home/seqware/Seqware-BWA-Workflow/target/",
+     workflow_bundle,
+     "_",
+     workflow_version,
+     "_SeqWare_1.1.1/"]
+)
 
 
 def collect_args():
@@ -122,12 +132,10 @@ def collect_args():
 
 
 def link_references(args):
-    dest = "".join(
-        ["/home/seqware/Seqware-BWA-Workflow/target/Workflow_Bundle_BWA_",
-         workflow_version,
-         "_SeqWare_1.1.1/Workflow_Bundle_BWA/",
-         workflow_version,
-         "/data/reference/bwa-0.6.2/"])
+    dest = os.path.join(workflow_bundle_dir,
+                        workflow_bundle,
+                        workflow_version,
+                        "/data/reference/bwa-0.6.2/")
 
     if not os.path.isdir(dest):
         execute("mkdir -p {0}".format(dest))
@@ -140,7 +148,7 @@ def link_references(args):
     execute("ls -lth {0}".format(dest))
 
 
-def write_ini(args, cwd):
+def write_ini(args, ini_outdir):
     if args.file_urls is None:
         # Local mode
         assert args.useGNOS == "false"
@@ -167,25 +175,86 @@ def write_ini(args, cwd):
     assert len(metadata_urls) == len(args.files)
     assert len(file_urls) == len(args.files)
 
-    output_dir = os.path.abspath(args.output_dir).split("/")[-1]
-    output_prefix = re.sub(output_dir, "", os.path.abspath(args.output_dir))
+    workflow_output_dir = os.path.abspath(args.output_dir).split("/")[-1]
+    output_prefix = re.sub(workflow_output_dir, "",
+                           os.path.abspath(args.output_dir))
 
-    ini_parts = ["useGNOS={0}".format(args.useGNOS),
-                 "use_gtdownload={0}".format(args.use_gtdownload),
-                 "use_gtupload={0}".format(args.use_gtupload),
-                 "use_gtvalidation={0}".format(args.use_gtvalidation),
-                 "download_reference_files={0}".format(args.download_refs),
-                 "cleanup={0}".format("false"),
-                 "input_bam_paths={0}".format(",".join(args.files)),
-                 "input_file_urls={0}".format(",".join(file_urls)),
-                 "gnos_input_metadata_urls={0}".format(",".join(metadata_urls)),
-                 "output_dir={0}".format(output_dir),
-                 "output_prefix={0}".format(output_prefix)]
+    ini_parts = ["input_bam_paths={}".format(",".join(args.files)),
+                 "input_file_urls={}".format(",".join(file_urls)),
+                 "download_reference_files={}".format(args.download_refs),
+                 "input_reference={}".format(
+                     os.path.join(workflow_bundle_dir,
+                                  workflow_bundle,
+                                  workflow_version,
+                                  "/data/reference/bwa-0.6.2/",
+                                  os.path.basename(args.reference_gz))
+                 ),
+                 # GNOS
+                 "useGNOS={}".format(args.useGNOS),
+                 "gnos_input_metadata_urls={}".format(",".join(metadata_urls)),
+                 "use_gtdownload={}".format(args.use_gtdownload),
+                 "use_gtupload={}".format(args.use_gtupload),
+                 "use_gtvalidation={}".format(args.use_gtvalidation),
+                 "gnos_timeout_min={}".format("6"),
+                 "skip_upload={}".format("true"),
+                 "gnos_key={}".format(
+                     os.path.join(workflow_bundle_dir,
+                                  workflow_bundle,
+                                  workflow_version,
+                                  "scripts/gnostest.pem")
+                 ),
+                 "gnos_max_children={}".format("8"),
+                 "gnos_rate_limit={}".format("200"),
+                 "gnos_timout={}".format("40"),
+                 # Output
+                 "cleanup={}".format("false"),
+                 "output_dir={}".format(workflow_output_dir),
+                 "output_prefix={}".format(output_prefix),
+                 "cleanup={}".format("false"),
+                 # PICARD
+                 "picardSortMem={}".format("4"),
+                 "picardSortJobMem={}".format("6"),
+                 "additionalPicardParams={}".format(""),
+                 # BWA
+                 "bwaAlignMemG={}".format("8"),
+                 "bwaSampeMemG={}".format("8"),
+                 "bwaSampeSortSamMemG={}".format("4"),
+                 "bwa_choice={}".format("mem"),
+                 "bwa_aln_params={}".format(""),
+                 "bwa_mem_params={}".format(""),
+                 "bwa_sampe_params={}".format(""),
+                 "maxInsertSize={}".format(""),
+                 "readGroup={}".format(""),
+                 # Threads - used for BWA, bamsort, bammarkduplicates
+                 "numOfThreads={}".format("8"),
+                 # Extract unmapped reads
+                 "unmappedReadsJobMemM={}".format("8000"),
+                 # Upload script
+                 "uploadScriptJobMem={}".format("3"),
+                 # GT Download
+                 "gtdownloadRetries={}".format("30"),
+                 "gtdownloadMd5time={}".format("120"),
+                 "gtdownloadMemG={}".format("8"),
+                 "gtdownloadWrapperType={}".format("timer_based"),
+                 # Misc
+                 "smallJobMemM={}".format("4000"),
+                 "study-refname-override={}".format("icgc_pancancer"),
+                 "analysisCenter={}".format("OICR"),
+                 # Slots
+                 "bwaAlignSlots={}".format("8"),
+                 "bwaSampleSlots={}".format("8"),
+                 "picardSortJobSlots={}".format("4"),
+                 "uploadScriptJobSlots={}".format("4"),
+                 "gtdownloadSlots={}".format("8"),
+                 "smallJobSlots={}".format("2"),
+                 "unmappedReadsJobMemSlots={}".format("4"),
+                 "unmappedReadsJobSlots={}".format("4")]
 
     ini = "\n".join(ini_parts)
-    ini_file = os.path.join(cwd, "workflow.ini")
-    with open(ini_file, 'wb') as f:
+    ini_filepath = os.path.join(ini_outdir, "workflow.ini")
+    with open(ini_filepath, 'wb') as f:
         f.write(ini)
+    return ini_filepath
 
 
 def execute(cmd):
@@ -228,20 +297,22 @@ def main():
         except AssertionError:
             raise AssertionError("If download-reference-files is 'false', all reference files must be explicitly provided")
 
-    cwd = os.getcwd()
-    print("Current Working Directory: {}".format(cwd))
-
     # PUT REF FILES IN THE RIGHT PLACE
     link_references(args)
 
+    output_dir = os.path.abspath(args.output_dir)
+    if not os.path.isdir(output_dir):
+        # Make the output directory if it does not exist
+        execute("mkdir -p {0}".format(output_dir))
+
     # WRITE WORKFLOW INI
-    write_ini(args=args, cwd=cwd)
+    ini_file = write_ini(args, output_dir)
 
     # RUN WORKFLOW
     cmd_parts = ["seqware bundle launch",
-                 "--dir /home/seqware/Seqware-BWA-Workflow/target/Workflow_Bundle_BWA_{0}_SeqWare_1.1.1".format(workflow_version),
+                 "--dir {}".format(workflow_bundle_dir),
                  "--engine whitestar",
-                 "--ini workflow.ini",
+                 "--ini {}".format(ini_file),
                  "--no-metadata"]
     cmd = " ".join(cmd_parts)
     execute(cmd)
@@ -250,18 +321,12 @@ def main():
     path = glob.glob("/datastore/oozie-*")[0]
     results_dir = os.path.join(path, "data")
 
-    if not os.path.isdir(args.output_dir):
-        # Need to use sudo since this is process is running as seqware        
-        execute("sudo mkdir -p {0}".format(args.output_dir))
-
     # MOVE OUTPUT FILES TO THE OUTPUT DIRECTORY
     if os.path.isfile("{0}/merged_output.bam".format(results_dir)):
-        # Ensure we can write to the output_dir
-        execute("sudo chown -R seqware {0}".format(args.output_dir))
         execute("mv {0}/merged_output.bam* {1}".format(
-            results_dir, args.output_dir))
+            results_dir, output_dir))
         execute("mv {0}/merged_output.unmapped.bam* {1}".format(
-            results_dir, args.output_dir))
+            results_dir, output_dir))
     else:
         sys.stderr.write(
             "[ERROR] Could not find output files in:\n{0}".format(results_dir))
