@@ -1,0 +1,55 @@
+{
+  "reads": [
+  {
+  "path":"https://s3.amazonaws.com/oicr.workflow.bundles/released-bundles/synthetic_bam_for_GNOS_upload/hg19.chr22.5x.normal.bam",
+  "class":"File"
+  },
+  {"path":"https://s3.amazonaws.com/oicr.workflow.bundles/released-bundles/synthetic_bam_for_GNOS_upload/hg19.chr22.5x.normal2.bam",
+  "class":"File"
+  }
+  ],
+  "reference_gz_amb": {
+    "path": "/home/ubuntu/gitroot/Seqware-BWA-Workflow/reference/genome.fa.gz.64.amb",
+    "class": "File"
+  },
+  "reference_gz_sa": {
+    "path": "/home/ubuntu/gitroot/Seqware-BWA-Workflow/reference/genome.fa.gz.64.sa",
+    "class": "File"
+  },
+  "reference_gz_pac": {
+    "path": "/home/ubuntu/gitroot/Seqware-BWA-Workflow/reference/genome.fa.gz.64.pac",
+    "class": "File"
+  },
+  "reference_gz_ann": {
+    "path": "/home/ubuntu/gitroot/Seqware-BWA-Workflow/reference/genome.fa.gz.64.ann",
+    "class": "File"
+  },
+  "reference_gz_bwt": {
+    "path": "/home/ubuntu/gitroot/Seqware-BWA-Workflow/reference/genome.fa.gz.64.bwt",
+    "class": "File"
+  },
+  "reference_gz_fai": {
+    "path": "/home/ubuntu/gitroot/Seqware-BWA-Workflow/reference/genome.fa.gz.fai",
+    "class": "File"
+  },
+  "reference_gz": {
+    "path": "/home/ubuntu/gitroot/Seqware-BWA-Workflow/reference/genome.fa.gz",
+    "class": "File"
+  },
+  "merged_output_unmapped_bai": {
+    "path": "/home/ubuntu/gitroot/Seqware-BWA-Workflow/outputs/merged_output.unmapped.bam.bai",
+    "class": "File"
+  },
+  "merged_output_bam": {
+    "path": "/home/ubuntu/gitroot/Seqware-BWA-Workflow/outputs/merged_output.bam",
+    "class": "File"
+  },
+  "merged_output_unmapped_bam": {
+    "path": "/home/ubuntu/gitroot/Seqware-BWA-Workflow/outputs/merged_output.unmapped.bam",
+    "class": "File"
+  },
+  "merged_output_bai": {
+    "path": "/home/ubuntu/gitroot/Seqware-BWA-Workflow/outputs/merged_output.bam.bai",
+    "class": "File"
+  }
+}
