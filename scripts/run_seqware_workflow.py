@@ -13,7 +13,6 @@ import argparse
 import glob
 import os
 import re
-import shlex
 import subprocess
 import sys
 
@@ -148,7 +147,7 @@ def link_references(args):
     execute("ls -lth {0}".format(dest))
 
 
-def write_ini(args, ini_outdir):
+def write_ini(args):
     if args.file_urls is None:
         # Local mode
         assert args.useGNOS == "false"
@@ -175,9 +174,9 @@ def write_ini(args, ini_outdir):
     assert len(metadata_urls) == len(args.files)
     assert len(file_urls) == len(args.files)
 
-    workflow_output_dir = os.path.abspath(args.output_dir).split("/")[-1]
-    output_prefix = re.sub(workflow_output_dir, "",
-                           os.path.abspath(args.output_dir))
+    outdir = os.path.abspath(args.output_dir)
+    workflow_output_dir = outdir.split("/")[-1]
+    output_prefix = re.sub(workflow_output_dir, "", outdir)
 
     ini_parts = ["input_bam_paths={}".format(",".join(args.files)),
                  "input_file_urls={}".format(",".join(file_urls)),
@@ -210,7 +209,6 @@ def write_ini(args, ini_outdir):
                  "cleanup={}".format("false"),
                  "output_dir={}".format(workflow_output_dir),
                  "output_prefix={}".format(output_prefix),
-                 "cleanup={}".format("false"),
                  # PICARD
                  "picardSortMem={}".format("4"),
                  "picardSortJobMem={}".format("6"),
@@ -251,7 +249,7 @@ def write_ini(args, ini_outdir):
                  "unmappedReadsJobSlots={}".format("4")]
 
     ini = "\n".join(ini_parts)
-    ini_filepath = os.path.join(ini_outdir, "workflow.ini")
+    ini_filepath = os.path.join(outdir, "workflow.ini")
     with open(ini_filepath, 'wb') as f:
         f.write(ini)
     return ini_filepath
@@ -259,8 +257,8 @@ def write_ini(args, ini_outdir):
 
 def execute(cmd):
     print("RUNNING...\n", cmd, "\n")
-    process = subprocess.Popen(shlex.split(cmd),
-                               shell=False,
+    process = subprocess.Popen(cmd,
+                               shell=True,
                                stdout=subprocess.PIPE,
                                stderr=subprocess.PIPE)
 
@@ -306,7 +304,7 @@ def main():
         execute("mkdir -p {0}".format(output_dir))
 
     # WRITE WORKFLOW INI
-    ini_file = write_ini(args, output_dir)
+    ini_file = write_ini(args)
 
     # RUN WORKFLOW
     cmd_parts = ["seqware bundle launch",
@@ -320,16 +318,8 @@ def main():
     # FIND OUTPUT
     path = glob.glob("/datastore/oozie-*")[0]
     results_dir = os.path.join(path, "data")
-
     # MOVE OUTPUT FILES TO THE OUTPUT DIRECTORY
-    if os.path.isfile("{0}/merged_output.bam".format(results_dir)):
-        execute("mv {0}/merged_output.bam* {1}/".format(
-            results_dir, output_dir))
-        execute("mv {0}/merged_output.unmapped.bam* {1}/".format(
-            results_dir, output_dir))
-    else:
-        sys.stderr.write(
-            "[ERROR] Could not find output files in:\n{0}".format(results_dir))
+    execute("mv {0}/* {1}/".format(results_dir, output_dir))
 
 
 if __name__ == "__main__":
