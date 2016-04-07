@@ -8,6 +8,7 @@ ICGC/TCGA PanCancer project.
 ## Release 2.6.8
 
 * changed the Quay.io repository used to quay.io/pancancer/pcawg-bwa-mem-workflow
+* improved documentation
 
 ## Release 2.6.7
 

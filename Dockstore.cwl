@@ -10,7 +10,14 @@ description: |
     [page](https://github.com/ICGC-TCGA-PanCancer) for our code including the source for
     [this workflow](https://github.com/ICGC-TCGA-PanCancer/Seqware-BWA-Workflow).
     ```
-    Usage: workflow-pcawg-bwa-alignment --file unaligned_bam [--file unaligned_bam]
+    Usage:
+    # fetch CWL
+    $> dockstore cwl --entry quay.io/pancancer/pcawg-bwa-mem-workflow:2.6.8 > Dockstore.cwl
+    # make a runtime JSON template and edit it
+    $> dockstore convert cwl2json --cwl Dockstore.cwl > Dockstore.json
+    # run it locally with the Dockstore CLI
+    $> dockstore launch --entry quay.io/pancancer/pcawg-bwa-mem-workflow:2.6.8 \
+        --json Dockstore.json
     ```
 
 dct:creator:
@@ -26,7 +33,7 @@ requirements:
       dockerPull: commonworkflowlanguage/nodejs-engine
     engineCommand: cwlNodeEngine.js
   - class: DockerRequirement
-    dockerPull: quay.io/collaboratory/seqware-bwa-workflow:2.6.8
+    dockerPull: quay.io/pancancer/pcawg-bwa-mem-workflow:2.6.8
 
 inputs:
   - id: "#reads"
