@@ -1,23 +1,40 @@
 [![Build Status](https://travis-ci.org/ICGC-TCGA-PanCancer/Seqware-BWA-Workflow.svg?branch=develop)](https://travis-ci.org/ICGC-TCGA-PanCancer/Seqware-BWA-Workflow)
-[![Docker Repository on Quay](https://quay.io/repository/collaboratory/seqware-bwa-workflow/status "Docker Repository on Quay")](https://quay.io/repository/collaboratory/seqware-bwa-workflow)
+[![Docker Repository on Quay](https://quay.io/repository/pancancer/pcawg-bwa-mem-workflow/status "Docker Repository on Quay")](https://quay.io/repository/pancancer/pcawg-bwa-mem-workflow)
 
-# SeqWare BWA Workflow
+# PCAWG BWA-Mem Workflow
 
 ## Overview
 
 This is the SeqWare workflow for the TCGA/ICGC PanCancer project that aligns
-whole genome sequences with BWA-Mem.  It also reads/writes to GNOS, the metadata/data
-repository system used in the project.
+whole genome sequences with BWA-Mem.  It also reads/writes to GNOS (optionally), the metadata/data
+repository system used in the project.  It can now be used in a standalone mode
+using the [Dockstore](http://dockstore.org) CLI.
 For more information about the workflow see the [CHANGELOG](CHANGELOG.md).
 
 For more information about the project overall see the
 [PanCancer wiki space](https://wiki.oicr.on.ca/display/PANCANCER/PANCANCER+Home).
 
-More detailed documentation about the production use of this workflow can be
-found in the [PanCancer-Info](https://github.com/ICGC-TCGA-PanCancer/pancancer-info)
-project where we maintain our production documentation and SOPs.
+## For Users
 
-## Building the Workflow
+### Running via Dockstore
+
+See the Dockstore [page](https://www.dockstore.org/containers/quay.io/pancancer/pcawg-bwa-mem-workflow) for this
+ workflow.  The idea is Dockstore links together the Dockstore.cwl descriptor (which tells you how to launch this workflow)
+ and the Docker image for this workflow (which contains the compiled workflow).  You can then use the `dockstore` command
+ line to easily find parameters, parameterize, and then run the workflow. For this workflow, the Docker image is hosted
+ and built on [quay.io](https://quay.io/repository/pancancer/pcawg-bwa-mem-workflow) and the [Dockstore.cwl](Dockstore.cwl)
+ is in GitHub.  We also provide a sample [Dockstore.json](Dockstore.json) which includes links for sample reference files
+ and input but *you need to update the output to write to an S3 bucket where you have access or a full, local file path*.
+
+    dockstore launch --entry quay.io/pancancer/pcawg-bwa-mem-workflow --json Dockstore.json
+
+This downloads the sample inputs and reference files from HTTP URLs to a local `datastore` working directory, runs the
+workflow, and uploads the results back to the location you specified in S3 (or local file path).  You can of course
+make a JSON that parameterizes everything with full, local file paths which will skip the file provisioning.
+
+## For Developers
+
+### Building the Workflow
 
 This workflow (like other SeqWare workflows) is built using Maven.  In the
 workflow directory (workflow-bwa-pancancer), execute the following:
@@ -27,51 +44,28 @@ workflow directory (workflow-bwa-pancancer), execute the following:
 This will take a long time on first build since it download dependencies from Maven
 and the reference genome which is 5GB+ in size.
 
-## Building the Worklfow Docker Image
+### Building the Worklfow Docker Image
 
 You can also build a Docker image that has the workflow ready to run in it.
 
-    docker build -t pancancer/pcawg-bwa-workflow:2.6.7 .
+    docker build --no-cache -t pancancer/pcawg-bwa-mem-workflow:2.6.8 .
 
-## Testing Locally via Docker
+### Testing Locally via Docker
 
 You can run the image and then run the workflow
 
-    docker run -ti --rm pancancer/pcawg-bwa-workflow:2.6.7 /bin/bash
-    seqware bundle launch --dir target/Workflow_Bundle_BWA_2.6.7_SeqWare_1.1.1/ --engine whitestar --no-metadata
+    docker run -ti --rm pancancer/pcawg-bwa-mem-workflow:2.6.8 /bin/bash
+    seqware bundle launch --dir target/Workflow_Bundle_BWA_2.6.8_SeqWare_1.1.1/ --engine whitestar --no-metadata
 
 To save time, if you have reference data handy, you can mount it into the container to save time. You can grab it from the links directory when running the test execution of the workflow like above.  
 
-    docker run -ti --rm -v /<your custom location>/links.bak:/home/seqware/Seqware-BWA-Workflow/links  pancancer/pcawg-bwa-workflow:2.6.7 /bin/bash
+    docker run -ti --rm -v /<your custom location>/links.bak:/home/seqware/Seqware-BWA-Workflow/links  pancancer/pcawg-bwa-mem-workflow:2.6.8 /bin/bash
 
-## Running via Dockstore
-
-See the Dockstore [page](https://www.dockstore.org/containers/quay.io/collaboratory/seqware-bwa-workflow) for this
- workflow.  The idea is Dockstore links together the Dockstore.cwl descriptor (which tells you how to launch this workflow)
- and the Docker image for this workflow (which contains the compiled workflow).  You can then use the `dockstore` command
- line to easily find parameters, parameterize, and then run the workflow. For this workflow, the Docker image is hosted
- and built on [quay.io](https://quay.io/repository/collaboratory/seqware-bwa-workflow) and the [Dockstore.cwl](Dockstore.cwl)
- is in GitHub.  We also provide a sample [Dockstore.json](Dockstore.json) which includes links for sample reference files
- and input but *you need to update the output to write to an S3 bucket where you have access*.
-
-    # this docker build needs to be tagged with whatever is mentioned in Dockstore.cwl!
-    docker build --no-cache -t quay.io/collaboratory/seqware-bwa-workflow:2.6.7 . 
-    dockstore launch --entry quay.io/collaboratory/seqware-bwa-workflow --json Dockstore.json
-
-This downloads the sample inputs and reference files from HTTP URLs to a local `datastore` working directory, runs the
-workflow, and uploads the results back to the location you specified in S3.
-
-Currently this process does not work with local file paths and files aren't cached so each run downloads the full reference and
-sample inputs.
 
 ## Installation & Running
 
-This is beyond the scope of this README.  Instead, you can see the SeqWare project pages for information on installing and running the workflow.  Briefly, you need a VM (local on VirtualBox, on a cloud like AWS, or a private cloud like OpenStack) to run this workflow.  We have pre-made VMs for Amazon and VirtualBox.  For other environments you can use [Bindle](https://github.com/CloudBindle/Bindle) to create a VM or cluster of VMs that are capable of running this workflow. See:
-
-* [Setting up a SeqWare VM or Running in a Cloud](http://seqware.github.io/docs/2-installation/)
-* [Testing, Installing, and Running a SeqWare Workflow](http://seqware.github.io/docs/3-getting-started/)
-
-Feel free to email our [mailing list](http://seqware.github.io/community/) if you have questions.
+This is beyond the scope of this README.  However, we recommend using the Docker-based workflow
+and run it using the Dockstore command line.
 
 ## Sample Data
 
