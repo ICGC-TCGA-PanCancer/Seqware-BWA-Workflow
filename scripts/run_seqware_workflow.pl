@@ -13,7 +13,7 @@ use Cwd;
 # is already setup to run in local file mode so I just really need to override
 # the inputs and outputs.
 # EXAMPLE:
-# perl /workflow/scripts/run_seqware_workflow.pl --file '${workflow_bundle_dir}/Workflow_Bundle_BWA/2.6.7/data/testData/sample_bam_sequence_synthetic_chr22_normal/9c414428-9446-11e3-86c1-ab5c73f0e08b/hg19.chr22.5x.normal.bam' --file '${workflow_bundle_dir}/Workflow_Bundle_BWA/2.6.7/data/testData/sample_bam_sequence_synthetic_chr22_normal/4fb18a5a-9504-11e3-8d90-d1f1d69ccc24/hg19.chr22.5x.normal2.bam'
+# perl /workflow/scripts/run_seqware_workflow.pl --file '${workflow_bundle_dir}/Workflow_Bundle_BWA/2.6.8/data/testData/sample_bam_sequence_synthetic_chr22_normal/9c414428-9446-11e3-86c1-ab5c73f0e08b/hg19.chr22.5x.normal.bam' --file '${workflow_bundle_dir}/Workflow_Bundle_BWA/2.6.8/data/testData/sample_bam_sequence_synthetic_chr22_normal/4fb18a5a-9504-11e3-8d90-d1f1d69ccc24/hg19.chr22.5x.normal2.bam'
 # TODO:
 # this is a very hard-coded script and assumes it's running inside the Docker container
 
@@ -22,7 +22,7 @@ my ($reference_gz, $reference_gz_fai, $reference_gz_amb, $reference_gz_ann, $ref
 my $cwd = cwd();
 
 # workflow version
-my $wfversion = "2.6.7";
+my $wfversion = "2.6.8";
 
 GetOptions (
   "file=s"   => \@files,

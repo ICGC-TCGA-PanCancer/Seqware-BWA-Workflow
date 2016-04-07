@@ -26,7 +26,7 @@ requirements:
       dockerPull: commonworkflowlanguage/nodejs-engine
     engineCommand: cwlNodeEngine.js
   - class: DockerRequirement
-    dockerPull: quay.io/collaboratory/seqware-bwa-workflow:2.6.7
+    dockerPull: quay.io/collaboratory/seqware-bwa-workflow:2.6.8
 
 inputs:
   - id: "#reads"
