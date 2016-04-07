@@ -5,6 +5,11 @@
 This is the changelog for the release of the BWA workflow used for the
 ICGC/TCGA PanCancer project.
 
+## Release 2.6.8
+
+* changed the Quay.io repository used to quay.io/pancancer/pcawg-bwa-mem-workflow
+* improved documentation
+
 ## Release 2.6.7
 
 * added ability to run the BWA workflow through the Dockstore process.  See the README for more details and an example command.
