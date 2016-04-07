@@ -5,6 +5,31 @@
 This is the changelog for the release of the BWA workflow used for the
 ICGC/TCGA PanCancer project.
 
+## Release 2.6.7
+
+* added ability to run the BWA workflow through the Dockstore process.  See the README for more details and an example command.
+
+## Release 2.6.6
+
+* Add ability to upload/download to/from AWS S3 instead of GNOS. To use this feture, added `useGNOS=false` to your INI file. `output_file_url` should be the path to the S3 bucket for upload, for example: `output_file_url=s3://bwa.test.download/` the uploaded files will be `s3://bwa.test.download/merged_output.bam` and `s3://bwa.test.download/merged_output.unmapped.bam`. The `gnos_input_file_url` should still be as `gnos_input_file_url=s3://bwa.test.download/4fb18a5a-9504-11e3-8d90-d1f1d69ccc24,s3://bwa.test.download/9c414428-9446-11e3-86c1-ab5c73f0e08b`, where `4fb18a5a-9504-11e3-8d90-d1f1d69ccc24` and `9c414428-9446-11e3-86c1-ab5c73f0e08b` are directories in the bucket `bwa.test.download`.
+* Fixed self-test mode.
+
+## Release 2.6.5
+
+* fixing bug with upload
+
+## Release 2.6.4
+
+* new upload download wrapper
+
+## Release 2.6.3
+
+* removing vcf-uploader now that it is in it own repository
+
+## Release 2.6.2
+
+* Debugging information for GTDownload
+
 ## Release 2.6.1
 
 * [PANCANCER-107](https://jira.oicr.on.ca/browse/PANCANCER-107) - Workflow: ensure we can control the maxmemory setting on the unaligned reads extraction steps (new ini param is unmappedReadsJobMemM). These are the only steps that did not have memory params in the ini in the previous version of the workflow.

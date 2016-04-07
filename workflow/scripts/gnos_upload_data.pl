@@ -48,7 +48,7 @@ my $skip_validate = 0;
 my $skip_upload = 0;
 # hardcoded
 my $seqware_version = "1.1.0-alpha.5";
-my $workflow_version = "2.6.5";
+my $workflow_version = "2.6.7";
 my $workflow_name = "Workflow_Bundle_BWA";
 # hardcoded
 my $workflow_src_url = "https://github.com/ICGC-TCGA-PanCancer/Seqware-BWA-Workflow/tree/$workflow_version";
@@ -163,18 +163,20 @@ sub upload_submission {
     my $cmd = "cgsubmit -s $upload_url -o $metadata_file -u $sub_path -vv -c $key";
 
     say "UPLOADING METADATA: $cmd";
-    return 0 if (!$test && run($cmd));
+    return 0 if ($test || run($cmd));
 
     # we need to hack the manifest.xml to drop any files that are inputs and I won't upload again
-    modify_manifest_file("$sub_path/manifest.xml", $sub_path);
-
+    if(!$test) {
+        modify_manifest_file("$sub_path/manifest.xml", $sub_path);
+    }
+    
     unless ( $skip_upload || $test ) {
         die "ABORT: No gtupload installed, aborting!" if ( system("which gtupload") );
         return 0 unless ( GNOS::Upload->run_upload($sub_path, $key, $retries, $cooldown )  );
     }
 
     # just touch this file to ensure monitoring tools know upload is complete
-    run_("date +\%s > $final_touch_file", $metadata_file);
+    run("date +\%s > $final_touch_file", $metadata_file);
 
     return 1;
 }
@@ -668,7 +670,7 @@ END
   </RUN_SET>
 END
 
-  open OUT, ">$output_dir/run.xml" or die;
+  open OUT, ">$output_dir/run.xml";
   print OUT $run_xml;
   close OUT;
 
