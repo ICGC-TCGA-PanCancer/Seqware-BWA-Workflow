@@ -36,7 +36,7 @@ task Seqware_BWA_Workflow {
     }
 
     runtime {
-        docker: 'seqware-bwa-workflow'
+        docker: 'quay.io/pancancer/pcawg-bwa-mem-workflow:2.6.8'
     }
 }
 

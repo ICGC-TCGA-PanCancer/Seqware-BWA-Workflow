@@ -49,7 +49,7 @@ my $skip_upload = 0;
 my $skip_download = 0;
 # hardcoded
 my $seqware_version = "1.1.1";
-my $workflow_version = "2.6.7";
+my $workflow_version = "2.6.8";
 my $workflow_name = "Workflow_Bundle_BWA";
 # hardcoded
 my $workflow_src_url = "https://github.com/ICGC-TCGA-PanCancer/Seqware-BWA-Workflow/tree/$workflow_version";
