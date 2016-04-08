@@ -20,7 +20,7 @@ import sys
 global workflow_version
 global workflow_bundle
 global workflow_bundle_dir
-workflow_version = "2.6.7"
+workflow_version = "2.6.8"
 workflow_bundle = "Workflow_Bundle_BWA"
 workflow_bundle_dir = "".join(
     ["/home/seqware/Seqware-BWA-Workflow/target/",
