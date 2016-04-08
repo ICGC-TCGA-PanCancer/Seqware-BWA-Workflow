@@ -52,6 +52,11 @@ def collect_args():
         default="/output/",
         help="directory in which to store the output of the workflow.")
     parser.add_argument(
+        "--output-file-basename",
+        dest="output_file_basename",
+        type=str,
+        help="all output files will have this basename")
+    parser.add_argument(
         "--file-urls",
         dest="file_urls",
         type=str,
@@ -318,8 +323,27 @@ def main():
     # FIND OUTPUT
     path = glob.glob("/datastore/oozie-*")[0]
     results_dir = os.path.join(path, "data")
-    # MOVE OUTPUT FILES TO THE OUTPUT DIRECTORY
-    execute("mv {0}/* {1}/".format(results_dir, output_dir))
+
+    # NAME & MOVE OUTPUT FILES
+    if args.output_file_basename is None:
+        output_file_basename = "_".join([os.path.basename(f) for f in args.files])
+    else:
+        output_file_basename = args.output_file_basename
+
+    # FIND ALL OUTPUT FILES
+    output_files = glob.glob(
+        os.path.join(results_dir, "merged_output*")
+    )
+
+    # RENAME OUTPUT FILES
+    for f in output_files:
+        new_f = output_file_basename
+        f_suffix = re.sub("merged_output", "", os.path.basename(f))
+        new_f += f_suffix
+        print(f, new_f)
+        execute(
+            "mv {0} {1}".format(f, os.path.join(output_dir, new_f))
+        )
 
 
 if __name__ == "__main__":
