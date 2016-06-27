@@ -46,8 +46,9 @@ my $upload_url = "";
 my $test = 0;
 my $skip_validate = 0;
 my $skip_upload = 0;
+my $skip_download = 0;
 # hardcoded
-my $seqware_version = "1.1.0-alpha.5";
+my $seqware_version = "1.1.1";
 my $workflow_version = "2.6.8";
 my $workflow_name = "Workflow_Bundle_BWA";
 # hardcoded
@@ -79,6 +80,7 @@ if (scalar(@ARGV) < 12 || scalar(@ARGV) > 25) {
        [--unmapped-reads-upload]
        [--skip-validate]
        [--skip-upload]
+       [--skip-download]
        [--retries <max-number-of-retries>]
        [--cooldown <minutes-waiting-for-download-to-be-active]
        [--test]\n"; }
@@ -94,6 +96,7 @@ GetOptions(
      "force-copy"                 => \$force_copy,
      "skip-validate"              => \$skip_validate,
      "skip-upload"                => \$skip_upload,
+     "skip-download"              => \$skip_download,
      "unmapped-reads-upload"      => \$unmapped_reads_upload,
      "study-refname-override=s"   => \$study_ref_name,
      "analysis-center-override=s" => \$analysis_center,
@@ -104,18 +107,17 @@ GetOptions(
 # setup output dir
 my $ug = Data::UUID->new;
 my $uuid = lc($ug->create_str());
-
 say $uuid;
-
 $output_dir = "$output_dir$uuid";
 run("mkdir -p $output_dir");
-
 my $final_touch_file = "$output_dir/upload_complete.txt";
+
 # md5sum
 my $bam_check = `cat $md5_file`;
 my $bai_check = `cat $bam.bai.md5`;
 chomp $bam_check;
 chomp $bai_check;
+
 if ($force_copy) {
   # rsync to destination
   run("rsync -rauv `pwd`/$bam $output_dir/$bam_check.bam && rsync -rauv `pwd`/$md5_file $output_dir/$bam_check.bam.md5 && rsync -rauv `pwd`/$bam.bai $output_dir/$bam_check.bam.bai && rsync -rauv `pwd`/$bam.bai.md5 $output_dir/$bam_check.bam.bai.md5");
@@ -162,21 +164,21 @@ sub upload_submission {
     my $metadata_file = "metadata_upload.$bam_check.log";
     my $cmd = "cgsubmit -s $upload_url -o $metadata_file -u $sub_path -vv -c $key";
 
-    say "UPLOADING METADATA: $cmd";
-    return 0 if ($test || run($cmd));
+		if ($skip_upload || $test) {
+				return 0;
+		}
+
+		say "UPLOADING METADATA: $cmd";
+    run($cmd);
 
     # we need to hack the manifest.xml to drop any files that are inputs and I won't upload again
-    if(!$test) {
-        modify_manifest_file("$sub_path/manifest.xml", $sub_path);
-    }
-    
-    unless ( $skip_upload || $test ) {
-        die "ABORT: No gtupload installed, aborting!" if ( system("which gtupload") );
-        return 0 unless ( GNOS::Upload->run_upload($sub_path, $key, $retries, $cooldown )  );
-    }
+		modify_manifest_file("$sub_path/manifest.xml", $sub_path);
+		
+		die "ABORT: No gtupload installed, aborting!" if ( system("which gtupload") );
+		return 0 unless (GNOS::Upload->run_upload($sub_path, $key, $retries, $cooldown));
 
-    # just touch this file to ensure monitoring tools know upload is complete
-    run("date +\%s > $final_touch_file", $metadata_file);
+		# just touch this file to ensure monitoring tools know upload is complete
+		run("date +\%s > $final_touch_file", $metadata_file);
 
     return 1;
 }
@@ -209,7 +211,7 @@ sub generate_submission {
   my $datetime = $t->datetime();
   # populate refcenter from original BAM submission
   # @RG CN:(.*)
-  my $refcenter = "OICR";
+  my $refcenter = "";
   # @CO sample_id
   my $sample_id = "";
   # capture list
@@ -274,8 +276,8 @@ sub generate_submission {
     my $index = 0;
     foreach my $bam_info (@{$m->{$file}{'run'}}) {
       if (exists($bam_info->{data_block_name}) && $bam_info->{data_block_name} ne '') {
-        #print Dumper($bam_info);
-        #print Dumper($m->{$file}{'file'}[$index]);
+        # print Dumper($bam_info);
+        # print Dumper($m->{$file}{'file'}[$index]);
         my $pi = {};
         $pi->{'input_info'}{'donor_id'} = $participant_id;
         $pi->{'input_info'}{'specimen_id'} = $sample_id;
@@ -300,7 +302,7 @@ sub generate_submission {
   }
   my $str = to_json($pi2);
   $global_attr->{"pipeline_input_info"}{$str} = 1;
-  #print Dumper($global_attr);
+  # print Dumper($global_attr);
 
   # FIXME: either custom needs to work or the reference needs to be listed in GNOS
   #<!--CUSTOM DESCRIPTION="hs37d" REFERENCE_SOURCE="ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/phase2_reference_assembly_sequence/README_human_reference_20110707"/-->
@@ -699,6 +701,10 @@ sub read_header {
 }
 
 sub download_metadata {
+	if ($skip_download) {
+			# TODO: Parse BAM header for relevant info?			
+	}
+
   my ($urls_str) = @_;
   my $metad = {};
   run("mkdir -p xml2");
