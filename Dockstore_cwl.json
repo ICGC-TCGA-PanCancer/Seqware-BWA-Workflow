@@ -8,6 +8,9 @@
   "class":"File"
   }
   ],
+  "output_dir": "/datastore/",
+  "output_file_basename": "hg19.chr22.5x.normal",
+  "download_reference_files": "true",
   "reference_gz_amb": {
     "path": "http://s3.amazonaws.com/pan-cancer-data/pan-cancer-reference/genome.fa.gz.64.amb",
     "class": "File"

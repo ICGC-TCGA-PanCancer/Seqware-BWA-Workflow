@@ -15,8 +15,8 @@ download("$link_dir/reference/bwa-0.6.2", "http://s3.amazonaws.com/pan-cancer-da
 download("$link_dir/reference/bwa-0.6.2", "http://s3.amazonaws.com/pan-cancer-data/pan-cancer-reference/genome.fa.gz.64.bwt");
 download("$link_dir/reference/bwa-0.6.2", "http://s3.amazonaws.com/pan-cancer-data/pan-cancer-reference/genome.fa.gz.64.pac");
 download("$link_dir/reference/bwa-0.6.2", "http://s3.amazonaws.com/pan-cancer-data/pan-cancer-reference/genome.fa.gz.64.sa");
-download("$link_dir/testData", "https://s3.amazonaws.com/oicr.workflow.bundles/released-bundles/synthetic_bam_for_GNOS_upload/sample_bam_sequence_synthetic_chr22_normal.tar.gz");
-system("tar zxf $link_dir/testData/sample_bam_sequence_synthetic_chr22_normal.tar.gz -C $link_dir/testData/");
+# download("$link_dir/testData", "https://s3.amazonaws.com/oicr.workflow.bundles/released-bundles/synthetic_bam_for_GNOS_upload/sample_bam_sequence_synthetic_chr22_normal.tar.gz");
+# system("tar zxf $link_dir/testData/sample_bam_sequence_synthetic_chr22_normal.tar.gz -C $link_dir/testData/");
 
 sub download {
   my ($dir, $url) = @_;
@@ -45,7 +45,9 @@ sub download {
         die ("+SECOND DOWNLOAD FAILED! GIVING UP!\n");
       }
     }
-  }
+  } else {
+			print "\n$file FOUND LOCALLY - SKIPPING DOWNLOAD\n"
+	}
 }
 
 sub check_tools {
