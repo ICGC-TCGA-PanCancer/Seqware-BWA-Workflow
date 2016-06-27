@@ -7,14 +7,14 @@ task Seqware_BWA_Workflow {
     File reference_gz_bwt
     File reference_gz_pac
     File reference_gz_sa
-		String output_dir
+    String output_dir
     String output_file_basename
     String download_reference_files
 
     command {
         python /home/seqware/Seqware-BWA-Workflow/run_seqware_workflow.py \
         --files ${sep=' ' reads} \
-				--output-dir ${output_dir} \
+        --output-dir ${output_dir} \
         --output-file-basename ${output_file_basename} \
         --download-reference-files ${download_reference_files} \
         --reference-gz ${reference_gz} \
