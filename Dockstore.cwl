@@ -42,7 +42,7 @@ inputs:
       items: File
     inputBinding:
       position: 1
-      prefix: "--file"
+      prefix: "--files"
 
   - id: "#reference_gz"
     type: File
@@ -93,22 +93,51 @@ inputs:
       position: 8
       prefix: "--reference-gz-sa"
 
+  - id: "#output_dir"
+    type: string
+    description: 'the output directory'
+    inputBinding:
+      position: 9
+      prefix: "--output-dir"
+
+  - id: "#output_file_basename"
+    type: string
+    description: 'the basename to use for output files'
+    inputBinding:
+      position: 10
+      prefix: "--output-file-basename"
+
+  - id: "#download_reference_files"
+    type: string
+    description: 'should we attempt to download the reference files ["true", "false"]'
+    inputBinding:
+      position: 11
+      prefix: "--download-reference-files"
+
 outputs:
   - id: "#merged_output_bam"
     type: File
     outputBinding:
-      glob: "merged_output.bam"
+      glob: $(inputs.output_dir) + "/" + $(inputs.output_file_basename) + ".bam"
   - id: "#merged_output_bai"
     type: File
     outputBinding:
-      glob: "merged_output.bam.bai"
+      glob: $(inputs.output_dir) + "/" + $(inputs.output_file_basename) + ".bam.bai"
+  - id: "#merged_output_metrics"
+    type: File
+    outputBinding:
+      glob: $(inputs.output_dir) + "/" + $(inputs.output_file_basename) + ".bam.metrics"
   - id: "#merged_output_unmapped_bam"
     type: File
     outputBinding:
-      glob: "merged_output.unmapped.bam"
+      glob: $(inputs.output_dir) + "/" + $(inputs.output_file_basename) + ".unmapped.bam"
   - id: "#merged_output_unmapped_bai"
     type: File
     outputBinding:
-      glob: "merged_output.unmapped.bam.bai"
+      glob: $(inputs.output_dir) + "/" + $(inputs.output_file_basename) + ".unmapped.bam.bai"
+  - id: "#merged_output_unmapped_metrics"
+    type: File
+    outputBinding:
+      glob: $(inputs.output_dir) + "/" + $(inputs.output_file_basename) + ".unmapped.bam.metrics"
 
-baseCommand: ["perl", "/home/seqware/Seqware-BWA-Workflow/run_seqware_workflow.pl"]
+baseCommand: ["python", "/home/seqware/Seqware-BWA-Workflow/run_seqware_workflow.py"]
