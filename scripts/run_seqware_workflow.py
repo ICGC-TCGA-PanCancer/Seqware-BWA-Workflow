@@ -275,13 +275,16 @@ def execute(cmd):
         sys.stdout.flush()
 
     stderr = process.communicate()[1]
+
     if process.returncode != 0:
-        sys.stderr.write("[WARNING] command: {0} exited with code: {1}\n".format(
-            cmd, process.returncode
-        ))
-    if stderr is not None:
-        sys.stderr.write(stderr)
-    return process.returncode
+        print(
+            "[ERROR] command:", cmd, "exited with code:", process.returncode,
+            file=sys.stderr
+        )
+        print(stderr, file=sys.stderr)
+        raise
+    else:
+        return process.returncode
 
 
 def main():
@@ -326,7 +329,15 @@ def main():
 
     # NAME & MOVE OUTPUT FILES
     if args.output_file_basename is None:
-        output_file_basename = "_".join([os.path.basename(f) for f in args.files])
+        basenames = []
+        for f in args.files:
+            basenames.append(
+                re.sub("[_]?unaligned[_]?|\.bam$", "", os.path.basename(f))
+            )
+        if basenames.count(basenames[0]) == len(basenames):
+            output_file_basename = basenames[0]
+        else:
+            output_file_basename = "_".join(basenames)
     else:
         output_file_basename = args.output_file_basename
 
