@@ -33,7 +33,7 @@ requirements:
       dockerPull: commonworkflowlanguage/nodejs-engine
     engineCommand: cwlNodeEngine.js
   - class: DockerRequirement
-    dockerPull: quay.io/pancancer/pcawg-bwa-mem-workflow:2.6.8
+    dockerPull: quay.io/pancancer/pcawg-bwa-mem-workflow:2.6.8-cwl1
 
 inputs:
   - id: "#reads"
