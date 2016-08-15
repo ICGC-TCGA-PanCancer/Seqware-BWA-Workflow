@@ -20,18 +20,14 @@ description: |
         --json Dockstore.json
     ```
 
+cwlVersion: draft-3
+
 dct:creator:
   "@id": "http://orcid.org/0000-0002-7681-6415"
   foaf:name: "Brian O'Connor"
   foaf:mbox: "mailto:briandoconnor@gmail.com"
 
 requirements:
-  - class: ExpressionEngineRequirement
-    id: "#node-engine"
-    requirements:
-    - class: DockerRequirement
-      dockerPull: commonworkflowlanguage/nodejs-engine
-    engineCommand: cwlNodeEngine.js
   - class: DockerRequirement
     dockerPull: quay.io/pancancer/pcawg-bwa-mem-workflow:2.6.8-cwl1
 
