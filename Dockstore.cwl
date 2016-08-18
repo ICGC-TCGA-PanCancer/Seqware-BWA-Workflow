@@ -11,7 +11,8 @@ dct:creator:
   foaf:mbox: mailto:briandoconnor@gmail.com
 requirements:
 - class: DockerRequirement
-  dockerPull: quay.io/pancancer/pcawg-bwa-mem-workflow:2.6.8-cwl1
+  dockerPull: quay.io/pancancer/pcawg-bwa-mem-workflow:feature_cwl1
+- class: InlineJavascriptRequirement
 
 inputs:
   output_file_basename:
@@ -85,42 +86,31 @@ outputs:
   merged_output_bai:
     type: File
     outputBinding:
-      glob: $(inputs.output_dir) + "/" + $(inputs.output_file_basename) + ".bam.bai"
+      glob: $(inputs.output_dir + '/' + inputs.output_file_basename + '.bam.bai')
   merged_output_unmapped_metrics:
     type: File
     outputBinding:
-      glob: $(inputs.output_dir) + "/" + $(inputs.output_file_basename) + ".unmapped.bam.metrics"
+      glob: $(inputs.output_dir + '/' + inputs.output_file_basename + '.unmapped.bam.metrics')
 
   merged_output_bam:
     type: File
     outputBinding:
-      glob: $(inputs.output_dir) + "/" + $(inputs.output_file_basename) + ".bam"
+      glob: $(inputs.output_dir + '/' + inputs.output_file_basename + '.bam')
   merged_output_metrics:
     type: File
     outputBinding:
-      glob: $(inputs.output_dir) + "/" + $(inputs.output_file_basename) + ".bam.metrics"
+      glob: $(inputs.output_dir + '/' + inputs.output_file_basename + '.bam.metrics')
   merged_output_unmapped_bai:
     type: File
     outputBinding:
-      glob: $(inputs.output_dir) + "/" + $(inputs.output_file_basename) + ".unmapped.bam.bai"
+      glob: $(inputs.output_dir + '/' + inputs.output_file_basename + '.unmapped.bam.bai')
   merged_output_unmapped_bam:
     type: File
     outputBinding:
-      glob: $(inputs.output_dir) + "/" + $(inputs.output_file_basename) + ".unmapped.bam"
+      glob: $(inputs.output_dir + '/' + inputs.output_file_basename + '.unmapped.bam')
 baseCommand: [python, /home/seqware/Seqware-BWA-Workflow/run_seqware_workflow.py]
 doc: |
   The BWA-Mem workflow from the ICGC PanCancer Analysis of Whole Genomes (PCAWG) project.
   For more information see the PCAWG project [page](https://dcc.icgc.org/pcawg) and our GitHub
   [page](https://github.com/ICGC-TCGA-PanCancer) for our code including the source for
   [this workflow](https://github.com/ICGC-TCGA-PanCancer/Seqware-BWA-Workflow).
-  ```
-  Usage:
-  # fetch CWL
-  $> dockstore cwl --entry quay.io/pancancer/pcawg-bwa-mem-workflow:2.6.8 > Dockstore.cwl
-  # make a runtime JSON template and edit it
-  $> dockstore convert cwl2json --cwl Dockstore.cwl > Dockstore.json
-  # run it locally with the Dockstore CLI
-  $> dockstore launch --entry quay.io/pancancer/pcawg-bwa-mem-workflow:2.6.8 \
-      --json Dockstore.json
-  ```
-

@@ -1,5 +1,25 @@
-sudo: false
+sudo: required 
 language: java
 jdk:
   - oraclejdk7
 script: mvn -B clean install
+
+services:
+  - docker
+
+notifications:
+  slack: 
+    on_success: never
+    on_failure: always
+    rooms:
+      - oicr:S9k4EowgQv9AnbCfEZHSzCsg
+
+before_install:
+  - docker build -t quay.io/pancancer/pcawg-bwa-mem-workflow:feature_cwl1 .
+  - pip2.7 install --user setuptools==24.0.3
+
+install: 
+  - pip2.7 install --user cwl-runner cwltool==1.0.20160712154127 schema-salad==1.14.20160708181155 avro==1.8.1
+
+script: 
+  - cwltool --non-strict Dockstore.cwl Dockstore_cwl.json

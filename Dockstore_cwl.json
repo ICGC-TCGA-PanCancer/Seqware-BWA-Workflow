@@ -8,7 +8,7 @@
   "class":"File"
   }
   ],
-  "output_dir": "/datastore/",
+  "output_dir": "datastore",
   "output_file_basename": "hg19.chr22.5x.normal",
   "download_reference_files": "true",
   "reference_gz_amb": {
