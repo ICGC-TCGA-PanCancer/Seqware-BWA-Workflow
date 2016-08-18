@@ -22,4 +22,5 @@ install:
   - pip2.7 install --user cwl-runner cwltool==1.0.20160712154127 schema-salad==1.14.20160708181155 avro==1.8.1
 
 script: 
-  - cwltool --non-strict Dockstore.cwl Dockstore_cwl.json
+  - cwltool --non-strict --print-pre Dockstore.cwl
+# cannot run, proper run would take too long - cwltool --non-strict Dockstore.cwl Dockstore_cwl.json
