@@ -32,6 +32,25 @@ This downloads the sample inputs and reference files from HTTP URLs to a local `
 workflow, and uploads the results back to the location you specified in S3 (or local file path).  You can of course
 make a JSON that parameterizes everything with full, local file paths which will skip the file provisioning.
 
+The last successful test was with the following dependencies and command-line:
+
+```
+$ git branch
+  develop
+* feature/cwl1
+$ dockstore tool launch  --entry Dockstore.cwl --local-entry --json Dockstore_cwl.json
+```
+
+Versions that we tested with are the following 
+```
+avro (1.8.1)
+cwl-runner (1.0)
+cwl-upgrader (0.1.1)
+cwltool (1.0.20160712154127)
+schema-salad (1.14.20160708181155)
+setuptools (25.1.6)
+```
+
 ## For Developers
 
 ### Building the Workflow

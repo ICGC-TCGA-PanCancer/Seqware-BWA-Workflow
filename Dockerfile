@@ -32,5 +32,11 @@ RUN mvn -B clean install
 VOLUME /output/
 VOLUME /datastore/
 VOLUME /home/seqware
+VOLUME /data
+VOLUME /data/reference
+VOLUME /data/reference/bwa-0.6.2/
+
+RUN chmod -R a+wrx /data
+RUN chown -R seqware /data
 
 CMD /bin/bash
