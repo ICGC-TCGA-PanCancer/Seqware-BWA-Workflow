@@ -11,7 +11,7 @@ dct:creator:
   foaf:mbox: mailto:briandoconnor@gmail.com
 requirements:
 - class: DockerRequirement
-  dockerPull: quay.io/pancancer/pcawg-bwa-mem-workflow:feature_cwl1
+  dockerPull: quay.io/pancancer/pcawg-bwa-mem-workflow:2.6.8-cwl1
 - class: InlineJavascriptRequirement
 
 inputs:
