@@ -15,6 +15,7 @@ import os
 import re
 import subprocess
 import sys
+import tempfile
 
 # set global variables
 global workflow_version
@@ -266,32 +267,33 @@ def write_ini(args):
         f.write(ini)
     return ini_filepath
 
-
 def execute(cmd):
     print("RUNNING...\n", cmd, "\n")
-    process = subprocess.Popen(cmd,
+    with tempfile.NamedTemporaryFile() as errfile:
+        process = subprocess.Popen(cmd,
                                shell=True,
                                stdout=subprocess.PIPE,
-                               stderr=subprocess.PIPE)
+                               stderr=errfile)
 
-    while True:
-        nextline = process.stdout.readline()
-        if nextline == '' and process.poll() is not None:
-            break
-        sys.stdout.write(nextline)
-        sys.stdout.flush()
+        while True:
+            nextline = process.stdout.readline()
+            if nextline == '' and process.poll() is not None:
+                break
+            sys.stdout.write(nextline)
+            sys.stdout.flush()
 
-    stderr = process.communicate()[1]
+        stderr = process.communicate()[1]
 
-    if process.returncode != 0:
-        print(
-            "[ERROR] command:", cmd, "exited with code:", process.returncode,
-            file=sys.stderr
-        )
-        print(stderr, file=sys.stderr)
-        raise
-    else:
-        return process.returncode
+        if process.returncode != 0:
+            print(
+                "[ERROR] command:", cmd, "exited with code:", process.returncode,
+                file=sys.stderr
+            )
+            print(stderr, file=sys.stderr)
+            raise
+        else:
+            return process.returncode
+
 
 
 def main():
