@@ -16,7 +16,7 @@ dct:contributor:
 
 requirements:
 - class: DockerRequirement
-  dockerPull: quay.io/pancancer/pcawg-bwa-mem-workflow:feature_hanging_fix
+  dockerPull: quay.io/pancancer/pcawg-bwa-mem-workflow:2.6.8_1.1
 - class: InlineJavascriptRequirement
 
 inputs:
