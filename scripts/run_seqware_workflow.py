@@ -151,12 +151,12 @@ def link_references(args):
                         "/data/reference/bwa-0.6.2/")
 
     if not os.path.isdir(dest):
-        execute("mkdir -p {0}".format(dest))
+        execute("gosu root mkdir -p {0}".format(dest))
 
     # symlink reference files to dest
     for key, val, in vars(args).iteritems():
         if val is not None and re.match("reference", key):
-            execute("ln -s {0} {1}".format(os.path.abspath(val), dest))
+            execute("gosu root ln -s {0} {1}".format(os.path.abspath(val), dest))
 
     execute("ls -lth {0}".format(dest))
 
