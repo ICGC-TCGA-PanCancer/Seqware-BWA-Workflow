@@ -140,7 +140,8 @@ def link_references(args):
     execute("gosu root chown -R seqware /data")
     execute("gosu root chown -R seqware /home/seqware")
     execute("gosu root chmod -R a+wrx /home/seqware");
-    execute("gosu root mkdir -p /var/spool/cwl/.seqware && sudo chown -R seqware /var/spool/cwl/");
+    execute("gosu root mkdir -p /var/spool/cwl/.seqware");
+    execute("gosu root chown -R seqware /var/spool/cwl/");
     execute("gosu root cp /home/seqware/.seqware/settings /var/spool/cwl/.seqware");
     execute("gosu root chmod a+wrx /var/spool/cwl/.seqware/settings");
     execute("perl -pi -e 's/wrench.res/seqwaremaven/g' /home/seqware/bin/seqware");
