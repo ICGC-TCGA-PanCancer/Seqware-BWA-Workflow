@@ -137,6 +137,9 @@ def collect_args():
 
 
 def link_references(args):
+    execute("export TMPDIR=/tmp")
+    execute("export HOME=/var/spool/cwl")
+    execute("whoami")
     execute("gosu root chown -R seqware /data")
     execute("gosu root chown -R seqware /home/seqware")
     execute("gosu root chmod -R a+wrx /home/seqware");
@@ -151,12 +154,12 @@ def link_references(args):
                         "/data/reference/bwa-0.6.2/")
 
     if not os.path.isdir(dest):
-        execute("gosu root mkdir -p {0}".format(dest))
+        execute("mkdir -p {0}".format(dest))
 
     # symlink reference files to dest
     for key, val, in vars(args).iteritems():
         if val is not None and re.match("reference", key):
-            execute("gosu root ln -s {0} {1}".format(os.path.abspath(val), dest))
+            execute("ln -s {0} {1}".format(os.path.abspath(val), dest))
 
     execute("ls -lth {0}".format(dest))
 

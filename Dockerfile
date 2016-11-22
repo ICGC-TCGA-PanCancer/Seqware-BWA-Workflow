@@ -10,34 +10,23 @@ FROM pancancer/seqware_whitestar_pancancer:1.1.2
 MAINTAINER "Brian O'Connor <briandoconnor@gmail.com>"
 
 USER root
-RUN apt-get -m update
-
-RUN apt-get install -y apt-utils tar git curl nano wget dialog net-tools build-essential time tabix
+RUN apt-get -m update && apt-get install -y apt-utils tar git curl nano wget dialog net-tools build-essential time tabix
 
 COPY src /home/seqware/Seqware-BWA-Workflow/src
 COPY workflow /home/seqware/Seqware-BWA-Workflow/workflow
 COPY pom.xml /home/seqware/Seqware-BWA-Workflow/
 COPY workflow.properties /home/seqware/Seqware-BWA-Workflow/
-COPY scripts/run_seqware_workflow.pl /home/seqware/Seqware-BWA-Workflow/
-COPY scripts/run_seqware_workflow.py /home/seqware/Seqware-BWA-Workflow/
-
-RUN chmod a+x /home/seqware/Seqware-BWA-Workflow/run_seqware_workflow.pl
-RUN chmod a+x /home/seqware/Seqware-BWA-Workflow/run_seqware_workflow.py
+#COPY scripts/run_seqware_workflow.pl /home/seqware/Seqware-BWA-Workflow/
+#RUN chmod a+x /home/seqware/Seqware-BWA-Workflow/run_seqware_workflow.pl
 
 ENV SEQWARE_ROOT="root"
 WORKDIR /home/seqware/Seqware-BWA-Workflow/
 
 RUN mvn -B clean install
 
-VOLUME /output/
-VOLUME /datastore/
-VOLUME /home/seqware
-VOLUME /data
-VOLUME /data/reference
-VOLUME /data/reference/bwa-0.6.2/
+VOLUME /output/ /datastore/ /home/seqware /data /data/reference /data/reference/bwa-0.6.2/
 
-RUN chmod -R a+wrx /data
-RUN chown -R seqware /data
+RUN chmod -R a+wrx /data && chown -R seqware /data
 
 # install gosu as an alternative to sudo
 
@@ -54,7 +43,12 @@ RUN set -x \
     && chmod +x /usr/local/bin/gosu \
     && gosu nobody true
 
-# warning: this gives all future users, unknown and known the ability to gosu
-RUN chown root:users /usr/local/bin/gosu && chmod +s /usr/local/bin/gosu
+COPY scripts/run_seqware_workflow.py /home/seqware/Seqware-BWA-Workflow/
 
-CMD /bin/bash
+# warning: this gives all future users, unknown and known the ability to gosu
+ADD scripts/start.sh /start.sh
+RUN chown root:users /usr/local/bin/gosu && chmod +s /usr/local/bin/gosu \
+    && chmod a+rx /start.sh \
+    && chmod a+x /home/seqware/Seqware-BWA-Workflow/run_seqware_workflow.py
+
+#CMD gosu seqware /bin/bash 
