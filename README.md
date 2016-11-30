@@ -90,20 +90,20 @@ and run it using the Dockstore command line.
 
 Some synthetic sample data.
 
-* https://dcc.icgc.org/api/v1/download?fn=/PCAWG/reference_data/synthetic_bam_for_GNOS_upload/hg19.chr22.5x.normal.bam
-* https://dcc.icgc.org/api/v1/download?fn=/PCAWG/reference_data/synthetic_bam_for_GNOS_upload/hg19.chr22.5x.normal2.bam
+* https://dcc.icgc.org/api/v1/download?fn=/PCAWG/reference_data/data_for_testing/hg19.chr22.5x.normal.bam
+* https://dcc.icgc.org/api/v1/download?fn=/PCAWG/reference_data/data_for_testing/hg19.chr22.5x.normal2.bam
 
 ## Reference Data
 
 We use a specific reference based on GRCh37.
 
-* https://dcc.icgc.org/api/v1/download?fn=/PCAWG/reference_data/pan-cancer-data/pan-cancer-reference/genome.fa.gz
-* https://dcc.icgc.org/api/v1/download?fn=/PCAWG/reference_data/pan-cancer-data/pan-cancer-reference/genome.fa.gz.fai
-* https://dcc.icgc.org/api/v1/download?fn=/PCAWG/reference_data/pan-cancer-data/pan-cancer-reference/genome.fa.gz.64.amb
-* https://dcc.icgc.org/api/v1/download?fn=/PCAWG/reference_data/pan-cancer-data/pan-cancer-reference/genome.fa.gz.64.ann
-* https://dcc.icgc.org/api/v1/download?fn=/PCAWG/reference_data/pan-cancer-data/pan-cancer-reference/genome.fa.gz.64.bwt
-* https://dcc.icgc.org/api/v1/download?fn=/PCAWG/reference_data/pan-cancer-data/pan-cancer-reference/genome.fa.gz.64.pac
-* https://dcc.icgc.org/api/v1/download?fn=/PCAWG/reference_data/pan-cancer-data/pan-cancer-reference/genome.fa.gz.64.sa
+* https://dcc.icgc.org/api/v1/download?fn=/PCAWG/reference_data/pcawg-bwa-mem/genome.fa.gz
+* https://dcc.icgc.org/api/v1/download?fn=/PCAWG/reference_data/pcawg-bwa-mem/genome.fa.gz.fai
+* https://dcc.icgc.org/api/v1/download?fn=/PCAWG/reference_data/pcawg-bwa-mem/genome.fa.gz.64.amb
+* https://dcc.icgc.org/api/v1/download?fn=/PCAWG/reference_data/pcawg-bwa-mem/genome.fa.gz.64.ann
+* https://dcc.icgc.org/api/v1/download?fn=/PCAWG/reference_data/pcawg-bwa-mem/genome.fa.gz.64.bwt
+* https://dcc.icgc.org/api/v1/download?fn=/PCAWG/reference_data/pcawg-bwa-mem/genome.fa.gz.64.pac
+* https://dcc.icgc.org/api/v1/download?fn=/PCAWG/reference_data/pcawg-bwa-mem/genome.fa.gz.64.sa
 
 ## Authors
 
