@@ -16,7 +16,7 @@ dct:contributor:
 
 requirements:
 - class: DockerRequirement
-  dockerPull: quay.io/pancancer/pcawg-bwa-mem-workflow:2.6.8_1.1
+  dockerPull: quay.io/pancancer/pcawg-bwa-mem-workflow:2.6.8_1.2
 - class: InlineJavascriptRequirement
 
 inputs:
@@ -113,7 +113,7 @@ outputs:
     type: File
     outputBinding:
       glob: $(inputs.output_dir + '/' + inputs.output_file_basename + '.unmapped.bam')
-baseCommand: [python, /home/seqware/Seqware-BWA-Workflow/run_seqware_workflow.py]
+baseCommand: [/start.sh , python, /home/seqware/Seqware-BWA-Workflow/run_seqware_workflow.py]
 doc: |
   The BWA-Mem workflow from the ICGC PanCancer Analysis of Whole Genomes (PCAWG) project.
   For more information see the PCAWG project [page](https://dcc.icgc.org/pcawg) and our GitHub
