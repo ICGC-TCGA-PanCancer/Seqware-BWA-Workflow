@@ -1,0 +1,58 @@
+{
+  "reads": [
+  {
+  "path":"https://dcc.icgc.org/api/v1/download?fn=/PCAWG/reference_data/data_for_testing/hg19.chr22.5x.normal.bam",
+  "class":"File"
+  },
+  {"path":"https://dcc.icgc.org/api/v1/download?fn=/PCAWG/reference_data/data_for_testing/hg19.chr22.5x.normal2.bam",
+  "class":"File"
+  }
+  ],
+  "output_dir": "datastore",
+  "output_file_basename": "hg19.chr22.5x.normal",
+  "download_reference_files": "true",
+  "reference_gz_amb": {
+    "path": "https://dcc.icgc.org/api/v1/download?fn=/PCAWG/reference_data/pcawg-bwa-mem/genome.fa.gz.64.amb",
+    "class": "File"
+  },
+  "reference_gz_sa": {
+    "path": "https://dcc.icgc.org/api/v1/download?fn=/PCAWG/reference_data/pcawg-bwa-mem/genome.fa.gz.64.sa",
+    "class": "File"
+  },
+  "reference_gz_pac": {
+    "path": "https://dcc.icgc.org/api/v1/download?fn=/PCAWG/reference_data/pcawg-bwa-mem/genome.fa.gz.64.pac",
+    "class": "File"
+  },
+  "reference_gz_ann": {
+    "path": "https://dcc.icgc.org/api/v1/download?fn=/PCAWG/reference_data/pcawg-bwa-mem/genome.fa.gz.64.ann",
+    "class": "File"
+  },
+  "reference_gz_bwt": {
+    "path": "https://dcc.icgc.org/api/v1/download?fn=/PCAWG/reference_data/pcawg-bwa-mem/genome.fa.gz.64.bwt",
+    "class": "File"
+  },
+  "reference_gz_fai": {
+    "path": "https://dcc.icgc.org/api/v1/download?fn=/PCAWG/reference_data/pcawg-bwa-mem/genome.fa.gz.fai",
+    "class": "File"
+  },
+  "reference_gz": {
+    "path": "https://dcc.icgc.org/api/v1/download?fn=/PCAWG/reference_data/pcawg-bwa-mem/genome.fa.gz",
+    "class": "File"
+  },
+  "merged_output_unmapped_bai": {
+    "path": "/mnt/output/testing-bwa-workflow/merged_output.unmapped.bam.bai",
+    "class": "File"
+  },
+  "merged_output_bam": {
+    "path": "/mnt/output/testing-bwa-workflow/merged_output.bam",
+    "class": "File"
+  },
+  "merged_output_unmapped_bam": {
+    "path": "/mnt/output/testing-bwa-workflow/merged_output.unmapped.bam",
+    "class": "File"
+  },
+  "merged_output_bai": {
+    "path": "/mnt/output/testing-bwa-workflow/merged_output.bam.bai",
+    "class": "File"
+  }
+}
