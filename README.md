@@ -6,7 +6,9 @@
 ## Overview
 
 This is the SeqWare workflow for the TCGA/ICGC PanCancer project that aligns
-whole genome sequences with BWA-Mem.  It also reads/writes to GNOS (optionally), the metadata/data
+whole genome sequences with BWA-Mem. It uses version 0.7.8-r455 of bwa mem from version 1.1.1 of PCAP-core.
+It also uses 0.6.2-r126 of bwa for "bwa aln".
+It also reads/writes to GNOS (optionally), the metadata/data
 repository system used in the project.  It can now be used in a standalone mode
 using the [Dockstore](http://dockstore.org) CLI.
 For more information about the workflow see the [CHANGELOG](CHANGELOG.md).
@@ -63,7 +65,7 @@ workflow directory (workflow-bwa-pancancer), execute the following:
 This will take a long time on first build since it download dependencies from Maven
 and the reference genome which is 5GB+ in size.
 
-### Building the Worklfow Docker Image
+### Building the Workflow Docker Image
 
 You can also build a Docker image that has the workflow ready to run in it.
 
