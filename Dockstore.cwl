@@ -120,6 +120,7 @@ doc: |
     with BioBAMBAM (https://github.com/gt1/biobambam) for BAM sorting, merging and marking duplicate.
     The alignment workflow has been dockerized and packaged using CWL workflow language, the source code
     is available on GitHub at: https://github.com/ICGC-TCGA-PanCancer/Seqware-BWA-Workflow.
+
     ## Run the workflow with your own data
     ### Prepare compute environment and install software packages
     The workflow has been tested in Ubuntu 16.04 Linux environment with the following hardware
@@ -141,28 +142,28 @@ doc: |
     #### Input unaligned BAM files
 
     The workflow uses lane-level unaligned BAM files as input, one BAM per lane (aka read group).
-    Please ensure `@RG` field is populated properly in the BAM header, the following is a
-    valid `@RG` entry. `ID` field has to be unique among your dataset.
+    Please ensure *@RG* field is populated properly in the BAM header, the following is a
+    valid *@RG* entry. *ID* field has to be unique among your dataset.
     ```
     @RG	ID:WTSI:9399_7	CN:WTSI	PL:ILLUMINA	PM:Illumina HiSeq 2000	LB:WGS:WTSI:28085	PI:453	SM:f393ba16-9361-5df4-e040-11ac0d4844e8	PU:WTSI:9399_7	DT:2013-03-18T00:00:00+00:00
     ```
-    Multiple unaligned BAMs from the same sample (with same `SM` value) should be run together. `SM` is
+    Multiple unaligned BAMs from the same sample (with same *SM* value) should be run together. *SM* is
     globally unique UUID for the sample. Put the input BAM files in a subfolder. In this example,
-    we have two BAMs in a folder named `bams`.
+    we have two BAMs in a folder named *bams*.
 
 
     #### Reference genome sequence files
 
     The reference genome files can be downloaded from the ICGC Data Portal at
     under https://dcc.icgc.org/releases/PCAWG/reference_data/pcawg-bwa-mem. Please download all
-    reference files and put them under a subfolder called `reference`.
+    reference files and put them under a subfolder called *reference*.
 
     #### Job JSON file for CWL
 
     Finally, we need to prepare a JSON file with input, reference and output files specified. Please
-    replace the `reads` parameter with your real BAM file name.
+    replace the *reads* parameter with your real BAM file name.
 
-    Name the JSON file: `pcawg-bwa-mem-aligner.job.json`
+    Name the JSON file: *pcawg-bwa-mem-aligner.job.json*
     ```
     {
       "reads": [
@@ -231,7 +232,7 @@ doc: |
     wget -O pcawg-bwa-mem-aligner.cwl "https://raw.githubusercontent.com/ICGC-TCGA-PanCancer/Seqware-BWA-Workflow/2.6.8_1.3/Dockstore.cwl"
     ```
 
-    - Run `cwltool` to execute the workflow
+    - Run *cwltool* to execute the workflow
     ```
     nohup cwltool --debug --non-strict pcawg-bwa-mem-aligner.cwl pcawg-bwa-mem-aligner.job.json > pcawg-bwa-mem-aligner.log 2>&1 &
     ```
