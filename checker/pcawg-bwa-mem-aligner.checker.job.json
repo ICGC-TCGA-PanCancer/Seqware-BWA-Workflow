@@ -1,0 +1,52 @@
+{
+  "result_files": [
+    {
+      "path": "reference_results/hg19.chr22.5x.normal.bam",
+      "class": "File"
+    },
+    {
+      "path": "hg19.chr22.5x.normal.bam",
+      "class": "File"
+    },
+    {
+      "path": "reference_results/hg19.chr22.5x.normal.unmapped.bam",
+      "class": "File"
+    },
+    {
+      "path": "hg19.chr22.5x.normal.unmapped.bam",
+      "class": "File"
+    },
+    {
+      "path": "reference_results/hg19.chr22.5x.normal.bam.bai",
+      "class": "File"
+    },
+    {
+      "path": "hg19.chr22.5x.normal.bam.bai",
+      "class": "File"
+    },
+    {
+      "path": "reference_results/hg19.chr22.5x.normal.unmapped.bam.bai",
+      "class": "File"
+    },
+    {
+      "path": "hg19.chr22.5x.normal.unmapped.bam.bai",
+      "class": "File"
+    },
+    {
+      "path": "reference_results/hg19.chr22.5x.normal.bam.metrics",
+      "class": "File"
+    },
+    {
+      "path": "hg19.chr22.5x.normal.bam.metrics",
+      "class": "File"
+    },
+    {
+      "path": "reference_results/hg19.chr22.5x.normal.unmapped.bam.metrics",
+      "class": "File"
+    },
+    {
+      "path": "hg19.chr22.5x.normal.unmapped.bam.metrics",
+      "class": "File"
+    }
+   ]
+}
