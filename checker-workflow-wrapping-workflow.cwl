@@ -115,7 +115,7 @@ steps:
       merged_output_unmapped_bam
     ]
   checker:
-    run: checker/pcawg-bwa-mem-aligner.checker.cwl
+    run: checker/pcawg-bwa-mem-result-checker.cwl
     in:
       result_files: [
         pcawg_bwa_mem_aligner/merged_output_bam,
@@ -132,6 +132,3 @@ steps:
         reference_result_normal_unmapped_metrics
       ]
     out: [stdout_log, stderr_log]
-
-
-
