@@ -1,0 +1,58 @@
+{
+  "result_files": [
+    {
+      "path": "https://dcc.icgc.org/api/v1/download?fn=/PCAWG/reference_data/data_for_testing/reference_results/hg19.chr22.5x.normal.bam",
+      "basename": "reference_results.hg19.chr22.5x.normal.bam",
+      "class": "File"
+    },
+    {
+      "path": "hg19.chr22.5x.normal.bam",
+      "class": "File"
+    },
+    {
+      "path": "https://dcc.icgc.org/api/v1/download?fn=/PCAWG/reference_data/data_for_testing/reference_results/hg19.chr22.5x.normal.unmapped.bam",
+      "basename": "reference_results.hg19.chr22.5x.normal.unmapped.bam",
+      "class": "File"
+    },
+    {
+      "path": "hg19.chr22.5x.normal.unmapped.bam",
+      "class": "File"
+    },
+    {
+      "path": "https://dcc.icgc.org/api/v1/download?fn=/PCAWG/reference_data/data_for_testing/reference_results/hg19.chr22.5x.normal.bam.bai",
+      "basename": "reference_results.hg19.chr22.5x.normal.bam.bai",
+      "class": "File"
+    },
+    {
+      "path": "hg19.chr22.5x.normal.bam.bai",
+      "class": "File"
+    },
+    {
+      "path": "https://dcc.icgc.org/api/v1/download?fn=/PCAWG/reference_data/data_for_testing/reference_results/hg19.chr22.5x.normal.unmapped.bam.bai",
+      "basename": "reference_results.hg19.chr22.5x.normal.unmapped.bam.bai",
+      "class": "File"
+    },
+    {
+      "path": "hg19.chr22.5x.normal.unmapped.bam.bai",
+      "class": "File"
+    },
+    {
+      "path": "https://dcc.icgc.org/api/v1/download?fn=/PCAWG/reference_data/data_for_testing/reference_results/hg19.chr22.5x.normal.bam.metrics",
+      "basename": "reference_results.hg19.chr22.5x.normal.bam.metrics",
+      "class": "File"
+    },
+    {
+      "path": "hg19.chr22.5x.normal.bam.metrics",
+      "class": "File"
+    },
+    {
+      "path": "https://dcc.icgc.org/api/v1/download?fn=/PCAWG/reference_data/data_for_testing/reference_results/hg19.chr22.5x.normal.unmapped.bam.metrics",
+      "basename": "reference_results.hg19.chr22.5x.normal.unmapped.bam.metrics",
+      "class": "File"
+    },
+    {
+      "path": "hg19.chr22.5x.normal.unmapped.bam.metrics",
+      "class": "File"
+    }
+   ]
+}
