@@ -205,22 +205,6 @@ doc: |
       "reference_gz": {
         "path": "reference/genome.fa.gz",
         "class": "File"
-      },
-      "merged_output_bam": {
-        "path": "merged_output.bam",
-        "class": "File"
-      },
-      "merged_output_bai": {
-        "path": "merged_output.bam.bai",
-        "class": "File"
-      },
-      "merged_output_unmapped_bam": {
-        "path": "merged_output.unmapped.bam",
-        "class": "File"
-      },
-      "merged_output_unmapped_bai": {
-        "path": "outputmerged_output.unmapped.bam.bai",
-        "class": "File"
       }
     }
     ```

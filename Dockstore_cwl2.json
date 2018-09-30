@@ -38,21 +38,5 @@
   "reference_gz": {
     "path": "https://dcc.icgc.org/api/v1/download?fn=/PCAWG/reference_data/pcawg-bwa-mem/genome.fa.gz",
     "class": "File"
-  },
-  "merged_output_unmapped_bai": {
-    "path": "/mnt/output/testing-bwa-workflow/merged_output.unmapped.bam.bai",
-    "class": "File"
-  },
-  "merged_output_bam": {
-    "path": "/mnt/output/testing-bwa-workflow/merged_output.bam",
-    "class": "File"
-  },
-  "merged_output_unmapped_bam": {
-    "path": "/mnt/output/testing-bwa-workflow/merged_output.unmapped.bam",
-    "class": "File"
-  },
-  "merged_output_bai": {
-    "path": "/mnt/output/testing-bwa-workflow/merged_output.bam.bai",
-    "class": "File"
   }
 }
