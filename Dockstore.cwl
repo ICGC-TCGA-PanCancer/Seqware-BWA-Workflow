@@ -222,4 +222,4 @@ doc: |
     ```
 
     #### Option 2: Run with the Dockstore CLI
-    See the *Launch with* section below for details
+    See the *Launch with* on the next tab for details
