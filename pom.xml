@@ -295,40 +295,6 @@
                     </filesets>
                 </configuration>
             </plugin>
-            <plugin>
-                <groupId>com.pyx4j</groupId>
-                <artifactId>maven-junction-plugin</artifactId>
-                <version>1.0.3</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>link</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>unlink</id>
-                        <phase>clean</phase>
-                        <goals>
-                            <goal>unlink</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <links>
-                        <link>
-                            <dst>${project.build.directory}/Workflow_Bundle_${workflow-name}_${project.version}_SeqWare_${seqware-version}/Workflow_Bundle_${workflow-directory-name}/${project.version}/data</dst>
-                            <src>${basedir}/links</src>
-                        </link>
-                    </links>
-                    <packages>
-                        <package>
-                            <name>symlinks</name>
-                            <src>${basedir}/workflow/links</src>
-                        </package>
-                    </packages>
-                </configuration>
-            </plugin>
         </plugins>
 
     </build>

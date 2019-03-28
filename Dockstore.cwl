@@ -135,7 +135,7 @@ doc: |
     - Docker (1.12.6): follow instructions to install Docker https://docs.docker.com/engine/installation
     - CWL tool
     ```
-    pip install cwltool==1.0.20170217172322
+    pip install cwltool==1.0.20180116213856
     ```
 
     ### Prepare input data
@@ -177,6 +177,7 @@ doc: |
         }
       ],
       "output_dir": "datastore",
+      "download_reference_files": "false",
       "output_file_basename": "seq_from_normal_sample_A",
       "reference_gz_amb": {
         "path": "reference/genome.fa.gz.64.amb",
