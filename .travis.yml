@@ -16,10 +16,9 @@ notifications:
 
 before_install:
   - docker build -t quay.io/pancancer/pcawg-bwa-mem-workflow:2.6.8_1.2 .
-  - pip2.7 install --user setuptools==24.0.3
 
 install: 
-  - pip2.7 install --user cwl-runner cwltool==1.0.20160712154127 schema-salad==1.14.20160708181155 avro==1.8.1
+  - pip2.7 install --user -r requirements.txt
 
 script: 
   - cwltool --non-strict --print-pre Dockstore.cwl
