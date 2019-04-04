@@ -15,7 +15,7 @@ notifications:
       - oicr:S9k4EowgQv9AnbCfEZHSzCsg
 
 before_install:
-  - docker build -t quay.io/pancancer/pcawg-bwa-mem-workflow:2.6.8_1.2 .
+  - docker build -t quay.io/pancancer/pcawg-bwa-mem-workflow:2.7.0 .
 
 install: 
   - pip2.7 install --user -r requirements.txt
