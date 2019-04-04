@@ -16,7 +16,7 @@ dct:contributor:
 
 requirements:
 - class: DockerRequirement
-  dockerPull: quay.io/pancancer/pcawg-bwa-mem-workflow:2.6.8_1.2
+  dockerPull: quay.io/pancancer/pcawg-bwa-mem-workflow:2.7.0
 - class: InlineJavascriptRequirement
 
 inputs:
