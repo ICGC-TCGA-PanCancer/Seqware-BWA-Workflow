@@ -1,4 +1,4 @@
-task Seqware_BWA_Workflow {
+task Seqware_BWA {
     Array[File] reads
     File reference_gz
     File reference_gz_fai
@@ -12,6 +12,7 @@ task Seqware_BWA_Workflow {
     String download_reference_files
 
     command {
+        bash /start.sh
         python /home/seqware/Seqware-BWA-Workflow/run_seqware_workflow.py \
         --files ${sep=' ' reads} \
         --output-dir ${output_dir} \
@@ -36,10 +37,34 @@ task Seqware_BWA_Workflow {
     }
 
     runtime {
-        docker: 'quay.io/pancancer/pcawg-bwa-mem-workflow:2.6.8'
+        docker: 'quay.io/pancancer/pcawg-bwa-mem-workflow:2.7.0'
     }
 }
 
 workflow Seqware_BWA_Workflow {
-    call Seqware_BWA_Workflow
+    Array[File] reads
+    File reference_gz
+    File reference_gz_fai
+    File reference_gz_amb
+    File reference_gz_ann
+    File reference_gz_bwt
+    File reference_gz_pac
+    File reference_gz_sa
+    String output_dir
+    String output_file_basename
+    String download_reference_files
+    call Seqware_BWA {
+        input:
+            reads = reads,
+            reference_gz = reference_gz,
+            reference_gz_fai = reference_gz_fai,
+            reference_gz_amb = reference_gz_amb,
+            reference_gz_ann = reference_gz_ann,
+            reference_gz_bwt = reference_gz_bwt,
+            reference_gz_pac = reference_gz_pac,
+            reference_gz_sa = reference_gz_sa,
+            output_dir = output_dir,
+            output_file_basename = output_file_basename,
+            download_reference_files = download_reference_files
+    }
 }
