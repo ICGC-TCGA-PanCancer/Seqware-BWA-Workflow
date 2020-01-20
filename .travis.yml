@@ -2,7 +2,6 @@ sudo: required
 language: java
 jdk:
   - oraclejdk15
-script: mvn -B clean install
 
 services:
   - docker
@@ -21,5 +20,6 @@ install:
   - pip2.7 install --user -r requirements.txt
 
 script: 
+  - mvn -B clean install
   - cwltool --non-strict --print-pre Dockstore.cwl
 # cannot run, proper run would take too long - cwltool --non-strict Dockstore.cwl Dockstore_cwl.json
