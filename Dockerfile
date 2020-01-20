@@ -19,9 +19,13 @@ COPY workflow.properties /home/seqware/Seqware-BWA-Workflow/
 #COPY scripts/run_seqware_workflow.pl /home/seqware/Seqware-BWA-Workflow/
 #RUN chmod a+x /home/seqware/Seqware-BWA-Workflow/run_seqware_workflow.pl
 
+ENV MAVEN_VERSION="3.6.3"
 ENV SEQWARE_ROOT="root"
 WORKDIR /home/seqware/Seqware-BWA-Workflow/
-
+RUN apt-get remove maven -y
+RUN wget https://www-us.apache.org/dist/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz -P /tmp
+RUN tar xf /tmp/apache-maven-*.tar.gz -C /opt
+ENV PATH="/opt/apache-maven-${MAVEN_VERSION}/bin:${PATH}"
 RUN mvn -B clean install
 
 VOLUME /output/ /datastore/ /home/seqware /data /data/reference /data/reference/bwa-0.6.2/
