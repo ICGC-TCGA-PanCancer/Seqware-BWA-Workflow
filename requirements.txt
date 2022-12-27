@@ -1,4 +1,4 @@
-setuptools==40.8.0
+setuptools==65.5.1
 cwl-runner
 cwltool==1.0.20181217162649
 schema-salad==3.0.20181206233650
